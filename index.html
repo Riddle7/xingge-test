@@ -1,0 +1,803 @@
+<!DOCTYPE html>
+<html lang="zh-CN" class="light" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>刑格CPTI - 你的刑法人格鉴定书</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@300;400;500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style id="theme-vars">
+:root {
+  --color-primary-50: #eef2ff;
+  --background: #ffffff;
+  --foreground: #0f172a;
+  --card: #ffffff;
+  --card-foreground: #1e293b;
+  --popover: #ffffff;
+  --popover-foreground: #1e293b;
+  --color-primary: #4f46e5;
+  --color-primary-600: #4338ca;
+  --color-primary-foreground: #ffffff;
+  --color-muted: #f1f5f9;
+  --color-muted-foreground: #64748b;
+  --color-border: #e2e8f0;
+  --color-input: #e2e8f0;
+  --color-ring: #4f46e5;
+  --radius-sm: 4px;
+  --radius-md: 8px;
+  --radius-lg: 12px;
+  --radius-full: 9999px;
+  --font-display: 'Inter', 'Noto Sans SC', system-ui, -apple-system, sans-serif;
+  --font-body: 'Noto Sans SC', 'Inter', system-ui, -apple-system, sans-serif;
+}
+.dark {
+  --background: #0f172a;
+  --foreground: #f1f5f9;
+  --card: #1e293b;
+  --card-foreground: #f1f5f9;
+  --popover: #1e293b;
+  --popover-foreground: #f1f5f9;
+  --color-muted: #334155;
+  --color-muted-foreground: #94a3b8;
+  --color-border: #334155;
+  --color-input: #334155;
+}
+.font-display { font-family: var(--font-display); }
+.font-body { font-family: var(--font-body); }
+    </style>
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4.3.1/dist/index.global.js"></script>
+    <script src="https://unpkg.com/lucide@1.8.0/dist/umd/lucide.min.js"></script>
+    <style type="text/tailwindcss">
+  @theme inline {
+    --color-background: var(--background);
+    --color-foreground: var(--foreground);
+    --color-card: var(--card);
+    --color-card-foreground: var(--card-foreground);
+    --color-popover: var(--popover);
+    --color-popover-foreground: var(--popover-foreground);
+    --color-primary: var(--color-primary);
+    --color-primary-foreground: var(--color-primary-foreground);
+    --color-muted: var(--color-muted);
+    --color-muted-foreground: var(--color-muted-foreground);
+    --color-border: var(--color-border);
+    --color-input: var(--color-input);
+    --color-ring: var(--color-ring);
+    --radius-sm: var(--radius-sm);
+    --radius-md: var(--radius-md);
+    --radius-lg: var(--radius-lg);
+  }
+  @layer base {
+    body { background: var(--background); color: var(--foreground); }
+  }
+    </style>
+    <style>
+      .page { display: none; }
+      .page.active { display: block; }
+      .likert-btn {
+        flex: 1;
+        transition: all 0.2s ease;
+        cursor: pointer;
+        text-align: center;
+        border: 1.5px solid var(--color-border);
+        background: var(--card);
+        color: var(--foreground);
+      }
+      .likert-btn:hover { border-color: var(--color-primary-300); background: var(--color-primary-50); }
+      .likert-btn.selected {
+        border-color: var(--color-primary);
+        background: var(--color-primary);
+        color: var(--color-primary-foreground);
+        box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+      }
+      @keyframes fade-in {
+        from { opacity: 0; transform: translateY(16px); }
+        to { opacity: 1; transform: translateY(0); }
+      }
+      .animate-fade-in { animation: fade-in 0.5s ease forwards; }
+      @keyframes spin-slow {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
+      }
+      .animate-spin-slow { animation: spin-slow 1.5s linear infinite; }
+      @keyframes pulse-dot {
+        0%, 80%, 100% { transform: scale(0.6); opacity: 0.4; }
+        40% { transform: scale(1); opacity: 1; }
+      }
+      .loading-dot { animation: pulse-dot 1.4s ease-in-out infinite; }
+      .loading-dot:nth-child(2) { animation-delay: 0.2s; }
+      .loading-dot:nth-child(3) { animation-delay: 0.4s; }
+      .modal-overlay {
+        display: none;
+        position: fixed;
+        inset: 0;
+        z-index: 50;
+        align-items: center;
+        justify-content: center;
+        background: rgba(0,0,0,0.4);
+        backdrop-filter: blur(4px);
+      }
+      .modal-overlay.active { display: flex; }
+    </style>
+</head>
+<body class="min-h-screen font-body antialiased">
+<main>
+
+  <!-- ==================== 开始页 ==================== -->
+  <div id="page-intro" class="page active">
+    <nav class="flex items-center justify-between px-6 py-4 max-w-3xl mx-auto">
+      <a href="#" onclick="return false;" class="flex items-center gap-2 text-lg font-semibold tracking-tight text-foreground no-underline hover:text-primary transition-colors">
+        <i data-lucide="scale" class="w-5 h-5 text-primary"></i>
+        <span class="font-display">刑格 <span class="text-muted-foreground font-normal text-sm">CPTI</span></span>
+      </a>
+      <div class="flex items-center gap-4 text-sm text-muted-foreground">
+        <button onclick="showAbout()" class="hover:text-foreground transition-colors no-underline text-muted-foreground bg-transparent border-none cursor-pointer flex items-center gap-1">
+          <i data-lucide="info" class="w-4 h-4 inline-block align-[-2px]"></i>关于
+        </button>
+        <button onclick="shareResult()" class="hover:text-foreground transition-colors no-underline text-muted-foreground bg-transparent border-none cursor-pointer flex items-center gap-1">
+          <i data-lucide="share-2" class="w-4 h-4 inline-block align-[-2px]"></i>分享
+        </button>
+      </div>
+    </nav>
+
+    <section class="flex flex-col items-center text-center px-6 pt-12 pb-16 max-w-2xl mx-auto">
+      <span class="inline-block px-3 py-1 rounded-full bg-primary-50 text-primary text-xs font-medium tracking-wide mb-6">CPTI 2.0</span>
+      <h1 class="font-display text-4xl md:text-5xl font-bold tracking-tight text-foreground leading-tight mb-6">你的「刑法人格」鉴定书</h1>
+      <p class="text-muted-foreground text-base md:text-lg leading-relaxed max-w-lg mb-10">本测试可能暴露你的学术立场、你的导师类型、甚至你为什么在刑法研讨课上跟人吵架。请根据真实直觉作答。</p>
+      <button onclick="goToPage('quiz-1')" class="inline-flex items-center gap-2 px-8 py-3.5 rounded-lg bg-primary text-primary-foreground font-medium text-base hover:bg-primary-600 active:bg-primary-700 transition-colors shadow-sm cursor-pointer">
+        <i data-lucide="play" class="w-4 h-4"></i>
+        开始测试
+      </button>
+      <p class="text-xs text-muted-foreground mt-3">24 题 · 约 6 分钟 · 无对错之分</p>
+    </section>
+
+    <section class="px-6 pb-16 max-w-2xl mx-auto">
+      <div class="bg-card border border-border rounded-lg p-6 md:p-8">
+        <h2 class="font-display text-xl font-semibold text-foreground mb-6 flex items-center gap-2">
+          <i data-lucide="book-open" class="w-5 h-5 text-primary"></i>
+          测试规则
+        </h2>
+        <div class="space-y-5">
+          <div class="flex gap-4">
+            <div class="flex-shrink-0 w-8 h-8 rounded-full bg-primary-50 text-primary text-sm font-semibold flex items-center justify-center">1</div>
+            <div>
+              <p class="text-foreground font-medium text-sm mb-1">凭直觉选</p>
+              <p class="text-muted-foreground text-sm leading-relaxed">不要思考"标准答案"，选择你最真实的认同程度。</p>
+            </div>
+          </div>
+          <div class="flex gap-4">
+            <div class="flex-shrink-0 w-8 h-8 rounded-full bg-primary-50 text-primary text-sm font-semibold flex items-center justify-center">2</div>
+            <div>
+              <p class="text-foreground font-medium text-sm mb-1">五级量表</p>
+              <p class="text-muted-foreground text-sm leading-relaxed">非常赞同 / 赞同 / 中立 / 反对 / 非常反对。</p>
+            </div>
+          </div>
+          <div class="flex gap-4">
+            <div class="flex-shrink-0 w-8 h-8 rounded-full bg-primary-50 text-primary text-sm font-semibold flex items-center justify-center">3</div>
+            <div>
+              <p class="text-foreground font-medium text-sm mb-1">四维人格</p>
+              <p class="text-muted-foreground text-sm leading-relaxed">立场(S/O)、解释(F/E)、目的(R/P)、边界(Ex/Re)。正分越偏向O/E/P/Re，负分越偏向S/F/R/Ex。</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="px-6 pb-16 max-w-2xl mx-auto">
+      <h2 class="font-display text-xl font-semibold text-foreground mb-6 flex items-center gap-2">
+        <i data-lucide="git-compare-arrows" class="w-5 h-5 text-primary"></i>
+        四轴对照
+      </h2>
+      <div class="space-y-3">
+        <div class="bg-card border border-border rounded-lg px-4 py-3 sm:px-5 sm:py-4 flex items-center gap-3 sm:gap-4">
+          <span class="flex-shrink-0 px-2 py-0.5 sm:px-2.5 sm:py-1 rounded bg-primary text-primary-foreground text-xs font-semibold tracking-wide">立场</span>
+          <div class="flex-1 flex items-center justify-between text-xs sm:text-sm min-w-0">
+            <div class="flex items-center gap-1 sm:gap-2"><span class="inline-block w-2 h-2 sm:w-2.5 sm:h-2.5 rounded-full bg-red-400"></span><span class="text-muted-foreground text-xs">S</span><span class="text-foreground font-medium">主观主义</span></div>
+            <span class="text-border mx-1">—</span>
+            <div class="flex items-center gap-1 sm:gap-2"><span class="text-foreground font-medium">客观主义</span><span class="text-muted-foreground text-xs">O</span><span class="inline-block w-2 h-2 sm:w-2.5 sm:h-2.5 rounded-full bg-blue-400"></span></div>
+          </div>
+        </div>
+        <div class="bg-card border border-border rounded-lg px-4 py-3 sm:px-5 sm:py-4 flex items-center gap-3 sm:gap-4">
+          <span class="flex-shrink-0 px-2 py-0.5 sm:px-2.5 sm:py-1 rounded bg-primary text-primary-foreground text-xs font-semibold tracking-wide">解释</span>
+          <div class="flex-1 flex items-center justify-between text-xs sm:text-sm min-w-0">
+            <div class="flex items-center gap-1 sm:gap-2"><span class="inline-block w-2 h-2 sm:w-2.5 sm:h-2.5 rounded-full bg-red-400"></span><span class="text-muted-foreground text-xs">F</span><span class="text-foreground font-medium">形式解释</span></div>
+            <span class="text-border mx-1">—</span>
+            <div class="flex items-center gap-1 sm:gap-2"><span class="text-foreground font-medium">实质解释</span><span class="text-muted-foreground text-xs">E</span><span class="inline-block w-2 h-2 sm:w-2.5 sm:h-2.5 rounded-full bg-blue-400"></span></div>
+          </div>
+        </div>
+        <div class="bg-card border border-border rounded-lg px-4 py-3 sm:px-5 sm:py-4 flex items-center gap-3 sm:gap-4">
+          <span class="flex-shrink-0 px-2 py-0.5 sm:px-2.5 sm:py-1 rounded bg-primary text-primary-foreground text-xs font-semibold tracking-wide">目的</span>
+          <div class="flex-1 flex items-center justify-between text-xs sm:text-sm min-w-0">
+            <div class="flex items-center gap-1 sm:gap-2"><span class="inline-block w-2 h-2 sm:w-2.5 sm:h-2.5 rounded-full bg-red-400"></span><span class="text-muted-foreground text-xs">R</span><span class="text-foreground font-medium">报应刑</span></div>
+            <span class="text-border mx-1">—</span>
+            <div class="flex items-center gap-1 sm:gap-2"><span class="text-foreground font-medium">预防刑</span><span class="text-muted-foreground text-xs">P</span><span class="inline-block w-2 h-2 sm:w-2.5 sm:h-2.5 rounded-full bg-blue-400"></span></div>
+          </div>
+        </div>
+        <div class="bg-card border border-border rounded-lg px-4 py-3 sm:px-5 sm:py-4 flex items-center gap-3 sm:gap-4">
+          <span class="flex-shrink-0 px-2 py-0.5 sm:px-2.5 sm:py-1 rounded bg-primary text-primary-foreground text-xs font-semibold tracking-wide">边界</span>
+          <div class="flex-1 flex items-center justify-between text-xs sm:text-sm min-w-0">
+            <div class="flex items-center gap-1 sm:gap-2"><span class="inline-block w-2 h-2 sm:w-2.5 sm:h-2.5 rounded-full bg-red-400"></span><span class="text-muted-foreground text-xs">Ex</span><span class="text-foreground font-medium">扩张派</span></div>
+            <span class="text-border mx-1">—</span>
+            <div class="flex items-center gap-1 sm:gap-2"><span class="text-foreground font-medium">限缩派</span><span class="text-muted-foreground text-xs">Re</span><span class="inline-block w-2 h-2 sm:w-2.5 sm:h-2.5 rounded-full bg-blue-400"></span></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <footer class="px-6 pb-10 text-center text-xs text-muted-foreground">
+      <p>&copy; 2025 刑格 CPTI &middot; 仅供娱乐，不构成任何学术或法律建议</p>
+    </footer>
+  </div>
+
+  <!-- ==================== 答题页 ==================== -->
+  <div id="page-quiz" class="page">
+    <div class="mx-auto max-w-2xl px-5 py-6 sm:px-8">
+      <div class="flex items-center gap-3 mb-6">
+        <button onclick="goBack()" class="flex items-center justify-center w-9 h-9 rounded-full border border-border text-muted-foreground hover:bg-muted transition-colors bg-transparent cursor-pointer" aria-label="返回">
+          <i data-lucide="arrow-left" class="w-4 h-4"></i>
+        </button>
+        <span id="quiz-progress-text" class="text-sm font-medium text-muted-foreground">1 / 32</span>
+      </div>
+      <div class="w-full h-1.5 rounded-full bg-muted overflow-hidden mb-8">
+        <div id="quiz-progress-bar" class="h-full rounded-full bg-primary transition-all duration-300" style="width:3.125%"></div>
+      </div>
+
+      <div class="rounded-xl border border-border bg-card shadow-sm p-6 sm:p-8 mb-6">
+        <h2 id="quiz-statement" class="text-lg sm:text-xl font-bold text-card-foreground leading-relaxed"></h2>
+      </div>
+
+      <div class="mb-2 text-xs text-muted-foreground text-center">请选择你的认同程度</div>
+      <div id="quiz-options" class="flex flex-col sm:flex-row gap-2 sm:gap-3 mb-10"></div>
+
+      <div class="flex items-center justify-between gap-4 pb-8">
+        <button id="btn-prev" onclick="goPrev()" class="inline-flex items-center gap-2 rounded-lg px-5 py-2.5 text-sm font-medium text-muted-foreground bg-muted/60 cursor-not-allowed opacity-50 border-none" disabled>
+          <i data-lucide="chevron-left" class="w-4 h-4"></i>上一题
+        </button>
+        <button id="btn-next" onclick="goNext()" class="inline-flex items-center gap-2 rounded-lg bg-primary px-5 py-2.5 text-sm font-semibold text-primary-foreground shadow-sm hover:bg-primary-600 transition-colors cursor-pointer border-none">
+          下一题<i data-lucide="chevron-right" class="w-4 h-4"></i>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== 计算中 ==================== -->
+  <div id="page-scoring" class="page">
+    <div class="max-w-2xl mx-auto px-4 py-24 text-center">
+      <div class="inline-flex items-center justify-center w-16 h-16 mb-6">
+        <i data-lucide="scale" class="w-10 h-10 text-primary animate-spin-slow"></i>
+      </div>
+      <h2 class="text-xl font-bold text-foreground mb-3">正在计算你的刑格...</h2>
+      <p class="text-sm text-muted-foreground mb-8">正在比对 16 种刑法人格模型</p>
+      <div class="flex justify-center gap-2">
+        <span class="w-2.5 h-2.5 bg-primary rounded-full loading-dot"></span>
+        <span class="w-2.5 h-2.5 bg-primary rounded-full loading-dot"></span>
+        <span class="w-2.5 h-2.5 bg-primary rounded-full loading-dot"></span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== 结果页 ==================== -->
+  <div id="page-result" class="page">
+    <div class="max-w-2xl mx-auto px-6 py-10 animate-fade-in">
+      <section class="text-center mb-10">
+        <span class="inline-block text-xs font-medium tracking-wide text-primary bg-primary-50 px-3 py-1 rounded-full mb-4">你的刑格类型</span>
+        <h1 id="result-type" class="font-display text-5xl font-bold text-foreground tracking-tight mb-2">S-E-R-Re</h1>
+        <p id="result-nickname" class="text-2xl font-semibold text-primary mb-4">持刀哲学家</p>
+        <div id="result-tags" class="flex flex-wrap justify-center gap-2"></div>
+      </section>
+
+      <section class="bg-card border border-border rounded-lg p-6 mb-8 shadow-sm">
+        <h2 class="font-display text-sm font-semibold text-muted-foreground uppercase tracking-wider mb-5">四维人格坐标</h2>
+        <div class="space-y-5" id="axis-container"></div>
+      </section>
+
+      <section class="bg-card border border-border rounded-lg p-6 mb-8 shadow-sm">
+        <div class="flex items-center gap-2 mb-3">
+          <i data-lucide="scroll-text" class="w-5 h-5 text-primary"></i>
+          <h2 class="font-display text-lg font-semibold text-foreground">判词</h2>
+        </div>
+        <p id="result-judgment" class="text-card-foreground leading-relaxed"></p>
+      </section>
+
+      <section class="relative bg-primary-50 border border-primary-100 rounded-lg p-6 mb-8">
+        <div class="absolute top-4 left-4 text-primary-200"><i data-lucide="quote" class="w-8 h-8"></i></div>
+        <blockquote id="result-quote" class="pl-8 text-card-foreground leading-relaxed italic"></blockquote>
+      </section>
+
+      <section class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-10">
+        <div class="bg-emerald-50 border border-emerald-200 rounded-lg p-5">
+          <div class="flex items-center gap-2 mb-3"><i data-lucide="heart-handshake" class="w-4 h-4 text-emerald-600"></i><h3 class="font-display text-sm font-semibold text-emerald-700">互粉</h3></div>
+          <ul id="result-friends" class="space-y-3"></ul>
+        </div>
+        <div class="bg-rose-50 border border-rose-200 rounded-lg p-5">
+          <div class="flex items-center gap-2 mb-3"><i data-lucide="swords" class="w-4 h-4 text-rose-600"></i><h3 class="font-display text-sm font-semibold text-rose-700">互怼</h3></div>
+          <ul id="result-enemies" class="space-y-3"></ul>
+        </div>
+      </section>
+
+      <section class="bg-card border border-border rounded-lg p-6 mb-10 shadow-sm">
+        <div class="flex items-center gap-2 mb-4"><i data-lucide="gavel" class="w-5 h-5 text-primary"></i><h2 class="font-display text-lg font-semibold text-foreground">如果当法官，被告人的表情</h2></div>
+        <div id="result-judge" class="flex items-center justify-center gap-4 sm:gap-6 py-4 flex-wrap"></div>
+      </section>
+
+      <section class="flex flex-col sm:flex-row items-center justify-center gap-4 pb-10">
+        <button onclick="resetTest()" class="inline-flex items-center gap-2 px-6 py-3 text-sm font-semibold text-primary border-2 border-primary rounded-lg hover:bg-primary-50 transition-colors duration-150 cursor-pointer bg-transparent">
+          <i data-lucide="rotate-ccw" class="w-4 h-4"></i>重新测试
+        </button>
+        <button onclick="shareResult()" class="inline-flex items-center gap-2 px-6 py-3 text-sm font-semibold text-primary-foreground bg-primary rounded-lg hover:bg-primary-600 transition-colors duration-150 shadow-sm cursor-pointer border-none">
+          <i data-lucide="share-2" class="w-4 h-4"></i>分享结果
+        </button>
+      </section>
+
+      <footer class="text-center text-xs text-muted-foreground pb-8">刑格 CPTI 2.0 &middot; 仅供娱乐，不构成任何学术或法律建议</footer>
+    </div>
+  </div>
+
+  <!-- ==================== 关于弹窗 ==================== -->
+  <div id="about-modal" class="modal-overlay" onclick="if(event.target===this)closeAbout()">
+    <div class="bg-white rounded-lg shadow-xl max-w-md mx-4 p-6 animate-fade-in">
+      <div class="flex justify-between items-center mb-4">
+        <h3 class="font-bold text-foreground">关于刑格 CPTI</h3>
+        <button onclick="closeAbout()" class="text-muted-foreground hover:text-foreground bg-transparent border-none cursor-pointer"><i data-lucide="x" class="w-5 h-5"></i></button>
+      </div>
+      <div class="text-sm text-muted-foreground space-y-3 leading-relaxed">
+        <p><strong class="text-foreground">CPTI</strong>（Criminal Personality Type Indicator）是一个基于刑法理论立场的趣味性格测试，灵感来源于 MBTI 和 16Personalities。</p>
+        <p>测试通过 32 个观点陈述，从四个维度测量你的刑法思维偏好：</p>
+        <ul class="list-disc list-inside space-y-1 pl-2">
+          <li><strong class="text-foreground">立场轴 (S/O)</strong>：主观主义 vs 客观主义</li>
+          <li><strong class="text-foreground">解释轴 (F/E)</strong>：形式解释 vs 实质解释</li>
+          <li><strong class="text-foreground">目的轴 (R/P)</strong>：报应刑 vs 预防刑</li>
+          <li><strong class="text-foreground">边界轴 (Ex/Re)</strong>：扩张解释 vs 限缩解释</li>
+        </ul>
+        <p class="text-xs pt-2 border-t border-border">本测试纯属娱乐创作，不代表任何学术机构观点。不构成法律建议。如有法律问题请咨询专业律师。</p>
+      </div>
+    </div>
+  </div>
+
+</main>
+
+<script>
+/* ===== 32道Likert题目 =====
+   每题包含：statement（题干）和 dimMap（各维度计分方向）
+   方向规则：与md一致
+   - S/F/R/Ex：最终得分为选择分值的相反数（负向）
+   - O/E/P/Re：最终得分为选择分值的直接数（正向）
+   选择分值：++=+2, +=+1, 0=0, -=-1, --=-2
+*/
+const quizData = [
+  { id: 1,  statement: "两个实施了完全相同盗窃行为的人——一个为买毒品，一个为孩子吃饭——应当受到不同程度的刑罚。", dimMap: { so: 'S', fe: null, rp: null, exre: null } },
+  { id: 2,  statement: "法官应当严格遵守法条的字面含义。即使字面解释在个别案件中导致不合理的结论，修改法律也是立法者的事，不是法官的事。", dimMap: { so: null, fe: 'F', rp: null, exre: null } },
+  { id: 3,  statement: "刑罚的首要功能是让罪犯'罪有应得'——惩罚与罪行相称，比惩罚能否预防未来犯罪更重要。", dimMap: { so: null, fe: null, rp: 'R', exre: null } },
+  { id: 4,  statement: "如果某个行为是否构成犯罪存在'合理的争议'，那么它就不应当被认定为犯罪——刑法不是试探边界的工具。", dimMap: { so: null, fe: null, rp: null, exre: 'Re' } },
+  { id: 5,  statement: "无论行为人动机多么善良或值得同情，只要客观行为触犯了法律，就应当依法定罪。动机只能影响量刑，不能影响定罪。", dimMap: { so: 'O', fe: null, rp: null, exre: null } },
+  { id: 6,  statement: "如果一个罪犯已经真诚悔改、完全不会再危害社会，那么让他继续服满漫长的刑期只是在浪费司法资源。", dimMap: { so: null, fe: null, rp: 'P', exre: null } },
+  { id: 7,  statement: "当法律条文的字面含义与立法目的发生冲突时，法官应当优先考虑立法目的，而非机械地套用文字。", dimMap: { so: null, fe: 'E', rp: null, exre: null } },
+  { id: 8,  statement: "对于法律没有明确规制但明显具有社会危害性的新型行为，法官应当通过灵活解释现有法条来填补漏洞，不能坐等立法者修法。", dimMap: { so: null, fe: null, rp: null, exre: 'Ex' } },
+  { id: 9,  statement: "在评价一个犯罪行为时，行为人内心的恶意程度比行为造成的客观后果更能决定刑罚的轻重。", dimMap: { so: 'S', fe: null, rp: null, exre: null } },
+  { id: 10, statement: "扩张解释是危险的——它让法官变成立法者。法官的职责是适用法律，不是'完善'法律。", dimMap: { so: null, fe: 'F', rp: null, exre: null } },
+  { id: 11, statement: "被害人有权期待犯罪人受到与其罪行相称的惩罚——这是司法对被害人的基本承诺，与犯罪人是否会再犯无关。", dimMap: { so: null, fe: null, rp: 'R', exre: null } },
+  { id: 12, statement: "在法条文义模糊、存在多种解释可能时，法官应当选择对被告人最有利的那种解释。", dimMap: { so: null, fe: null, rp: null, exre: 'Re' } },
+  { id: 13, statement: "甲醉酒后驾车撞死人，但他当时确实'喝断片了'——定罪的核心依据应当是行为时的客观状态，而非他之前'选择喝酒'这个生活方式问题。", dimMap: { so: 'O', fe: null, rp: null, exre: null } },
+  { id: 14, statement: "刑事司法系统应当像医生对待病人一样对待罪犯——诊断犯罪原因，提供矫正方案，而非仅仅施加痛苦。", dimMap: { so: null, fe: null, rp: 'P', exre: null } },
+  { id: 15, statement: "刑法真正要规制的不是行为本身，而是行为所侵害的法益。如果一个行为没有造成实质的法益侵害，即使法条文字可以'套得上'，也不应当定罪。", dimMap: { so: null, fe: 'E', rp: null, exre: null } },
+  { id: 16, statement: "对于新型毒品——化学结构与传统毒品'高度相似但未列入管制附表'——应当参照现有法律予以打击。刑法不能落后于化学实验室。", dimMap: { so: null, fe: null, rp: null, exre: 'Ex' } },
+  { id: 17, statement: "即使一个罪犯已经完全改过自新、不再有任何再犯可能，他仍然应当为他曾经犯下的罪行服满应得的刑期——这是正义的基本要求。", dimMap: { so: null, fe: null, rp: 'R', exre: null } },
+  { id: 18, statement: "如果刑罚不能有效减少未来的犯罪率，那么无论它看起来多么'公平'，它都是失败的。", dimMap: { so: null, fe: null, rp: 'P', exre: null } },
+  { id: 19, statement: "在网络空间发表煽动性言论，即使阅读量极少、没有任何人实际响应，也应当入罪——主观恶意本身已经值得刑法关注。", dimMap: { so: 'S', fe: null, rp: null, exre: null } },
+  { id: 20, statement: "在公共安全面临新型威胁时，刑法应当积极介入——宁可解释得宽一点，也不能让危险分子钻法律的空子。", dimMap: { so: null, fe: null, rp: null, exre: 'Ex' } },
+  { id: 21, statement: "主观恶意再深，如果没有外化为具体的客观行为或实际危害，刑法就不应当介入——思想不是刑法的对象。", dimMap: { so: 'O', fe: null, rp: null, exre: null } },
+  { id: 22, statement: "法律的语言永远无法完全覆盖社会现实的复杂性。因此，法官需要根据个案的具体情况和社会的实际需要来灵活解释法律，而不是机械地套用公式。", dimMap: { so: null, fe: 'E', rp: null, exre: null } },
+  { id: 23, statement: "即使一个行为在道德上应当谴责，只要刑法没有明文禁止，就不能通过扩张解释将其纳入犯罪圈——这是法治的底线。", dimMap: { so: null, fe: null, rp: null, exre: 'Re' } },
+  { id: 24, statement: "如果现有法条无法精确覆盖某个具有社会危害性的行为，说明存在法律漏洞——漏洞应当由立法者来填补，司法不应越位。", dimMap: { so: null, fe: 'F', rp: null, exre: 'Re' } }
+];
+
+/* ===== 16种人格结果数据 ===== */
+const personalities = {
+  'S-F-R-Ex': {
+    nickname: '法条灭霸', tags: ['严刑峻法的绝对信徒', '主观恶性探测器', '扩张解释推土机'],
+    judgment: '你深信「人心惟危，动机不纯即是恶」。判案时，你不仅穷尽法条字眼，还主动扩张解释堵住所有漏洞。在你看来，刑罚就是报应，恶念必须付出代价。法庭上你从不笑，卷宗就是你的生死簿。',
+    quote: '法条没写？那叫「当然解释」。主观恶性？我隔着卷宗都能闻到。',
+    friends: ['S-E-R-Ex', 'O-E-R-Ex', 'S-E-P-Ex'], enemies: ['O-E-P-Re', 'S-E-P-Re', 'O-F-P-Re'],
+    judge: ['😰 紧张', '🤔 疑惑', '😨 恐惧'], fit: '重罪公诉人', unfit: '少年法庭法官'
+  },
+  'S-F-R-Re': {
+    nickname: '立法者の忠犬', tags: ['罪刑法定的冷面卫道士', '法条原教旨主义者', '克制の复仇者'],
+    judgment: '你极其尊重立法者原意，认为法条没写的恶，再可恶也不能判。但一旦法条白纸黑字写明了主观恶意，你便会毫不留情地施以最重的报应刑。你是「罪刑法定」的终极守门人。',
+    quote: '法无明文规定不为罪？对。法有明文规定必为罪？也对。我的工作是后者。',
+    friends: ['O-F-R-Re', 'S-E-R-Re', 'O-E-R-Re'], enemies: ['S-E-P-Ex', 'O-F-P-Ex', 'S-E-P-Re'],
+    judge: ['😠 愤怒', '😩 绝望', '😶 认命'], fit: '最高法院法官', unfit: '舆论敏感案件主审'
+  },
+  'S-F-P-Ex': {
+    nickname: '预防性洁癖', tags: ['净化社会的铁扫帚', '主观恶性+扩张解释双buff', '教育刑の狂信者'],
+    judgment: '你眼里容不得沙子，认为刑法的目的是「扫除一切潜在的破坏分子」。你严格按条文字眼定罪，但为了「预防犯罪」这个大目标，你会毫不犹豫地扩大打击面。最好的社会是「没人敢犯罪」的社会。',
+    quote: '今天不办他，明天他就敢办别人。预防刑不是温柔，是提前温柔地消灭危险。',
+    friends: ['O-F-P-Ex', 'S-E-P-Ex', 'O-E-P-Ex'], enemies: ['O-E-P-Re', 'O-E-R-Re', 'S-E-R-Re'],
+    judge: ['🤞 侥幸', '😧 震惊', '😱 崩溃'], fit: '犯罪预防研究员', unfit: '基层派出所调解员'
+  },
+  'S-F-P-Re': {
+    nickname: '依法从宽の神', tags: ['依法教化的仁厚长者', '教育刑+形式解释の缝合怪', '体制内宽严相济实操派'],
+    judgment: '你主张「惩前毖后，治病救人」。你看重主观悔过态度，但严守法条边界，绝不乱解释。只要法律写了，就按规矩来教育改造；法律没写的，哪怕对方再像坏人，你也坚持放回去感化。',
+    quote: '法律写了，我按规矩办你；法律没写，我按规矩放你。规矩是我的信仰，也是你的保护伞。',
+    friends: ['O-F-P-Re', 'S-E-P-Re', 'O-E-P-Re'], enemies: ['S-E-R-Ex', 'O-F-R-Ex', 'S-E-P-Ex'],
+    judge: ['😰 紧张', '😊 释然', '🙏 感恩'], fit: '基层法院法官', unfit: '重罪公诉人'
+  },
+  'S-E-R-Ex': {
+    nickname: '穿透法条的复仇之眼', tags: ['实质正义狂徒', '主观恶性猎手', '立法精神的刺客'],
+    judgment: '你蔑视僵化的文字游戏，坚信「法律精神就是严惩恶意」。你擅长透过现象看本质，只要认定对方心术不正，就算法条有歧义，你也能用各种解释将其入罪。你是激进派中的战斗机。',
+    quote: '法条是死的，恶意是活的。如果法条挡住了正义，那是法条的问题，不是我的。',
+    friends: ['S-F-R-Ex', 'O-E-R-Ex', 'S-F-P-Ex'], enemies: ['O-F-R-Re', 'O-F-P-Re', 'O-E-P-Re'],
+    judge: ['😏 轻视', '😨 惊恐', '😱 崩溃'], fit: '重大刑案检察官', unfit: '未成年人案件法官'
+  },
+  'S-E-R-Re': {
+    nickname: '持刀哲学家', tags: ['洞察恶意但持刀谨慎', '审慎的正义', '刑法界的哈姆雷特'],
+    judgment: '你看人极准，总能捕捉到行为背后的主观恶性。但你是一位哲学家，深知刑法双刃剑的厉害。你坚持「恶意再深，也要有实害才报应」。你是刑法界最迷人的矛盾体——眼睛是复仇的，手是克制的。',
+    quote: '我看见了你心中的恶，但我更看见了刑法中的刀。刀出鞘容易，回鞘难。',
+    friends: ['S-E-P-Re', 'O-E-R-Re', 'S-F-R-Re'], enemies: ['O-F-R-Ex', 'S-E-R-Ex', 'O-E-P-Ex'],
+    judge: ['😰 紧张', '🤔 思考', '😶 沉默'], fit: '刑法学教授', unfit: '速裁庭法官'
+  },
+  'S-E-P-Ex': {
+    nickname: '刑法工具人', tags: ['激进社会工程师', '预防乌托邦建筑师', '改造人性の理想主义者'],
+    judgment: '你视刑法为「社会改造工程」的利器。你研究犯罪心理，坚信预防比惩罚重要。为了预防未来犯罪，你会用最开放的实质解释扩张法网。你是「积极刑法观」的终极形态。',
+    quote: '刑法不是手术刀，是疫苗。疫苗要打在没病的人身上，才能预防疾病。',
+    friends: ['O-E-P-Ex', 'S-F-P-Ex', 'O-F-P-Ex'], enemies: ['O-E-R-Re', 'S-E-R-Re', 'S-F-R-Re'],
+    judge: ['🤞 侥幸', '😵 不知所措', '🤯 困惑'], fit: '犯罪学研究员', unfit: '传统刑庭法官'
+  },
+  'S-E-P-Re': {
+    nickname: '被告人的天使', tags: ['人道拯救牧师', '救赎派刑法人', '主观恶意の疗愈师'],
+    judgment: '你拥有一颗神父般悲悯的心，重视犯罪人的主观恶源。你主张通过实质解释探究犯罪成因来「拯救」，却坚决反对扩张刑法。你是刑格世界里最温柔的存在——相信每个罪人都有故事。',
+    quote: '我看见了你的罪，也看见了你为什么成为罪人。刑法要惩罚行为，但不该消灭灵魂。',
+    friends: ['O-E-P-Re', 'S-E-R-Re', 'O-F-P-Re'], enemies: ['S-F-R-Ex', 'O-F-R-Ex', 'S-F-P-Ex'],
+    judge: ['😰 紧张', '😭 痛哭流涕', '🙏 感恩'], fit: '刑事辩护律师', unfit: '公诉人'
+  },
+  'O-F-R-Ex': {
+    nickname: '结果导向暴君', tags: ['实证威权法官', '客观归罪推土机', '证据链の独裁者'],
+    judgment: '你是典型的「结果导向」裁判者。不管动机多可怜，只要客观行为触碰了法条字眼，就是犯罪。你为了震慑犯罪，乐于在形式解释边缘适度扩张。你不在乎被告人的眼泪，只在乎证据是否形成了闭环。',
+    quote: '动机？那是小说家关心的事。我只关心：行为有没有发生？法条有没有写？证据够不够？',
+    friends: ['O-E-R-Ex', 'S-F-R-Ex', 'O-F-P-Ex'], enemies: ['S-E-P-Re', 'S-E-R-Re', 'O-E-P-Re'],
+    judge: ['🙏 求情', '😠 愤怒', '🙄 翻白眼'], fit: '经济犯罪法官', unfit: '少年法庭'
+  },
+  'O-F-R-Re': {
+    nickname: '法条打印机', tags: ['精密天平法官', '无罪推定の守护者', '司法界の冷面AI'],
+    judgment: '你是司法界最冷静的「天秤」。你只看客观行为和法条文字的严丝合缝，证据不足坚决无罪，证据确凿也坚决不搞「酌情轻判」。你的判决书逻辑严密到无法反驳。',
+    quote: '我是一台法条打印机，输入证据，输出判决。情感是bug，我从不运行。',
+    friends: ['S-F-R-Re', 'O-E-R-Re', 'S-F-P-Re'], enemies: ['S-E-R-Ex', 'S-E-P-Ex', 'O-E-P-Ex'],
+    judge: ['😠 愤怒', '😐 冷漠', '🙄 翻白眼'], fit: '最高法院法官', unfit: '舆论敏感案件主审'
+  },
+  'O-F-P-Ex': {
+    nickname: '杀鸡儆猴推广大使', tags: ['威慑主义教头', '一般预防の狂信者', '客观危害+形式解释+扩张の缝合怪'],
+    judgment: '你坚信「刑罚的意义在于警示旁人」。你以客观危害为定罪准绳，死扣法条字眼，但只要法律没有明确禁止扩张，你一定会把案例往重了判，用来吓阻潜在的效仿者。',
+    quote: '判他不是为了他，是为了看新闻的你。你不敢犯罪，我的判决就有价值。',
+    friends: ['S-F-P-Ex', 'O-E-P-Ex', 'S-E-P-Ex'], enemies: ['O-E-R-Re', 'O-E-P-Re', 'S-F-R-Re'],
+    judge: ['🤞 侥幸', '😱 绝望', '🤮 崩溃'], fit: '行政刑法执法', unfit: '调解员'
+  },
+  'O-F-P-Re': {
+    nickname: '教育刑の循吏', tags: ['法条主义导师', '依法施教の践行者', '客观主义の温柔刀'],
+    judgment: '你温和而坚定，强调「有客观危害才罚，没写的绝对不罚」。你像一位大学导师，耐心给嫌疑人讲法条，教育为主、惩罚为辅，坚信「好的司法是克制出来的」。',
+    quote: '我罚你，是因为你确实做错了；我教你，是因为我不想你下次再做错。法条是我的教案。',
+    friends: ['S-F-P-Re', 'O-E-P-Re', 'S-E-P-Re'], enemies: ['O-E-R-Ex', 'S-F-R-Ex', 'O-F-P-Ex'],
+    judge: ['😰 紧张', '📝 记笔记', '😊 释然'], fit: '法学院教授', unfit: '扫黑办专员'
+  },
+  'O-E-R-Ex': {
+    nickname: '结果归责复仇者', tags: ['功能报应论者', '实质解释+客观主义+报应+扩张の四重奏', '实用主义重判派'],
+    judgment: '你不在乎罪犯想什么，只在乎实际造成了多大法益侵害。为了惩罚这种「客观恶果」，你不惜动用实质解释来扩张罪名。在你这里，「罪刑法定」不是枷锁，是橡皮筋。',
+    quote: '结果这么严重，法条不解释到位，是对受害人的第二次伤害。',
+    friends: ['S-E-R-Ex', 'O-F-R-Ex', 'S-F-R-Ex'], enemies: ['O-F-P-Re', 'O-E-R-Re', 'O-E-P-Re'],
+    judge: ['😲 震惊', '😨 恐惧', '😱 崩溃'], fit: '检察院重罪部', unfit: '法律援助律师'
+  },
+  'O-E-R-Re': {
+    nickname: '自由原教旨', tags: ['古典自由主义祭司', '无实质危害则无罪', '客观主义+实质解释+报应+限缩の终极缝合'],
+    judgment: '你是刑法的「原教旨自由主义者」。你深究行为对社会的实际损害，但只要没损害，哪怕行为再危险、法条再模糊，你都坚持限缩出罪。可一旦确认有实质损害，你便会祭出最严肃的报应刑。',
+    quote: '没危害？那请回，刑法不管。有危害？那请坐，我们好好算算账。',
+    friends: ['O-E-P-Re', 'S-E-R-Re', 'O-F-R-Re'], enemies: ['O-F-P-Ex', 'S-E-P-Ex', 'S-F-P-Ex'],
+    judge: ['😰 紧张', '😌 释然', '😨 或恐惧'], fit: '宪法律师', unfit: '公诉科'
+  },
+  'O-E-P-Ex': {
+    nickname: '安全乌托邦织网者', tags: ['积极预防大家', '积极刑法观代言人', '客观风险の猎手'],
+    judgment: '你是「目的论」的狂热追求者。你看重客观危害的消除，为了社会整体安全，你主张用实质解释的方式积极主动地扩张刑法边界。你是典型的积极刑法观代言人。',
+    quote: '法律不是灭火器，是烟雾报警器。等起火就晚了，我要在冒烟的时候就拉响警报。',
+    friends: ['S-E-P-Ex', 'O-F-P-Ex', 'S-F-P-Ex'], enemies: ['O-F-R-Re', 'O-E-R-Re', 'S-E-R-Re'],
+    judge: ['🤞 侥幸', '😵 困惑', '🤯 不知所措'], fit: '网络安全法专家', unfit: '基层民警'
+  },
+  'O-E-P-Re': {
+    nickname: '谦抑性玫瑰', tags: ['慈悲人权卫士', '被告人の大宪章守护者', '刑法界最温柔的存在'],
+    judgment: '你是刑格世界里最温柔的「守护神」。你坚守「无客观行为则无犯罪」，用实质解释严格限缩法条。你坚信：「如果刑法不能给人以尊严，它就不配叫正义。」',
+    quote: '刑法是善良人的大宪章，也是被告人的保护伞。如果它变成了所有人的恐惧，那它就已经背叛了自己。',
+    friends: ['S-E-P-Re', 'O-E-R-Re', 'O-F-P-Re'], enemies: ['S-F-R-Ex', 'O-F-R-Ex', 'O-E-P-Ex'],
+    judge: ['😰 紧张', '😊 感动', '🙏 感恩'], fit: '刑事辩护律师', unfit: '扫黑办专员'
+  }
+};
+
+/* ===== 全局状态 ===== */
+const state = {
+  currentQuiz: 1,
+  answers: new Array(24).fill(null)
+};
+
+const choiceLabels = [
+  { value: 2,  label: '非常赞同', short: '++' },
+  { value: 1,  label: '赞同', short: '+' },
+  { value: 0,  label: '中立', short: '0' },
+  { value: -1, label: '反对', short: '−' },
+  { value: -2, label: '非常反对', short: '−−' }
+];
+
+const axisColors = [
+  { barLeft: 'bg-primary-200', barRight: 'bg-primary-50', dot: 'bg-primary-600', leftText: 'text-primary-700', scoreText: 'text-primary-600' },
+  { barLeft: 'bg-amber-50', barRight: 'bg-amber-200', dot: 'bg-amber-500', leftText: 'text-amber-700', scoreText: 'text-amber-600' },
+  { barLeft: 'bg-emerald-200', barRight: 'bg-emerald-50', dot: 'bg-emerald-600', leftText: 'text-emerald-700', scoreText: 'text-emerald-600' },
+  { barLeft: 'bg-rose-50', barRight: 'bg-rose-200', dot: 'bg-rose-500', leftText: 'text-rose-700', scoreText: 'text-rose-600' }
+];
+
+/* ===== 页面切换 ===== */
+function goToPage(pageId) {
+  document.querySelectorAll('.page').forEach(function(p) { p.classList.remove('active'); });
+  var actualPageId = pageId.startsWith('quiz-') ? 'quiz' : pageId;
+  var target = document.getElementById('page-' + actualPageId);
+  if (target) {
+    target.classList.add('active');
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+  if (pageId.startsWith('quiz-')) {
+    var qNum = parseInt(pageId.replace('quiz-', ''));
+    if (qNum >= 1 && qNum <= 24) {
+      state.currentQuiz = qNum;
+      renderQuiz(qNum);
+    }
+  }
+  if (pageId === 'scoring') {
+    startScoring();
+  }
+  if (typeof lucide !== 'undefined') lucide.createIcons();
+}
+
+/* ===== 渲染答题页 ===== */
+function renderQuiz(num) {
+  var q = quizData[num - 1];
+  document.getElementById('quiz-progress-text').textContent = num + ' / 24';
+  document.getElementById('quiz-progress-bar').style.width = (num / 24 * 100).toFixed(2) + '%';
+  document.getElementById('quiz-statement').textContent = q.statement;
+
+  var selectedVal = state.answers[num - 1];
+  var optionsHtml = '';
+  choiceLabels.forEach(function(c) {
+    optionsHtml += '<button onclick="selectOption(' + num + ', ' + c.value + ', this)" class="likert-btn rounded-lg py-3 px-2 sm:px-4 text-sm sm:text-base font-medium ' + (selectedVal === c.value ? 'selected' : '') + '">';
+    optionsHtml += '<span class="block text-lg font-bold">' + c.short + '</span>';
+    optionsHtml += '<span class="block text-xs mt-1 opacity-90">' + c.label + '</span>';
+    optionsHtml += '</button>';
+  });
+  document.getElementById('quiz-options').innerHTML = optionsHtml;
+
+  var btnPrev = document.getElementById('btn-prev');
+  var btnNext = document.getElementById('btn-next');
+  if (num === 1) {
+    btnPrev.disabled = true;
+    btnPrev.classList.add('cursor-not-allowed', 'opacity-50');
+  } else {
+    btnPrev.disabled = false;
+    btnPrev.classList.remove('cursor-not-allowed', 'opacity-50');
+  }
+  if (num === 24) {
+    btnNext.innerHTML = '提交 <i data-lucide="check" class="w-4 h-4"></i>';
+    btnNext.onclick = function() { submitQuiz(); };
+  } else {
+    btnNext.innerHTML = '下一题 <i data-lucide="chevron-right" class="w-4 h-4"></i>';
+    btnNext.onclick = function() { goNext(); };
+  }
+}
+
+/* ===== 选择选项 ===== */
+function selectOption(quizNum, score, element) {
+  state.answers[quizNum - 1] = score;
+  var container = document.getElementById('quiz-options');
+  container.querySelectorAll('.likert-btn').forEach(function(btn) { btn.classList.remove('selected'); });
+  element.classList.add('selected');
+  if (quizNum < 24) {
+    setTimeout(function() { goNext(); }, 450);
+  }
+}
+
+/* ===== 导航 ===== */
+function goNext() {
+  if (state.currentQuiz < 24) {
+    state.currentQuiz++;
+    goToPage('quiz-' + state.currentQuiz);
+  }
+}
+
+function goPrev() {
+  if (state.currentQuiz > 1) {
+    state.currentQuiz--;
+    goToPage('quiz-' + state.currentQuiz);
+  }
+}
+
+function goBack() {
+  if (state.currentQuiz > 1) {
+    goPrev();
+  } else {
+    goToPage('intro');
+  }
+}
+
+function submitQuiz() {
+  var unanswered = state.answers.filter(function(a) { return a === null; }).length;
+  if (unanswered > 0) {
+    for (var i = 0; i < 24; i++) {
+      if (state.answers[i] === null) {
+        state.currentQuiz = i + 1;
+        goToPage('quiz-' + state.currentQuiz);
+        break;
+      }
+    }
+    return;
+  }
+  goToPage('scoring');
+}
+
+/* ===== 计算得分 =====
+   dimMap中 S/F/R/Ex 对应负向维度（分值取反），O/E/P/Re 对应正向维度（分值直接计入）
+   例如第1题选 ++(+2)，dimMap.so='S'，则 S/O 维度 += -2
+*/
+function calculateScores() {
+  var scores = { so: 0, fe: 0, rp: 0, exre: 0 };
+  quizData.forEach(function(q, idx) {
+    var raw = state.answers[idx];
+    if (raw === null) return;
+    ['so','fe','rp','exre'].forEach(function(k) {
+      var dir = q.dimMap[k];
+      if (!dir) return;
+      var sign = (dir === 'S' || dir === 'F' || dir === 'R' || dir === 'Ex') ? -1 : 1;
+      scores[k] += raw * sign;
+    });
+  });
+  return [scores.so, scores.fe, scores.rp, scores.exre];
+}
+
+function getTypeKey(scores) {
+  var d1 = scores[0] < 0 ? 'S' : (scores[0] > 0 ? 'O' : null);
+  var d2 = scores[1] < 0 ? 'F' : (scores[1] > 0 ? 'E' : null);
+  var d3 = scores[2] < 0 ? 'R' : (scores[2] > 0 ? 'P' : null);
+  var d4 = scores[3] < 0 ? 'Ex' : (scores[3] > 0 ? 'Re' : null);
+  if (d1 === null || d2 === null || d3 === null || d4 === null) return 'HYBRID';
+  return d1 + '-' + d2 + '-' + d3 + '-' + d4;
+}
+
+function startScoring() {
+  setTimeout(function() { showResult(); }, 2500);
+}
+
+function showResult() {
+  var scores = calculateScores();
+  var typeKey = getTypeKey(scores);
+  var p;
+  if (typeKey === 'HYBRID') {
+    p = buildHybridResult(scores);
+    var d1 = scores[0] <= 0 ? 'S' : 'O';
+    var d2 = scores[1] <= 0 ? 'F' : 'E';
+    var d3 = scores[2] <= 0 ? 'R' : 'P';
+    var d4 = scores[3] <= 0 ? 'Ex' : 'Re';
+    if (scores[0] === 0) d1 = 'S/O';
+    if (scores[1] === 0) d2 = 'F/E';
+    if (scores[2] === 0) d3 = 'R/P';
+    if (scores[3] === 0) d4 = 'Ex/Re';
+    typeKey = d1 + '-' + d2 + '-' + d3 + '-' + d4;
+  } else {
+    p = personalities[typeKey];
+  }
+  renderResult(typeKey, p, scores);
+  goToPage('result');
+}
+
+function buildHybridResult(scores) {
+  var dims = [];
+  if (scores[0] === 0) dims.push('立场缝合');
+  if (scores[1] === 0) dims.push('解释缝合');
+  if (scores[2] === 0) dims.push('目的缝合');
+  if (scores[3] === 0) dims.push('边界缝合');
+  return {
+    nickname: '终极缝合怪',
+    tags: dims.concat(['薛定谔的刑法人', '四维平衡大师']),
+    judgment: '你在某个（或某几个）维度上完美平衡，左和右的拉力在你体内达成了奇妙的均势。你不是没有立场，你是「所有立场都有道理」。在刑法界，你是一个让人又敬又怕的存在——因为你无法被预测。你可能在同一个案子里同时给出入罪和出罪的完美论证。',
+    quote: '我两种观点都认同——这不叫摇摆，这叫辩证法。',
+    friends: ['O-F-P-Re', 'S-E-R-Re', 'O-E-R-Re'], enemies: ['S-F-R-Ex', 'O-E-P-Ex'],
+    judge: ['😵 困惑', '🤯 更困惑', '📚 写论文'], fit: '法学教授 / 最高法院大法官', unfit: '需要明确立场的任何岗位'
+  };
+}
+
+function renderResult(typeKey, p, scores) {
+  document.getElementById('result-type').textContent = typeKey;
+  document.getElementById('result-nickname').textContent = p.nickname;
+
+  var tagsHtml = '';
+  p.tags.forEach(function(tag) {
+    tagsHtml += '<span class="text-xs bg-primary-50 text-primary-700 px-3 py-1 rounded-full">' + tag + '</span>';
+  });
+  document.getElementById('result-tags').innerHTML = tagsHtml;
+
+  var axisHtml = '';
+  var dimNames = [['S', '立场', 'O'], ['F', '解释', 'E'], ['R', '目的', 'P'], ['Ex', '边界', 'Re']];
+  for (var i = 0; i < 4; i++) {
+    var score = scores[i];
+    var c = axisColors[i];
+    var maxAbs = 12;
+    var indicatorLeft = score < 0 ? 'calc(50% - ' + (Math.abs(score) / maxAbs * 50) + '% - 6px)' : (score > 0 ? 'calc(50% + ' + (score / maxAbs * 50) + '% - 6px)' : 'calc(50% - 6px)');
+    var leftBarW = score < 0 ? (Math.abs(score) / maxAbs * 50) : 8;
+    var rightBarW = score > 0 ? (score / maxAbs * 50) : 8;
+
+    axisHtml += '<div class="flex items-center gap-1 sm:gap-3">';
+    axisHtml += '<span class="w-8 sm:w-10 text-right text-xs font-semibold ' + c.leftText + ' shrink-0">' + dimNames[i][0] + '</span>';
+    axisHtml += '<span class="hidden sm:inline w-10 text-right text-xs text-muted-foreground shrink-0">' + dimNames[i][1] + '</span>';
+    axisHtml += '<div class="flex-1 relative h-6 sm:h-7 flex items-center min-w-0">';
+    axisHtml += '<div class="absolute right-1/2 top-1/2 -translate-y-1/2 h-4 sm:h-5 ' + c.barLeft + ' rounded-l-full" style="width:' + leftBarW + '%"></div>';
+    axisHtml += '<div class="absolute left-1/2 top-1/2 -translate-y-1/2 h-4 sm:h-5 ' + c.barRight + ' rounded-r-full" style="width:' + rightBarW + '%"></div>';
+    axisHtml += '<div class="absolute left-1/2 top-0 bottom-0 w-px bg-border -translate-x-1/2"></div>';
+    axisHtml += '<div class="absolute top-1/2 -translate-y-1/2 w-3 h-3 rounded-full ' + c.dot + ' border-2 border-white shadow-sm" style="left:' + indicatorLeft + '"></div>';
+    axisHtml += '</div>';
+    axisHtml += '<span class="text-xs sm:text-sm font-bold ' + c.scoreText + ' w-8 text-center shrink-0">' + (score > 0 ? '+' : '') + score + '</span>';
+    axisHtml += '<span class="w-7 sm:w-10 text-left text-xs text-muted-foreground shrink-0">' + dimNames[i][2] + '</span>';
+    axisHtml += '</div>';
+  }
+  document.getElementById('axis-container').innerHTML = axisHtml;
+
+  document.getElementById('result-judgment').textContent = p.judgment;
+  document.getElementById('result-quote').textContent = '「' + p.quote + '」';
+
+  var friendsHtml = '';
+  p.friends.forEach(function(f) {
+    var nick = personalities[f] ? personalities[f].nickname : f;
+    friendsHtml += '<li><p class="text-sm font-semibold text-foreground">' + f + '（' + nick + '）</p></li>';
+  });
+  document.getElementById('result-friends').innerHTML = friendsHtml;
+
+  var enemiesHtml = '';
+  p.enemies.forEach(function(e) {
+    var nick = personalities[e] ? personalities[e].nickname : e;
+    enemiesHtml += '<li><p class="text-sm font-semibold text-foreground">' + e + '（' + nick + '）</p></li>';
+  });
+  document.getElementById('result-enemies').innerHTML = enemiesHtml;
+
+  var judgeHtml = '';
+  p.judge.forEach(function(j, idx) {
+    var parts = j.split(' ');
+    var emoji = parts[0];
+    var label = parts.slice(1).join(' ');
+    judgeHtml += '<div class="flex flex-col items-center gap-1"><span class="text-4xl">' + emoji + '</span><span class="text-xs text-muted-foreground">' + label + '</span></div>';
+    if (idx < p.judge.length - 1) judgeHtml += '<i data-lucide="chevron-right" class="w-5 h-5 text-muted-foreground"></i>';
+  });
+  document.getElementById('result-judge').innerHTML = judgeHtml;
+  if (typeof lucide !== 'undefined') lucide.createIcons();
+}
+
+function resetTest() {
+  state.answers = new Array(32).fill(null);
+  state.currentQuiz = 1;
+  goToPage('intro');
+}
+
+function showAbout() {
+  document.getElementById('about-modal').classList.add('active');
+  if (typeof lucide !== 'undefined') lucide.createIcons();
+}
+function closeAbout() {
+  document.getElementById('about-modal').classList.remove('active');
+}
+
+function shareResult() {
+  var text = '我在「刑格 CPTI 2.0」中测出了我的刑法人格！来测测你是哪种？';
+  if (navigator.share) {
+    navigator.share({ title: '刑格 CPTI 2.0', text: text, url: window.location.href }).catch(function(){});
+  } else if (navigator.clipboard) {
+    navigator.clipboard.writeText(window.location.href).then(function() {
+      alert('链接已复制，快去分享给朋友吧！');
+    });
+  } else {
+    prompt('复制以下链接分享给朋友：', window.location.href);
+  }
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+  if (typeof lucide !== 'undefined') lucide.createIcons();
+});
+</script>
+</body>
+</html>
