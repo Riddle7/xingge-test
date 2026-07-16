@@ -481,11 +481,11 @@
 */
 const quizData = [
   { id: 1,  statement: "同样是偷两千块钱，一个拿去买毒品，一个给孩子买饭吃。对他们的量刑应当不一样。", dimMap: { so: 'S', fe: null, rp: null, exre: null } },
-  { id: 2,  statement: "法官就该照着法条的字面意思判。就算在个别案子里这样判的结论不尽合理，改法条是立法机关的事，不该由法官来操心。", dimMap: { so: null, fe: 'F', rp: null, exre: null } },
-  { id: 3,  statement: "刑罚首先是为了让罪犯\u201c罪有应得\u201d——罚当其罪。至于这个判决以后能不能吓住别人、能不能防止再犯，是次要的。", dimMap: { so: null, fe: null, rp: 'R', exre: null } },
-  { id: 4,  statement: "刑法里塞了不少兜底条款——\u201c等\u201d、\u201c其他\u201d、\u201c情节严重\u201d。每多一条，裁判者就多一寸不受约束的空间。这种弹性规定能少一条是一条。", dimMap: { so: null, fe: null, rp: null, exre: 'Re' } },
-  { id: 5,  statement: "不管行为人动机多可怜、多值得同情，客观上触犯了法律就该定罪。动机只能影响判多重，不能影响定不定罪。", dimMap: { so: 'O', fe: null, rp: null, exre: null } },
-  { id: 6,  statement: "一个罪犯已经真心悔改，再犯的可能也排除了。这种情况下还让他把漫长的刑期坐完，没有意义。", dimMap: { so: null, fe: null, rp: 'P', exre: null } },
+  { id: 2,  statement: "法官就该照着法条的字面意思判。就算按字面判会得出荒谬的结论，也是立法机关去改法条，轮不到法官操心。", dimMap: { so: null, fe: 'F', rp: null, exre: null } },
+  { id: 3,  statement: "刑罚的目的就是让罪犯得到跟罪行匹配的惩罚。至于这个判决以后能不能吓住别人、能不能防止再犯——这些事情不应影响判多久。", dimMap: { so: null, fe: null, rp: 'R', exre: null } },
+  { id: 4,  statement: "法条里那些模糊用语——\u201c等\u201d、\u201c其他\u201d、\u201c情节严重\u201d——解释时必须从严。宁可漏掉一些值得罚的，也不能让这些弹性条款变成入罪的口袋。", dimMap: { so: null, fe: null, rp: null, exre: 'Re' } },
+  { id: 5,  statement: "有人因为家人生病急需钱去骗保，有人纯粹想多赚钱去骗保。骗的金额一样，判的刑期就应该一样。动机好坏，不影响刑法怎么判。", dimMap: { so: 'O', fe: null, rp: null, exre: null } },
+  { id: 6,  statement: "一个罪犯已经真心悔改，再犯的可能也排除了。这种情况下还让他把漫长的刑期坐完，这刑罚已经没什么意义了。", dimMap: { so: null, fe: null, rp: 'P', exre: null } },
   { id: 7,  statement: "如果法条的字面意思和它在当下社会应当实现的目的对不上，法官应该优先考虑这个规范目的，而不是机械地套字眼。", dimMap: { so: null, fe: 'E', rp: null, exre: null } },
   { id: 8,  statement: "对于法律没写明确但社会危害性很明显的新型行为，法官应当在现有法条的可能语义范围内，通过解释来覆盖它，而不是等着修法。", dimMap: { so: null, fe: null, rp: null, exre: 'Ex' } },
   { id: 9,  statement: "\u201c借东西没还\u201d和\u201c偷东西\u201d，法条上是两个不同的词。就算借了不还的人跟小偷一样可恶，也不能把\u201c借后侵吞\u201d硬塞进\u201c盗窃\u201d的条文里。", dimMap: { so: null, fe: 'F', rp: null, exre: null } },
@@ -796,6 +796,8 @@ function submitQuiz() {
 */
 function calculateScores() {
   var scores = { so: 0, fe: 0, rp: 0, exre: 0 };
+  // 同时记录每个维度的题目级原始选择分值（破平规则用）
+  var detail = { so: [], fe: [], rp: [], exre: [] };
   quizData.forEach(function(q, idx) {
     var raw = state.answers[idx];
     if (raw === null) return;
@@ -804,18 +806,51 @@ function calculateScores() {
       if (!dir) return;
       var sign = (dir === 'S' || dir === 'F' || dir === 'R' || dir === 'Ex') ? -1 : 1;
       scores[k] += raw * sign;
+      detail[k].push(raw); // 原始选择分值（未取反）
     });
   });
-  return [scores.so, scores.fe, scores.rp, scores.exre];
+  return { total: [scores.so, scores.fe, scores.rp, scores.exre], detail: detail };
 }
 
-function getTypeKey(scores) {
-  var d1 = scores[0] < 0 ? 'S' : (scores[0] > 0 ? 'O' : null);
-  var d2 = scores[1] < 0 ? 'F' : (scores[1] > 0 ? 'E' : null);
-  var d3 = scores[2] < 0 ? 'R' : (scores[2] > 0 ? 'P' : null);
-  var d4 = scores[3] < 0 ? 'Ex' : (scores[3] > 0 ? 'Re' : null);
-  if (d1 === null || d2 === null || d3 === null || d4 === null) return 'HYBRID';
-  return d1 + '-' + d2 + '-' + d3 + '-' + d4;
+// v3 破平规则：维度总分=0 时判定
+// 返回该维度的字母：'S'/'O' 等；若维持中间型返回 null
+function breakTie(detailArr) {
+  // detailArr: 该维度4题的原始选择分值数组
+  var zeroCount = detailArr.filter(function(v) { return v === 0; }).length;
+  if (zeroCount >= 2) return null;      // ≥2 个"0" → 中间型
+  if (zeroCount === 0) return null;     // 0 个"0"（2赞同2反对）→ 中间型
+  // =1 个"0"，剩3题看赞同/反对各几道
+  var proCount = detailArr.filter(function(v) { return v > 0; }).length;
+  var conCount = detailArr.filter(function(v) { return v < 0; }).length;
+  if (proCount > conCount) return 'pro';   // 赞同多 → >0 侧
+  if (conCount > proCount) return 'con';   // 反对多 → <0 侧
+  return null;                          // 理论上 1 个 0 + 3 题不会出现 pro=con
+}
+
+function getTypeKey(scoresObj) {
+  var scores = scoresObj.total;
+  var detail = scoresObj.detail;
+  var dims = [
+    { name: 'so',   neg: 'S',  pos: 'O'  },
+    { name: 'fe',   neg: 'F',  pos: 'E'  },
+    { name: 'rp',   neg: 'R',  pos: 'P'  },
+    { name: 'exre', neg: 'Ex', pos: 'Re' }
+  ];
+  var letters = [];
+  for (var i = 0; i < 4; i++) {
+    var d = dims[i];
+    if (scores[i] < 0) letters.push(d.neg);
+    else if (scores[i] > 0) letters.push(d.pos);
+    else {
+      // 总分=0，启用破平规则
+      var tie = breakTie(detail[d.name]);
+      if (tie === 'pro') letters.push(d.pos);
+      else if (tie === 'con') letters.push(d.neg);
+      else letters.push(null); // 维持中间型
+    }
+  }
+  if (letters.indexOf(null) >= 0) return 'HYBRID';
+  return letters.join('-');
 }
 
 function startScoring() {
@@ -823,8 +858,9 @@ function startScoring() {
 }
 
 function showResult() {
-  var scores = calculateScores();
-  var typeKey = getTypeKey(scores);
+  var scoreObj = calculateScores();
+  var scores = scoreObj.total;   // 数组，下游统一用数组
+  var typeKey = getTypeKey(scoreObj);
   var p;
   if (typeKey === 'HYBRID') {
     p = buildHybridResult(scores);
