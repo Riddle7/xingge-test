@@ -1,0 +1,47 @@
+# ===== 开发工具与 IDE =====
+.vscode/
+.idea/
+*.swp
+*.swo
+.DS_Store
+Thumbs.db
+
+# ===== AI Agent 工作目录（非上线内容）=====
+.agents/
+.claude/
+.trae-cn/
+
+# ===== Python 学习项目（非本次上线范围）=====
+python-learning/
+
+# ===== 设计稿源文件（非本次上线范围）=====
+design/
+
+# ===== Logo 生成器资源（非本次上线范围）=====
+logo-showcase.html
+logo-variant-*.png
+logo-variant-*.svg
+convert-png.js
+
+# ===== 优化/测试变体文件（非本次上线范围）=====
+index_optimized.html
+cpti-test.html
+
+# ===== Node / 构建产物 =====
+node_modules/
+dist/
+build/
+package.json
+package-lock.json
+
+# ===== Skill 锁文件（本地工具链，非上线内容）=====
+skills-lock.json
+
+# ===== 微信小程序项目（非本次上线范围）=====
+miniprogram/
+
+# ===== 日志与临时文件 =====
+*.log
+*.tmp
+*.bak
+.cache/

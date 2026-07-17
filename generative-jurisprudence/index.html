@@ -1,0 +1,1401 @@
+<!DOCTYPE html>
+<html lang="zh-CN" class="light" data-theme="light">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="Generative Jurisprudence — 生成式法学。AI 时代的法律理论探索期刊。" />
+  <title>Generative Jurisprudence - 生成式法学</title>
+
+  <!-- 字体：DM Sans + JetBrains Mono（设计稿引用但未引入，此处补全） -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600;9..40,700&family=JetBrains+Mono:ital,wght@0,400;0,500;0,600;1,400&display=swap" rel="stylesheet" />
+
+  <style id="theme-vars">
+    :root {
+      --color-brand-50: #e8f2ff;
+      --color-brand-100: #cfe5ff;
+      --color-brand-200: #9fcbff;
+      --color-brand-300: #66abff;
+      --color-brand-400: #2e8dff;
+      --color-brand-500: #007aff;
+      --color-brand-600: #0064d6;
+      --color-brand-700: #004fad;
+      --color-brand-800: #003b82;
+      --color-brand-900: #00275a;
+      --color-background: #ffffff;
+      --color-background-50: #ffffff;
+      --color-background-100: #f7f7fa;
+      --color-background-200: #f2f2f7;
+      --color-background-300: #e5e5ea;
+      --color-background-400: #d1d1d6;
+      --color-background-500: #aeaeb2;
+      --color-background-600: #8e8e93;
+      --color-background-700: #3a3a3c;
+      --color-background-800: #1c1c1e;
+      --color-background-900: #000000;
+      --color-foreground: #1d1d1f;
+      --color-card: #ffffff;
+      --color-primary: #007aff;
+      --color-border: #e5e5ea;
+      --color-muted: #6e6e73;
+      --color-muted-foreground: #8e8e93;
+      --color-accent: #f2f2f7;
+      --color-accent-foreground: #1d1d1f;
+      --color-ring: #007aff;
+      --color-primary-foreground: #ffffff;
+      --color-text-50: #f5f5f7;
+      --color-text-100: #e3e3e8;
+      --color-text-200: #c7c7cc;
+      --color-text-300: #aeaeb2;
+      --color-text-400: #8e8e93;
+      --color-text-500: #6e6e73;
+      --color-text-600: #48484a;
+      --color-text-700: #3c3c43;
+      --color-text-800: #1d1d1f;
+      --color-text-900: #000000;
+      --color-state-success: #34c759;
+      --color-state-success-dark: #30d158;
+      --color-state-error: #ff3b30;
+      --color-chart-1: #30d158;
+      --color-chart-2: #2e8dff;
+      --color-chart-3: #ff9f0a;
+      --color-chart-4: #5e5ce6;
+      --color-chart-5: #bf5af2;
+      --color-sidebar: #f2f2f7;
+      --color-sidebar-primary: #007aff;
+      --font-sans: "DM Sans", "PingFang SC", "Microsoft YaHei", ui-sans-serif, sans-serif, system-ui;
+      --font-mono: "JetBrains Mono", ui-monospace, "SF Mono", Consolas, monospace;
+      --radius-sm: 8px;
+      --radius-md: 12px;
+      --radius-lg: 19.2px;
+      --header-height: 64px;
+      /* 锚点滚动时的视觉呼吸空间：实际 nav 高度 64px + 16px 留白。
+         scroll-padding-top / scroll-margin-top 都引用此值，保证 sticky header
+         不遮挡 section 顶部内容，且视觉上不紧贴。 */
+      --scroll-offset: 80px;
+    }
+    /* 深色主题：基于设计稿内 dark 变量集合 */
+    [data-theme="dark"] {
+      --color-background: #000000;
+      --color-background-50: #0d0d0f;
+      --color-background-100: #1c1c1e;
+      --color-background-200: #2c2c2e;
+      --color-background-300: #3a3a3c;
+      --color-background-400: #48484a;
+      --color-background-500: #636366;
+      --color-background-600: #8e8e93;
+      --color-background-700: #aeaeb2;
+      --color-background-800: #f5f5f7;
+      --color-background-900: #ffffff;
+      --color-foreground: #f5f5f7;
+      --color-card: #1c1c1e;
+      --color-primary: #2e8dff;
+      --color-border: #3a3a3c;
+      --color-muted: #8e8e93;
+      --color-muted-foreground: #8e8e93;
+      --color-accent: #1c1c1e;
+      --color-accent-foreground: #f5f5f7;
+      --color-ring: #2e8dff;
+      --color-primary-foreground: #ffffff;
+      --color-text-50: #000000;
+      --color-text-100: #1d1d1f;
+      --color-text-200: #3c3c43;
+      --color-text-300: #48484a;
+      --color-text-400: #6e6e73;
+      --color-text-500: #8e8e93;
+      --color-text-600: #aeaeb2;
+      --color-text-700: #c7c7cc;
+      --color-text-800: #e3e3e8;
+      --color-text-900: #f5f5f7;
+      --color-sidebar: #1c1c1e;
+    }
+  </style>
+
+  <style id="semantic-token-fallback">
+    .bg-background { background-color: var(--color-background) !important; }
+    .text-foreground { color: var(--color-foreground) !important; }
+    .bg-card { background-color: var(--color-card) !important; }
+    .text-card-foreground { color: var(--color-foreground) !important; }
+    .bg-primary { background-color: var(--color-primary) !important; }
+    .text-primary-foreground { color: var(--color-primary-foreground) !important; }
+    .border-border { border-color: var(--color-border) !important; }
+    .text-muted { color: var(--color-muted) !important; }
+    .text-muted-foreground { color: var(--color-muted-foreground) !important; }
+    .bg-accent { background-color: var(--color-accent) !important; }
+    .text-accent-foreground { color: var(--color-accent-foreground) !important; }
+    .bg-muted { background-color: var(--color-accent) !important; }
+    .ring-ring { --tw-ring-color: var(--color-ring) !important; }
+  </style>
+
+  <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+  <style type="text/tailwindcss">
+    @theme inline {
+      --color-background: var(--color-background);
+      --color-foreground: var(--color-foreground);
+      --color-card: var(--color-card);
+      --color-primary: var(--color-primary);
+      --color-border: var(--color-border);
+      --color-muted: var(--color-muted);
+      --color-muted-foreground: var(--color-muted-foreground);
+      --color-accent: var(--color-accent);
+      --color-accent-foreground: var(--color-accent-foreground);
+      --color-ring: var(--color-ring);
+      --color-brand-50: var(--color-brand-50);
+      --color-brand-100: var(--color-brand-100);
+      --color-brand-200: var(--color-brand-200);
+      --color-brand-300: var(--color-brand-300);
+      --color-brand-400: var(--color-brand-400);
+      --color-brand-500: var(--color-brand-500);
+      --color-brand-600: var(--color-brand-600);
+      --color-brand-700: var(--color-brand-700);
+      --color-brand-800: var(--color-brand-800);
+      --color-brand-900: var(--color-brand-900);
+      --font-sans: var(--font-sans);
+      --font-mono: var(--font-mono);
+      --radius-sm: var(--radius-sm);
+      --radius-md: var(--radius-md);
+      --radius-lg: var(--radius-lg);
+    }
+    @layer base {
+      html {
+        scroll-behavior: smooth;
+        /* 适配 sticky header 的锚点偏移：使用 --scroll-offset 含视觉呼吸空间 */
+        scroll-padding-top: var(--scroll-offset);
+      }
+      /* 每个 section 的精确兜底：scroll-margin-top 优先级高于 scroll-padding，
+         双重保险以兼容不同浏览器实现。 */
+      section[id] {
+        scroll-margin-top: var(--scroll-offset);
+      }
+      footer[id] {
+        scroll-margin-top: var(--scroll-offset);
+      }
+      body {
+        font-family: var(--font-sans);
+        background-color: var(--color-background);
+        color: var(--color-foreground);
+        -webkit-font-smoothing: antialiased;
+        -moz-osx-font-smoothing: grayscale;
+        transition: background-color 0.4s ease, color 0.4s ease;
+      }
+      .font-mono { font-family: var(--font-mono); }
+      .text-balance { text-wrap: balance; }
+      ::selection { background-color: var(--color-brand-100); color: var(--color-brand-900); }
+      [data-theme="dark"] ::selection { background-color: var(--color-brand-800); color: var(--color-brand-100); }
+    }
+    @media (prefers-reduced-motion: no-preference) {
+      .reveal {
+        opacity: 0;
+        transform: translateY(20px);
+        animation: reveal-in 0.7s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+      }
+      .reveal:nth-child(2) { animation-delay: 0.08s; }
+      .reveal:nth-child(3) { animation-delay: 0.16s; }
+      .reveal:nth-child(4) { animation-delay: 0.24s; }
+      @keyframes reveal-in {
+        to { opacity: 1; transform: translateY(0); }
+      }
+    }
+  </style>
+
+  <!-- 自定义交互样式：滚动条、移动菜单、toast、阅读进度、主题切换过渡 -->
+  <style>
+    /* 自定义滚动条 */
+    ::-webkit-scrollbar { width: 10px; height: 10px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb {
+      background: var(--color-background-400);
+      border-radius: 8px;
+      border: 2px solid var(--color-background);
+    }
+    ::-webkit-scrollbar-thumb:hover { background: var(--color-background-500); }
+
+    /* 滚动触发的渐入：JS 控制 .is-visible 触发 */
+    @media (prefers-reduced-motion: no-preference) {
+      .scroll-reveal {
+        opacity: 0;
+        transform: translateY(24px);
+        transition: opacity 0.7s cubic-bezier(0.16, 1, 0.3, 1), transform 0.7s cubic-bezier(0.16, 1, 0.3, 1);
+        will-change: opacity, transform;
+      }
+      .scroll-reveal.is-visible {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    /* 移动端菜单抽屉 */
+    .mobile-menu {
+      max-height: 0;
+      overflow: hidden;
+      transition: max-height 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    .mobile-menu.is-open { max-height: 320px; }
+
+    /* 主题切换按钮图标淡入淡出 */
+    .theme-toggle .sun,
+    .theme-toggle .moon {
+      transition: opacity 0.3s ease, transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    [data-theme="light"] .theme-toggle .moon { opacity: 1; transform: rotate(0) scale(1); }
+    [data-theme="light"] .theme-toggle .sun { opacity: 0; transform: rotate(-90deg) scale(0.5); position: absolute; }
+    [data-theme="dark"] .theme-toggle .moon { opacity: 0; transform: rotate(90deg) scale(0.5); position: absolute; }
+    [data-theme="dark"] .theme-toggle .sun { opacity: 1; transform: rotate(0) scale(1); }
+
+    /* 阅读进度条 */
+    .reading-progress {
+      position: fixed;
+      top: 0;
+      left: 0;
+      height: 2px;
+      width: 0%;
+      background: var(--color-brand-500);
+      z-index: 60;
+      transition: width 0.1s linear;
+    }
+
+    /* Toast 通知 */
+    .toast {
+      position: fixed;
+      bottom: 24px;
+      left: 50%;
+      transform: translateX(-50%) translateY(20px);
+      opacity: 0;
+      visibility: hidden;
+      pointer-events: none;
+      background: var(--color-text-800);
+      color: var(--color-background);
+      padding: 12px 20px;
+      border-radius: 12px;
+      font-size: 14px;
+      font-weight: 500;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+      z-index: 100;
+      transition: opacity 0.3s ease, transform 0.4s cubic-bezier(0.16, 1, 0.3, 1), visibility 0s linear 0.4s;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      max-width: calc(100vw - 32px);
+    }
+    .toast.is-toast-visible {
+      transform: translateX(-50%) translateY(0);
+      opacity: 1;
+      visibility: visible;
+      pointer-events: auto;
+      transition: opacity 0.3s ease, transform 0.4s cubic-bezier(0.16, 1, 0.3, 1), visibility 0s;
+    }
+
+    /* 导航高亮 */
+    .nav-link.is-active {
+      color: var(--color-text-800) !important;
+    }
+    [data-theme="dark"] .nav-link.is-active {
+      color: var(--color-text-900) !important;
+    }
+
+    /* 移动端：隐藏装饰性代码块避免水平溢出 */
+    @media (max-width: 640px) {
+      .code-decor-desktop { display: none; }
+    }
+
+    /* 按钮聚焦可达性 */
+    a:focus-visible, button:focus-visible {
+      outline: 2px solid var(--color-ring);
+      outline-offset: 2px;
+      border-radius: 8px;
+    }
+
+    /* ============ 碰撞 反驳观点赛博朋克呈现动效 ============ */
+    @media (prefers-reduced-motion: no-preference) {
+      /* 标签 glitch：RGB 双色分离 + 微抖动，0.5s steps 制造机械感 */
+      .cp-glitch {
+        animation: cp-glitch-rgb 0.5s steps(6) forwards, cp-glitch-jitter 0.5s steps(6) forwards;
+      }
+      @keyframes cp-glitch-rgb {
+        0%   { text-shadow: 0 0 0 transparent; }
+        20%  { text-shadow: -2px 0 rgba(255,69,84,0.85), 2px 0 rgba(0,122,255,0.85); }
+        40%  { text-shadow: 2px 0 rgba(255,69,84,0.85), -2px 0 rgba(0,122,255,0.85); }
+        60%  { text-shadow: -1px 0 rgba(255,69,84,0.6), 1px 0 rgba(0,122,255,0.6); }
+        80%  { text-shadow: 1px 0 rgba(255,69,84,0.4), -1px 0 rgba(0,122,255,0.4); }
+        100% { text-shadow: 0 0 0 transparent; }
+      }
+      @keyframes cp-glitch-jitter {
+        0%, 100% { transform: translateX(0); }
+        25% { transform: translateX(-1px); }
+        50% { transform: translateX(1px); }
+        75% { transform: translateX(-0.5px); }
+      }
+
+      /* chosen badge：状态切换的微反馈 */
+      .cp-chosen-in {
+        animation: cp-chosen-in 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+      }
+      @keyframes cp-chosen-in {
+        0%   { opacity: 0; transform: translateY(-4px) scale(0.96); filter: blur(2px); }
+        60%  { opacity: 1; transform: translateY(0) scale(1); filter: blur(0); }
+        100% { opacity: 1; transform: translateY(0) scale(1); filter: blur(0); }
+      }
+
+      /* 序号光晕：常驻 */
+      .cp-index-glow {
+        text-shadow: 0 0 8px rgba(0,122,255,0.35);
+      }
+      [data-collision-choice="no"] .cp-index-glow {
+        text-shadow: 0 0 8px rgba(255,69,84,0.35);
+      }
+    }
+
+    /* reduced-motion 降级：禁用所有动画 */
+    @media (prefers-reduced-motion: reduce) {
+      .cp-glitch,
+      .cp-chosen-in,
+      .cp-index-glow,
+      .cp-reset-btn,
+      .cp-reset-btn::before,
+      .cp-reset-in {
+        animation: none !important;
+        text-shadow: none !important;
+      }
+    }
+
+    /* ============ "重新选择" 赛博朋克学术风药丸按钮 ============
+       设计意图：黑客帝国红蓝药丸隐喻。药丸造型（border-radius 999px），
+       颜色与用户已选立场形成对立：选蓝 → 出现红药丸（觉醒/重新审视）；
+       选红 → 出现蓝药丸（另一条路）。克制霓虹、内发光玻璃质感，高级不浮夸。
+    */
+    .cp-reset-btn {
+      position: relative;
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      padding: 12px 26px;
+      font-family: var(--font-mono);
+      font-size: 12px;
+      font-weight: 600;
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+      border-radius: 999px; /* 药丸 */
+      border: 1px solid transparent;
+      cursor: pointer;
+      isolation: isolate;
+      overflow: hidden;
+      transition: color 0.22s cubic-bezier(0.16, 1, 0.3, 1),
+                  background-color 0.22s cubic-bezier(0.16, 1, 0.3, 1),
+                  border-color 0.22s cubic-bezier(0.16, 1, 0.3, 1),
+                  transform 0.14s cubic-bezier(0.16, 1, 0.3, 1),
+                  box-shadow 0.22s cubic-bezier(0.16, 1, 0.3, 1);
+      will-change: transform;
+    }
+    /* 红药丸（用户选了蓝"有·具有正当性"后出现，邀请重新审视） */
+    .cp-reset-btn[data-pill="red"] {
+      color: #ffb4ba;
+      background:
+        linear-gradient(135deg, rgba(255, 69, 84, 0.16), rgba(255, 69, 84, 0.06)),
+        rgba(255, 69, 84, 0.05);
+      border-color: rgba(255, 107, 120, 0.55);
+      box-shadow:
+        inset 0 1px 0 rgba(255, 180, 186, 0.22),
+        inset 0 -1px 0 rgba(255, 69, 84, 0.18),
+        0 0 0 1px rgba(255, 69, 84, 0.12),
+        0 6px 24px rgba(255, 69, 84, 0.18);
+    }
+    .cp-reset-btn[data-pill="red"] .cp-reset-icon {
+      color: #ff8a96;
+      text-shadow: 0 0 8px rgba(255, 69, 84, 0.7);
+    }
+    .cp-reset-btn[data-pill="red"]:hover {
+      color: #ffffff;
+      background:
+        linear-gradient(135deg, rgba(255, 69, 84, 0.32), rgba(255, 69, 84, 0.14)),
+        rgba(255, 69, 84, 0.10);
+      border-color: rgba(255, 138, 150, 0.85);
+      box-shadow:
+        inset 0 1px 0 rgba(255, 200, 205, 0.32),
+        inset 0 -1px 0 rgba(255, 69, 84, 0.28),
+        0 0 0 1px rgba(255, 69, 84, 0.22),
+        0 10px 32px rgba(255, 69, 84, 0.32);
+      transform: translateY(-1px);
+    }
+    .cp-reset-btn[data-pill="red"]:hover .cp-reset-icon {
+      color: #ffffff;
+    }
+    /* 蓝药丸（用户选了红"没有·不具有正当性"后出现，邀请尝试另一条路） */
+    .cp-reset-btn[data-pill="blue"] {
+      color: #b9d7ff;
+      background:
+        linear-gradient(135deg, rgba(0, 122, 255, 0.16), rgba(0, 122, 255, 0.06)),
+        rgba(0, 122, 255, 0.05);
+      border-color: rgba(102, 171, 255, 0.55);
+      box-shadow:
+        inset 0 1px 0 rgba(185, 215, 255, 0.22),
+        inset 0 -1px 0 rgba(0, 122, 255, 0.18),
+        0 0 0 1px rgba(0, 122, 255, 0.12),
+        0 6px 24px rgba(0, 122, 255, 0.18);
+    }
+    .cp-reset-btn[data-pill="blue"] .cp-reset-icon {
+      color: #66abff;
+      text-shadow: 0 0 8px rgba(0, 122, 255, 0.7);
+    }
+    .cp-reset-btn[data-pill="blue"]:hover {
+      color: #ffffff;
+      background:
+        linear-gradient(135deg, rgba(0, 122, 255, 0.32), rgba(0, 122, 255, 0.14)),
+        rgba(0, 122, 255, 0.10);
+      border-color: rgba(138, 199, 255, 0.85);
+      box-shadow:
+        inset 0 1px 0 rgba(205, 225, 255, 0.32),
+        inset 0 -1px 0 rgba(0, 122, 255, 0.28),
+        0 0 0 1px rgba(0, 122, 255, 0.22),
+        0 10px 32px rgba(0, 122, 255, 0.32);
+      transform: translateY(-1px);
+    }
+    .cp-reset-btn[data-pill="blue"]:hover .cp-reset-icon {
+      color: #ffffff;
+    }
+    .cp-reset-btn:active {
+      transform: translateY(0) scale(0.985);
+    }
+    .cp-reset-btn:focus-visible {
+      outline: 2px solid #ffffff;
+      outline-offset: 3px;
+    }
+    .cp-reset-btn .cp-reset-icon {
+      font-size: 13px;
+      line-height: 1;
+      transition: color 0.22s ease-out;
+    }
+    /* 玻璃高光：顶部内反光，营造药丸胶囊的材质感 */
+    .cp-reset-btn::after {
+      content: "";
+      position: absolute;
+      inset: 1px;
+      border-radius: 999px;
+      background: linear-gradient(
+        180deg,
+        rgba(255, 255, 255, 0.14) 0%,
+        rgba(255, 255, 255, 0.02) 38%,
+        transparent 60%
+      );
+      pointer-events: none;
+      z-index: -1;
+    }
+    /* 扫描线 hover：单次缓慢扫过的微弱光带 */
+    @media (prefers-reduced-motion: no-preference) {
+      .cp-reset-btn::before {
+        content: "";
+        position: absolute;
+        top: 0;
+        left: -120%;
+        width: 50%;
+        height: 100%;
+        background: linear-gradient(
+          90deg,
+          transparent 0%,
+          rgba(255, 255, 255, 0.20) 50%,
+          transparent 100%
+        );
+        pointer-events: none;
+        opacity: 0;
+        z-index: 1;
+      }
+      .cp-reset-btn:hover::before {
+        opacity: 1;
+        animation: cp-scan-sweep 0.95s ease-out;
+      }
+      @keyframes cp-scan-sweep {
+        0% { left: -120%; }
+        100% { left: 120%; }
+      }
+      /* 入场：药丸浮现，与反驳观点动效语言统一 */
+      .cp-reset-in {
+        animation: cp-reset-in 0.55s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+      }
+      @keyframes cp-reset-in {
+        0% {
+          opacity: 0;
+          transform: translateY(8px) scale(0.94);
+          filter: blur(2px);
+        }
+        60% {
+          opacity: 1;
+          transform: translateY(0) scale(1);
+          filter: blur(0);
+        }
+        100% {
+          opacity: 1;
+          transform: translateY(0) scale(1);
+        }
+      }
+    }
+  </style>
+</head>
+<body class="bg-background text-foreground">
+
+  <!-- 阅读进度条 -->
+  <div class="reading-progress" id="readingProgress" aria-hidden="true"></div>
+
+  <!-- ============ NAVIGATION ============ -->
+  <header class="sticky top-0 z-50 bg-[var(--color-background)]/80 backdrop-blur-xl border-b border-[var(--color-background-300)]">
+    <nav class="max-w-6xl mx-auto px-6 lg:px-8 h-16 flex items-center justify-between">
+      <a href="#" class="flex items-center gap-2.5 group">
+        <span class="inline-flex items-center justify-center w-8 h-8 rounded-[8px] bg-[var(--color-brand-500)] text-white font-bold text-[13px] tracking-tight" style="font-family:var(--font-mono);">GJ</span>
+        <span class="hidden sm:block text-[14px] font-semibold tracking-tight text-[var(--color-text-800)] group-hover:text-[var(--color-brand-600)] transition-colors">Generative Jurisprudence</span>
+      </a>
+      <ul class="hidden md:flex items-center gap-0.5">
+        <li><a href="#manifesto" class="nav-link px-3 py-2 text-[13px] font-medium text-[var(--color-text-500)] hover:text-[var(--color-text-800)] rounded-[8px] transition-colors">宣言</a></li>
+        <li><a href="#lab" class="nav-link px-3 py-2 text-[13px] font-medium text-[var(--color-text-500)] hover:text-[var(--color-text-800)] rounded-[8px] transition-colors">实验室</a></li>
+        <li><a href="#readings" class="nav-link px-3 py-2 text-[13px] font-medium text-[var(--color-text-500)] hover:text-[var(--color-text-800)] rounded-[8px] transition-colors">阅读</a></li>
+        <li><a href="#collision" class="nav-link px-3 py-2 text-[13px] font-medium text-[var(--color-text-500)] hover:text-[var(--color-text-800)] rounded-[8px] transition-colors">碰撞</a></li>
+        <li><a href="#about" class="nav-link px-3 py-2 text-[13px] font-medium text-[var(--color-text-500)] hover:text-[var(--color-text-800)] rounded-[8px] transition-colors">关于</a></li>
+      </ul>
+      <div class="flex items-center gap-2">
+        <!-- 主题切换按钮 -->
+        <button id="themeToggle" class="theme-toggle relative inline-flex items-center justify-center w-9 h-9 rounded-[8px] text-[var(--color-text-800)] hover:bg-[var(--color-background-200)] transition-colors" aria-label="切换主题">
+          <i data-lucide="moon" class="moon w-5 h-5"></i>
+          <i data-lucide="sun" class="sun w-5 h-5"></i>
+        </button>
+        <!-- 移动端菜单按钮 -->
+        <button id="menuToggle" class="md:hidden inline-flex items-center justify-center w-9 h-9 rounded-[8px] text-[var(--color-text-800)] hover:bg-[var(--color-background-200)] transition-colors" aria-label="菜单" aria-expanded="false">
+          <i data-lucide="menu" class="w-5 h-5" id="menuIcon"></i>
+        </button>
+      </div>
+    </nav>
+
+    <!-- 移动端菜单抽屉 -->
+    <div id="mobileMenu" class="mobile-menu md:hidden border-t border-[var(--color-background-300)] bg-[var(--color-background)]">
+      <ul class="px-6 py-3 flex flex-col gap-1">
+        <li><a href="#manifesto" class="mobile-nav-link block px-3 py-3 text-[15px] font-medium text-[var(--color-text-600)] hover:text-[var(--color-brand-600)] hover:bg-[var(--color-background-100)] rounded-[8px] transition-colors">宣言</a></li>
+        <li><a href="#lab" class="mobile-nav-link block px-3 py-3 text-[15px] font-medium text-[var(--color-text-600)] hover:text-[var(--color-brand-600)] hover:bg-[var(--color-background-100)] rounded-[8px] transition-colors">实验室</a></li>
+        <li><a href="#readings" class="mobile-nav-link block px-3 py-3 text-[15px] font-medium text-[var(--color-text-600)] hover:text-[var(--color-brand-600)] hover:bg-[var(--color-background-100)] rounded-[8px] transition-colors">阅读</a></li>
+        <li><a href="#collision" class="mobile-nav-link block px-3 py-3 text-[15px] font-medium text-[var(--color-text-600)] hover:text-[var(--color-brand-600)] hover:bg-[var(--color-background-100)] rounded-[8px] transition-colors">碰撞</a></li>
+        <li><a href="#about" class="mobile-nav-link block px-3 py-3 text-[15px] font-medium text-[var(--color-text-600)] hover:text-[var(--color-brand-600)] hover:bg-[var(--color-background-100)] rounded-[8px] transition-colors">关于</a></li>
+      </ul>
+    </div>
+  </header>
+
+  <main>
+    <!-- ============ HERO ============ -->
+    <section class="relative overflow-hidden">
+      <!-- Decorative code background -->
+      <div class="absolute inset-0 pointer-events-none select-none overflow-hidden" aria-hidden="true">
+        <pre class="code-decor-desktop absolute -right-12 top-20 text-[10px] sm:text-[11px] leading-[1.7] font-mono text-[var(--color-text-300)] whitespace-pre max-w-md" style="font-family:var(--font-mono); opacity:0.22;"><span class="text-[var(--color-brand-400)]">// lex.generativa</span>
+<span class="text-[var(--color-chart-4)]">function</span> <span class="text-[var(--color-brand-600)]">generateJustice</span>(facts, norms) {
+  <span class="text-[var(--color-chart-4)]">const</span> principle = weigh(norms);
+  <span class="text-[var(--color-chart-4)]">const</span> holding = deliberate(principle, facts);
+  <span class="text-[var(--color-chart-3)]">return</span> justify(holding, principle);
+}</pre>
+      </div>
+
+      <div class="relative max-w-6xl mx-auto px-6 lg:px-8 pt-20 pb-20 sm:pt-24 sm:pb-28 lg:pt-28 lg:pb-32">
+        <div class="max-w-3xl">
+          <!-- Eyebrow -->
+          <p class="text-[11px] font-mono text-[var(--color-text-400)] tracking-[0.15em] uppercase mb-8 reveal">
+            2026 &nbsp; A Website of AI and Legal Theory
+          </p>
+
+          <!-- Headline: single H1, two lines -->
+          <h1 class="text-[44px] sm:text-6xl lg:text-7xl font-bold tracking-[-0.035em] leading-[0.98] text-[var(--color-text-800)] mb-5 reveal">
+            Generative<br/>Jurisprudence
+          </h1>
+
+          <!-- Subtext: Chinese thesis + English, combined as one element -->
+          <p class="text-xl sm:text-2xl text-[var(--color-text-500)] leading-[1.5] mb-2 max-w-2xl reveal">
+            法的未来不是被发现的，而是被生成的。
+          </p>
+          <p class="text-[15px] sm:text-base font-mono text-[var(--color-text-400)] italic mb-10 max-w-2xl reveal">
+            The future of law is generated, not discovered.
+          </p>
+
+          <!-- CTAs -->
+          <div class="flex flex-wrap items-center gap-3 reveal">
+            <a href="#manifesto" data-dom-id="cta-manifesto" class="inline-flex items-center gap-2 px-6 py-3 rounded-[12px] bg-[var(--color-brand-500)] text-white text-[14px] font-semibold hover:bg-[var(--color-brand-600)] active:bg-[var(--color-brand-700)] active:translate-y-[1px] transition-all shadow-sm">
+              阅读宣言
+              <i data-lucide="arrow-right" class="w-4 h-4"></i>
+            </a>
+            <a href="#lab" data-dom-id="cta-lab" class="inline-flex items-center gap-2 px-6 py-3 rounded-[12px] bg-transparent text-[var(--color-text-800)] text-[14px] font-semibold border border-[var(--color-background-400)] hover:border-[var(--color-brand-400)] hover:text-[var(--color-brand-600)] active:translate-y-[1px] transition-all">
+              <i data-lucide="flask-conical" class="w-4 h-4"></i>
+              进入实验室
+            </a>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ MANIFESTO ============ -->
+    <section id="manifesto" class="border-t border-[var(--color-background-300)]">
+      <div class="max-w-6xl mx-auto px-6 lg:px-8 py-24 sm:py-32 lg:py-40">
+        <div class="grid lg:grid-cols-12 gap-10 lg:gap-20">
+          <!-- 边栏：章节标识（marginalia） -->
+          <div class="lg:col-span-3 scroll-reveal">
+            <h2 class="text-[14px] font-semibold text-[var(--color-text-800)] tracking-wide uppercase">宣言 Manifesto</h2>
+          </div>
+
+          <!-- 正文列 -->
+          <div class="lg:col-span-9">
+            <!-- 英文题铭 -->
+            <div class="scroll-reveal mb-16 lg:mb-24">
+              <blockquote class="text-2xl sm:text-3xl lg:text-[34px] font-mono italic leading-[1.35] tracking-[-0.015em] text-[var(--color-text-800)] text-balance">
+                Machines generate text;<br/>only humans generate justification.
+              </blockquote>
+              <p class="mt-4 text-[12px] font-mono text-[var(--color-text-400)] tracking-[0.05em]">生成式法学宣言 题铭</p>
+            </div>
+
+            <!-- 宣言正文：衬线体，编辑式排版 -->
+            <div class="scroll-reveal max-w-[44rem] space-y-8 text-[17px] leading-[1.95] text-[var(--color-text-700)]" style="font-family: 'Source Han Serif SC', 'Noto Serif SC', 'Songti SC', 'STSong', 'SimSun', Georgia, serif;">
+              <!-- § 一：首字下沉，开篇定调 -->
+              <p class="first-letter:float-left first-letter:text-[5em] first-letter:leading-[0.82] first-letter:font-bold first-letter:mr-3 first-letter:mt-1 first-letter:text-[var(--color-brand-500)]">
+                机器开始写作了。它能起草合同、预测判决、生成论文，甚至颇为不敬地模仿法学家的口吻谈论正义。于是有人问，法学家还剩下什么？我们的回答是，最重要的部分。机器可以生成文本，但不能生成正当性。它知道下一个词最可能是什么，却不知道我们应当如何共同生活。预测裁判是一回事，为裁判负责是另一回事。责任以立场为前提，而立场需要一具会疼痛、会犹疑、会在深夜里辗转反侧的血肉之躯。这是法学不可让渡的领地。
+              </p>
+              <p>
+                法学本无须向人工智能让渡生成二字。这门学问从来就是生成式的，每一代人都在旧文本中生成新意义，在既有规则中生成新秩序。法解释学的千年传统早已深谙生成之道，只不过我们的模型以良心为底座，以论辩为训练，以整个法律共同体的实践为语料。人工智能不是法学的掘墓人，是一面镜子，照见法律思维中可以机械化的部分，也反衬出判断、衡平与想象这些不可替代的东西。
+              </p>
+            </div>
+
+            <!-- 中心论点：pull quote，论文核心命题的视觉强调 -->
+            <div class="scroll-reveal my-16 lg:my-24 max-w-[44rem]">
+              <p class="text-[22px] sm:text-[26px] lg:text-[30px] font-semibold leading-[1.4] tracking-[-0.015em] text-[var(--color-text-900)] text-balance" style="font-family: 'Source Han Serif SC', 'Noto Serif SC', 'Songti SC', Georgia, serif;">
+                机器可以生成文本，<br/>但不能生成正当性。
+              </p>
+            </div>
+
+            <!-- 宣言正文续 -->
+            <div class="scroll-reveal max-w-[44rem] space-y-8 text-[17px] leading-[1.95] text-[var(--color-text-700)]" style="font-family: 'Source Han Serif SC', 'Noto Serif SC', 'Songti SC', 'STSong', 'SimSun', Georgia, serif;">
+              <p>
+                我们拒绝两种姿态，技术乐观主义的盲目欢呼，与人文主义者的末日哀叹。前者忘记了法律关乎权力与服从，后者忘记了法学从来都在技术变迁中生长。生成式法学的任务，是在人机之际重新勘定法学的疆域。技术深入生活之处，皆需法学为之定向。不是因为法学强大到无视技术。恰恰相反，技术走得越远，越需要法学告诉它边界在哪里。
+              </p>
+              <p>
+                最后，一点坦白，我们以学术为志业，但不打算永远板着脸。法学可以是严肃的志业，也可以是有趣的游戏。本文每一个字都经人逐句推敲、如假包换。至于这句话是真是假，就交给诸君自己判断了。
+              </p>
+            </div>
+
+            <!-- 收尾：短分隔线 + 核心论断 + 落款 -->
+            <div class="scroll-reveal mt-16 lg:mt-20 max-w-[44rem]">
+              <div class="w-12 h-px bg-[var(--color-text-300)] mb-8"></div>
+              <p class="text-xl sm:text-2xl font-semibold leading-[1.45] tracking-[-0.015em] text-[var(--color-text-900)] text-balance" style="font-family: 'Source Han Serif SC', 'Noto Serif SC', 'Songti SC', Georgia, serif;">
+                法律由人制定、为人存在，其意义必须由人生成。
+              </p>
+              <p class="mt-5 text-sm font-mono italic text-[var(--color-text-400)] tracking-wide">
+                是为生成式法学。
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ LABORATORY ============ -->
+    <section id="lab" class="border-t border-[var(--color-background-300)]">
+      <div class="max-w-6xl mx-auto px-6 lg:px-8 py-20 sm:py-24 lg:py-28">
+        <div class="mb-12 max-w-2xl scroll-reveal">
+          <h2 class="text-3xl sm:text-4xl font-bold tracking-[-0.02em] text-[var(--color-text-800)] mb-2">实验室</h2>
+          <p class="text-base font-mono text-[var(--color-text-500)] italic">The Laboratory</p>
+          <p class="text-[15px] text-[var(--color-text-500)] mt-3 leading-relaxed">法学在这里开始游戏。<span class="font-mono italic text-[var(--color-text-300)]"> Where jurisprudence meets play.</span></p>
+        </div>
+
+        <!-- Feature card: 刑法人格测试入口（链接到 ../index.html） -->
+        <a href="../index.html" data-dom-id="lab-cpti" class="scroll-reveal group relative overflow-hidden rounded-[19px] bg-[var(--color-brand-900)] text-white p-8 sm:p-12 hover:shadow-xl transition-all block">
+          <div class="relative z-10 flex flex-col lg:flex-row lg:items-end lg:justify-between gap-8">
+            <div class="max-w-xl">
+              <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-[6px] bg-[var(--color-state-success)]/20 text-[var(--color-state-success-dark)] text-[11px] font-mono font-semibold mb-5">
+                <i data-lucide="circle-check" class="w-3 h-3"></i>
+                可用 · AVAILABLE
+              </span>
+              <h3 class="text-2xl sm:text-3xl font-bold tracking-tight mb-2">刑格 CPTI</h3>
+              <p class="text-lg font-medium text-white/70 mb-3">刑法人格鉴定书</p>
+              <p class="text-[14.5px] leading-[1.75] text-white/60 max-w-lg">
+                通过经典刑法案例的五级量表作答，测出你独有的刑法人格类型。四个维度、一份专属鉴定书——严肃的刑法命题，以人格测试的游戏方式展开。
+              </p>
+            </div>
+            <div class="flex-shrink-0">
+              <span class="inline-flex items-center gap-2 px-5 py-3 rounded-[12px] bg-white text-[var(--color-brand-900)] text-[14px] font-semibold group-hover:bg-white/90 group-hover:gap-3 active:translate-y-[1px] transition-all">
+                开始测试
+                <i data-lucide="arrow-right" class="w-4 h-4"></i>
+              </span>
+            </div>
+          </div>
+        </a>
+      </div>
+    </section>
+
+    <!-- ============ FEATURED READINGS (Asymmetric: 1 featured + 2 secondary) ============ -->
+    <section id="readings" class="border-t border-[var(--color-background-300)] bg-[var(--color-background-100)]">
+      <div class="max-w-6xl mx-auto px-6 lg:px-8 py-20 sm:py-24 lg:py-28">
+        <div class="mb-12 scroll-reveal">
+          <h2 class="text-3xl sm:text-4xl font-bold tracking-[-0.02em] text-[var(--color-text-800)] mb-2">阅读</h2>
+          <p class="text-base font-mono text-[var(--color-text-500)] italic">Readings</p>
+        </div>
+
+        <!-- 单篇论文卡片 -->
+        <a href="paper.html" class="scroll-reveal group block p-8 sm:p-10 rounded-[19px] bg-[var(--color-background-50)] border border-[var(--color-background-300)] hover:shadow-md hover:border-[var(--color-brand-200)] transition-all">
+          <div class="flex items-center gap-3 mb-6">
+            <span class="inline-flex items-center px-2.5 py-0.5 rounded-[6px] bg-[var(--color-brand-50)] text-[var(--color-brand-600)] text-[11px] font-semibold">论文</span>
+            <span class="text-[11px] font-mono text-[var(--color-text-300)]">刑法教义学 · 客观归责</span>
+          </div>
+          <h3 class="text-2xl sm:text-3xl font-bold leading-[1.3] tracking-[-0.02em] text-[var(--color-text-800)] mb-4 group-hover:text-[var(--color-brand-600)] transition-colors">
+            人工智能控制人形机器人通过脑机接口伪造生物信息在元宇宙中自动驾驶构成犯罪吗
+          </h3>
+          <p class="text-[14.5px] leading-[1.8] text-[var(--color-text-500)] mb-8 max-w-2xl">
+            当通用人工智能控制人形机器人、通过脑机接口伪造生物信息、在元宇宙平台中篡改自动驾驶车辆参数的极端场景同时发生，现行中国刑法能否完成归责，构成何种犯罪，是本文试图回答的核心问题。本文以中国刑法教义学为立足点，以客观归责理论的三重检验框架为主分析工具，在多技术叠加场景下重新勘定归责的边界。
+          </p>
+          <div class="flex items-center justify-between pt-5 border-t border-[var(--color-background-300)]">
+            <div class="flex items-center gap-2.5">
+              <div class="w-8 h-8 rounded-full bg-[var(--color-brand-100)] flex items-center justify-center text-[11px] font-bold text-[var(--color-brand-700)]">T</div>
+              <div>
+                <p class="text-[13px] font-semibold text-[var(--color-text-800)]">Tcjt</p>
+                <p class="text-[11px] font-mono text-[var(--color-text-300)]">2026</p>
+              </div>
+            </div>
+            <span class="inline-flex items-center gap-1 text-[13px] font-semibold text-[var(--color-brand-600)] group-hover:gap-2 transition-all">
+              Read <i data-lucide="arrow-right" class="w-3.5 h-3.5"></i>
+            </span>
+          </div>
+        </a>
+      </div>
+    </section>
+
+    <!-- ============ 碰撞 / COLLISION ============ -->
+    <section id="collision" class="border-t border-[var(--color-background-300)]">
+      <div class="max-w-6xl mx-auto px-6 lg:px-8 py-20 sm:py-24 lg:py-28">
+        <div class="scroll-reveal max-w-3xl mx-auto">
+          <!-- 章节标识 -->
+          <div class="mb-10 text-center">
+            <h2 class="text-3xl sm:text-4xl lg:text-5xl font-bold tracking-[-0.025em] text-[var(--color-text-800)]">碰撞</h2>
+            <p class="mt-2 text-[12px] font-mono italic text-[var(--color-text-400)] tracking-wide">Collision</p>
+          </div>
+
+          <!-- 碰撞容器：克制的赛博朋克 dark island -->
+          <div class="collision-stage relative overflow-hidden rounded-[14px] bg-[#0a0e14] border border-[var(--color-brand-900)]/40" data-collision-choice="">
+            <!-- 极弱网格背景（克制，不喧宾夺主） -->
+            <div class="absolute inset-0 pointer-events-none opacity-[0.06]" style="background-image: linear-gradient(rgba(0,122,255,0.4) 1px, transparent 1px), linear-gradient(90deg, rgba(0,122,255,0.4) 1px, transparent 1px); background-size: 32px 32px;"></div>
+
+            <div class="relative z-10 p-7 sm:p-10 lg:p-12">
+              <!-- 顶部终端式标签 -->
+              <div class="flex items-center justify-between mb-7 sm:mb-9">
+                <p class="text-[10px] font-mono text-[var(--color-brand-400)] tracking-[0.22em] uppercase">// COUNTER_POINT</p>
+                <p class="text-[10px] font-mono text-zinc-600 tracking-[0.1em]" id="collisionStatus">AWAITING_CHOICE</p>
+              </div>
+
+              <!-- 问题 -->
+              <div id="collisionQuestion" class="collision-pre text-center mb-8 sm:mb-10 transition-all duration-500 ease-out">
+                <p class="text-xl sm:text-2xl lg:text-[26px] font-semibold leading-[1.5] tracking-[-0.01em] text-zinc-100 text-balance">
+                  如果 AI 法官做出了一份比人类法官更「公正」的判决，<br class="hidden sm:block"/>它是否具有正当性？
+                </p>
+                <p class="mt-3 text-[12px] font-mono italic text-zinc-500 leading-relaxed">
+                  If an AI judge delivers a verdict more "just" than any human judge could, does it possess legitimacy?
+                </p>
+              </div>
+
+              <!-- 选择按钮 -->
+              <div id="collisionChoices" class="collision-pre grid grid-cols-2 gap-3 sm:gap-4 transition-all duration-500 ease-out">
+                <button
+                  id="voteYes"
+                  data-vote="yes"
+                  class="vote-btn group relative overflow-hidden rounded-[10px] border border-[var(--color-brand-500)]/60 bg-[var(--color-brand-500)]/[0.06] hover:bg-[var(--color-brand-500)]/[0.12] hover:border-[var(--color-brand-500)] px-6 py-6 sm:py-8 transition-all active:translate-y-[1px]"
+                >
+                  <span class="block text-2xl sm:text-3xl font-bold tracking-tight text-[var(--color-brand-300)] group-hover:text-[var(--color-brand-200)] transition-colors">有</span>
+                  <span class="block text-[10px] font-mono text-[var(--color-brand-400)]/70 tracking-[0.22em] uppercase mt-1">YES</span>
+                </button>
+                <button
+                  id="voteNo"
+                  data-vote="no"
+                  class="vote-btn group relative overflow-hidden rounded-[10px] border border-[#ff4554]/50 bg-[#ff4554]/[0.05] hover:bg-[#ff4554]/[0.1] hover:border-[#ff4554] px-6 py-6 sm:py-8 transition-all active:translate-y-[1px]"
+                >
+                  <span class="block text-2xl sm:text-3xl font-bold tracking-tight text-[#ff4554]/90 group-hover:text-[#ff6b78] transition-colors">没有</span>
+                  <span class="block text-[10px] font-mono text-[#ff4554]/70 tracking-[0.22em] uppercase mt-1">NO</span>
+                </button>
+              </div>
+
+              <!-- 已选择状态：保留被点击的按钮作为视觉锚点 -->
+              <div id="collisionChosen" class="hidden">
+                <div class="flex items-center justify-center gap-3 mb-8 sm:mb-10">
+                  <div id="chosenBadge" class="inline-flex items-center gap-2.5 px-4 py-2 rounded-full border">
+                    <span class="text-[10px] font-mono tracking-[0.22em] uppercase" id="chosenLabel">YOUR_CHOICE</span>
+                    <span class="w-1 h-1 rounded-full bg-current opacity-60"></span>
+                    <span class="text-sm font-semibold" id="chosenText">—</span>
+                  </div>
+                </div>
+              </div>
+
+              <!-- 反驳观点容器：逐条呈现 -->
+              <div id="counterPoints" class="hidden"></div>
+
+              <!-- 重置按钮：赛博朋克像素风操作按钮 -->
+              <div id="resetWrap" class="hidden mt-10 sm:mt-12 pt-6 border-t border-zinc-800/60 text-center">
+                <button id="resetBtn" class="cp-reset-btn" type="button" aria-label="重新选择">
+                  <span class="cp-reset-icon" aria-hidden="true">↻</span>
+                  <span>重新选择</span>
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- ============ FOOTER (关于 / Colophon) ============ -->
+  <footer id="about" class="border-t border-[var(--color-background-300)] bg-[var(--color-background-50)]">
+    <div class="max-w-6xl mx-auto px-6 lg:px-8 py-20 sm:py-28 lg:py-32">
+      <!-- 顶栏：品牌标识 + 简明定位 -->
+      <div class="scroll-reveal grid lg:grid-cols-12 gap-10 lg:gap-16 mb-16 lg:mb-20">
+        <div class="lg:col-span-7">
+          <div class="flex items-center gap-3 mb-6">
+            <span class="inline-flex items-center justify-center w-9 h-9 rounded-[9px] bg-[var(--color-brand-500)] text-white font-bold text-[14px]" style="font-family:var(--font-mono);">GJ</span>
+            <span class="text-[16px] font-bold tracking-tight text-[var(--color-text-800)]">Generative Jurisprudence</span>
+          </div>
+          <p class="text-[18px] sm:text-[20px] leading-[1.55] tracking-[-0.01em] text-[var(--color-text-700)] max-w-xl text-balance" style="font-family: 'Source Han Serif SC', 'Noto Serif SC', 'Songti SC', Georgia, serif;">
+            在机器开始写作的时代，重新勘定法学的疆域。
+          </p>
+        </div>
+        <div class="lg:col-span-5 lg:pt-2">
+          <p class="text-[14px] leading-[1.75] text-[var(--color-text-500)] max-w-sm">
+            一个关于人工智能与法律的写作计划。我们既非技术乐观主义的鼓手，也非人文主义的送葬人。在此发布宣言、实验与阅读笔记。
+          </p>
+        </div>
+      </div>
+
+      <!-- 中段：单一列导航，无 uppercase 标签，发丝线分隔 -->
+      <nav class="scroll-reveal border-t border-[var(--color-background-300)] pt-10 mb-16">
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-x-8 gap-y-6">
+          <a href="#manifesto" class="group block">
+            <p class="text-[13px] font-mono text-[var(--color-text-300)] mb-1.5">01</p>
+            <p class="text-[15px] text-[var(--color-text-800)] group-hover:text-[var(--color-brand-600)] transition-colors">宣言</p>
+            <p class="text-[11px] font-mono text-[var(--color-text-400)] mt-0.5">Manifesto</p>
+          </a>
+          <a href="#lab" class="group block">
+            <p class="text-[13px] font-mono text-[var(--color-text-300)] mb-1.5">02</p>
+            <p class="text-[15px] text-[var(--color-text-800)] group-hover:text-[var(--color-brand-600)] transition-colors">实验室</p>
+            <p class="text-[11px] font-mono text-[var(--color-text-400)] mt-0.5">Laboratory</p>
+          </a>
+          <a href="#readings" class="group block">
+            <p class="text-[13px] font-mono text-[var(--color-text-300)] mb-1.5">03</p>
+            <p class="text-[15px] text-[var(--color-text-800)] group-hover:text-[var(--color-brand-600)] transition-colors">阅读</p>
+            <p class="text-[11px] font-mono text-[var(--color-text-400)] mt-0.5">Readings</p>
+          </a>
+          <a href="#collision" class="group block">
+            <p class="text-[13px] font-mono text-[var(--color-text-300)] mb-1.5">04</p>
+            <p class="text-[15px] text-[var(--color-text-800)] group-hover:text-[var(--color-brand-600)] transition-colors">碰撞</p>
+            <p class="text-[11px] font-mono text-[var(--color-text-400)] mt-0.5">Collision</p>
+          </a>
+        </div>
+      </nav>
+
+      <!-- 底栏：版权与许可 -->
+      <div class="scroll-reveal pt-8 border-t border-[var(--color-background-300)] flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+        <p class="text-[12px] font-mono text-[var(--color-text-400)] tracking-[0.02em]">
+          © 2026 Generative Jurisprudence
+        </p>
+        <a href="https://creativecommons.org/licenses/by-nc/4.0/" target="_blank" rel="noopener noreferrer" class="text-[12px] font-mono text-[var(--color-text-400)] hover:text-[var(--color-text-700)] transition-colors">
+          CC BY-NC 4.0
+        </a>
+      </div>
+    </div>
+  </footer>
+
+  <!-- Toast 通知容器 -->
+  <div class="toast" id="toast" role="status" aria-live="polite">
+    <i data-lucide="check-circle" class="w-4 h-4"></i>
+    <span id="toastMessage">操作成功</span>
+  </div>
+
+  <!-- Lucide Icons CDN -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <script>
+    // 初始化图标
+    lucide.createIcons();
+
+    /* ============ 主题切换（localStorage 持久化） ============ */
+    (function initTheme() {
+      const stored = localStorage.getItem('gj-theme');
+      const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+      const theme = stored || (prefersDark ? 'dark' : 'light');
+      applyTheme(theme);
+    })();
+
+    function applyTheme(theme) {
+      document.documentElement.classList.remove('light', 'dark');
+      document.documentElement.classList.add(theme);
+      document.documentElement.setAttribute('data-theme', theme);
+      localStorage.setItem('gj-theme', theme);
+    }
+
+    document.getElementById('themeToggle').addEventListener('click', () => {
+      const current = document.documentElement.getAttribute('data-theme');
+      applyTheme(current === 'dark' ? 'light' : 'dark');
+    });
+
+    /* ============ 移动端菜单 ============ */
+    const menuToggle = document.getElementById('menuToggle');
+    const mobileMenu = document.getElementById('mobileMenu');
+    const menuIcon = document.getElementById('menuIcon');
+
+    menuToggle.addEventListener('click', () => {
+      const isOpen = mobileMenu.classList.toggle('is-open');
+      menuToggle.setAttribute('aria-expanded', String(isOpen));
+      menuIcon.setAttribute('data-lucide', isOpen ? 'x' : 'menu');
+      lucide.createIcons();
+    });
+
+    /* ============ 精准锚点滚动 ============
+       统一处理所有内部锚点链接（#xxx），用 JS 主动 scrollTo 替代浏览器原生跳转，
+       确保 sticky header 不遮挡目标 section，并在移动端菜单展开时等过渡完成后再滚动。
+       --scroll-offset（80px = 64px nav + 16px 呼吸）作为唯一偏移基准。
+    */
+    function getScrollOffset() {
+      const v = getComputedStyle(document.documentElement).getPropertyValue('--scroll-offset').trim();
+      return parseFloat(v) || 80;
+    }
+    function smoothScrollToTarget(target) {
+      if (!target) return;
+      const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+      const top = target.getBoundingClientRect().top + window.scrollY - getScrollOffset();
+      window.scrollTo({
+        top: Math.max(0, top),
+        behavior: reduceMotion ? 'auto' : 'smooth'
+      });
+    }
+    function closeMobileMenu() {
+      if (!mobileMenu.classList.contains('is-open')) return false;
+      mobileMenu.classList.remove('is-open');
+      menuToggle.setAttribute('aria-expanded', 'false');
+      menuIcon.setAttribute('data-lucide', 'menu');
+      lucide.createIcons();
+      return true;
+    }
+    // 覆盖所有内部锚点链接：nav-link / mobile-nav-link / hero CTA / footer 链接
+    document.querySelectorAll('a[href^="#"]').forEach(link => {
+      link.addEventListener('click', (e) => {
+        const href = link.getAttribute('href');
+        // 纯 # 链接（logo）→ 滚动到顶部
+        if (href === '#' || href === '') {
+          e.preventDefault();
+          closeMobileMenu();
+          const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+          window.scrollTo({ top: 0, behavior: reduceMotion ? 'auto' : 'smooth' });
+          history.pushState(null, '', window.location.pathname);
+          return;
+        }
+        const target = document.querySelector(href);
+        if (!target) return; // 目标不存在则回退原生行为
+        e.preventDefault();
+        const menuWasOpen = closeMobileMenu();
+        if (menuWasOpen) {
+          // 等菜单过渡完成（0.4s）后再滚动，避免 header 高度变化干扰定位
+          setTimeout(() => smoothScrollToTarget(target), 420);
+        } else {
+          smoothScrollToTarget(target);
+        }
+        // 更新 URL hash 但不触发原生滚动
+        history.pushState(null, '', href);
+      });
+    });
+
+    /* ============ 滚动触发动画 ============ */
+    const revealEls = document.querySelectorAll('.scroll-reveal');
+    if ('IntersectionObserver' in window) {
+      const observer = new IntersectionObserver((entries) => {
+        entries.forEach((entry, idx) => {
+          if (entry.isIntersecting) {
+            // 同组内错峰出现
+            const siblings = Array.from(entry.target.parentElement.querySelectorAll('.scroll-reveal'));
+            const sibIdx = siblings.indexOf(entry.target);
+            entry.target.style.transitionDelay = (Math.min(sibIdx, 4) * 0.08) + 's';
+            entry.target.classList.add('is-visible');
+            observer.unobserve(entry.target);
+          }
+        });
+      }, { threshold: 0.12, rootMargin: '0px 0px -60px 0px' });
+      revealEls.forEach(el => observer.observe(el));
+    } else {
+      // 不支持 IntersectionObserver 的浏览器直接显示
+      revealEls.forEach(el => el.classList.add('is-visible'));
+    }
+
+    /* ============ 阅读进度条 ============ */
+    const progressBar = document.getElementById('readingProgress');
+    function updateProgress() {
+      const scrollTop = window.scrollY;
+      const docHeight = document.documentElement.scrollHeight - window.innerHeight;
+      const pct = docHeight > 0 ? (scrollTop / docHeight) * 100 : 0;
+      progressBar.style.width = Math.min(pct, 100) + '%';
+    }
+    window.addEventListener('scroll', updateProgress, { passive: true });
+    updateProgress();
+
+    /* ============ 导航栏当前章节高亮 ============ */
+    const sections = ['manifesto', 'lab', 'readings', 'collision', 'about'].map(id => document.getElementById(id)).filter(Boolean);
+    const navLinks = document.querySelectorAll('.nav-link');
+    function updateActiveNav() {
+      // 偏移量与 --scroll-offset 一致（80px），保证高亮判定与实际锚点滚动位置同步
+      const scrollPos = window.scrollY + 80;
+      let activeId = '';
+      sections.forEach(sec => {
+        if (sec.offsetTop <= scrollPos) activeId = sec.id;
+      });
+      navLinks.forEach(link => {
+        const href = link.getAttribute('href');
+        link.classList.toggle('is-active', href === '#' + activeId);
+      });
+    }
+    window.addEventListener('scroll', updateActiveNav, { passive: true });
+    updateActiveNav();
+
+    /* ============ Toast 通知 ============ */
+    const toast = document.getElementById('toast');
+    const toastMessage = document.getElementById('toastMessage');
+    let toastTimer = null;
+    function showToast(message, icon = 'check-circle') {
+      toastMessage.textContent = message;
+      const iconEl = toast.querySelector('[data-lucide]');
+      if (iconEl) iconEl.setAttribute('data-lucide', icon);
+      lucide.createIcons();
+      toast.classList.add('is-toast-visible');
+      clearTimeout(toastTimer);
+      toastTimer = setTimeout(() => toast.classList.remove('is-toast-visible'), 3200);
+    }
+
+    /* ============ 碰撞 反驳观点呈现系统 ============
+       设计逻辑：用户选择"有/没有"后，问题与未选按钮淡出消失，
+       保留被点击按钮作为视觉锚点，逐条呈现对应的反驳观点，让用户直面质疑。
+       无 localStorage、无统计，纯前端一次性交互。
+    */
+    const COUNTER_POINTS = {
+      // 用户选"有"（认为 AI 法官有正当性）→ 反驳此立场
+      yes: [
+        '没有内在观点的裁判，只是在处理符号，而不是在解释法律。',
+        '黑箱里的公正，再精确也是专制，因为你永远不知道为何服从。',
+        '把人的独特性压缩成统计概率，正义就退化成了社会工程。',
+        '不能公开质疑的权力，无论结果多公正，都是披着算法外衣的暴力。',
+        '民众本能排斥机器裁判，这种排斥本身就是正当性赤字的社会证据。',
+        '找不到人负责的判决，不配拥有正当性。'
+      ],
+      // 用户选"没有"（认为 AI 法官无正当性）→ 反驳此立场
+      no: [
+        '我们能容忍人类法官的偏见，却拒绝一个永不疲倦的裁判者，这捍卫的不是正义，而是人类犯错的特权。',
+        '对饱受偏见之苦的人而言，限制人类裁量权的算法，恰恰是最迟来的正义。',
+        '人类法官的「内心确信」同样是黑箱，既然容忍了它，就没有资格用黑箱来审判机器。',
+        '为了坚持「必须由人类宣判」的形式，让穷人继续排队等正义，这是把精英傲慢凌驾于实质公正之上。',
+        '算法早已在帮法官量刑，反对 AI 法官不是反对机器，而是反对机器太显眼，戳破了人类的自恋。',
+        '如果法律共同体最终接受了算法裁判，「只有人类能审判」不过是用旧形而上学对抗正在发生的现实。'
+      ]
+    };
+
+    const collisionStage = document.querySelector('.collision-stage');
+    const collisionQuestion = document.getElementById('collisionQuestion');
+    const collisionChoices = document.getElementById('collisionChoices');
+    const collisionChosen = document.getElementById('collisionChosen');
+    const collisionStatus = document.getElementById('collisionStatus');
+    const counterPointsEl = document.getElementById('counterPoints');
+    const resetWrap = document.getElementById('resetWrap');
+    const resetBtn = document.getElementById('resetBtn');
+
+    let collisionLocked = false; // 防止重复点击
+
+    /* ============ 文字解码工具：赛博朋克 Matrix-style 文本动画 ============
+       设计意图：让反驳观点以"解码"方式逐字呈现，强化"质疑涌现"的冲击感。
+       纯前端、零依赖、honor prefers-reduced-motion。
+    */
+    const SCRAMBLE_CHARS = '!<>-_\\/[]{}=+*^?#$&@~01ABCDEFGHIJKLMNOPQRSTUVWXYZ23456789';
+    const SCRAMBLE_DIGITS = '0123456789';
+    const CP_PRESERVED = new Set([' ', '　', '\n', '「', '」', '『', '』', '（', '）', '(', ')', '，', '。', '、', '；', '：', '？', '！', '…', '《', '》', '·']);
+
+    function pickRandom(str) {
+      return str.charAt(Math.floor(Math.random() * str.length));
+    }
+
+    /**
+     * 对目标元素进行 Matrix 风格的文字解码动画。
+     * 字符从左到右逐个"解锁"：先显示随机字符，最后锁定为真实字符。
+     * @param {HTMLElement} el - 目标元素
+     * @param {string} finalText - 最终文本
+     * @param {Object} opts - { duration, charset, delay, onDone }
+     */
+    function scrambleText(el, finalText, opts = {}) {
+      const { duration = 800, charset = SCRAMBLE_CHARS, delay = 0, onDone = null } = opts;
+      const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+      if (reduceMotion) {
+        el.textContent = finalText;
+        if (onDone) onDone();
+        return;
+      }
+
+      const chars = Array.from(finalText);
+
+      setTimeout(() => {
+        // 元素已被移除（reset 场景），直接终止
+        if (!el.isConnected) return;
+
+        const startTime = performance.now();
+        let lastUpdate = 0;
+
+        function frame(now) {
+          if (!el.isConnected) return; // 双保险
+          const elapsed = now - startTime;
+          const progress = Math.min(elapsed / duration, 1);
+
+          // 限频 ~30fps，避免高负荷重排
+          if (now - lastUpdate > 33 || progress >= 1) {
+            lastUpdate = now;
+            let out = '';
+            for (let i = 0; i < chars.length; i++) {
+              const c = chars[i];
+              if (CP_PRESERVED.has(c)) {
+                out += c;
+                continue;
+              }
+              // 每个字符的解锁窗口：前 65% 时间逐字推进，35% 时间锁定
+              const charStart = (i / chars.length) * 0.65;
+              const charEnd = charStart + 0.35;
+              if (progress >= charEnd) {
+                out += c; // 锁定
+              } else if (progress < charStart) {
+                out += ' '; // 未开始，占位
+              } else {
+                out += pickRandom(charset); // 解码中
+              }
+            }
+            el.textContent = out;
+          }
+
+          if (progress < 1) {
+            requestAnimationFrame(frame);
+          } else {
+            el.textContent = finalText;
+            if (onDone) onDone();
+          }
+        }
+        requestAnimationFrame(frame);
+      }, delay);
+    }
+
+    function renderCounterPoints(choice) {
+      const points = COUNTER_POINTS[choice] || [];
+      // 反驳立场标签
+      const targetLabel = '即将与他们发生碰撞';
+
+      // 清空容器
+      counterPointsEl.innerHTML = '';
+
+      // 顶部反驳立场标签：mono 标签 + serif 标的
+      const headerEl = document.createElement('div');
+      headerEl.className = 'cp-item mb-7 sm:mb-9';
+      headerEl.innerHTML = `
+        <p class="cp-label text-[10px] font-mono text-zinc-500 tracking-[0.22em] uppercase mb-2">// COUNTER_ARGUMENT</p>
+        <p class="cp-target text-[15px] sm:text-base font-semibold text-zinc-200 leading-relaxed" style="font-family: var(--font-serif);"></p>
+      `;
+      counterPointsEl.appendChild(headerEl);
+
+      // 逐条反驳观点（结构与原版一致，但文字留空待 scramble 填充）
+      const itemEls = [];
+      points.forEach((text, i) => {
+        const idx = String(i + 1).padStart(2, '0');
+        const itemEl = document.createElement('div');
+        itemEl.className = 'cp-item py-4 sm:py-5 border-t border-zinc-800/60';
+        itemEl.innerHTML = `
+          <div class="flex items-start gap-4 sm:gap-5">
+            <span class="cp-index cp-index-glow text-[11px] font-mono text-[var(--color-brand-400)] tracking-[0.1em] pt-1 flex-shrink-0 tabular-nums"></span>
+            <p class="cp-text flex-1 text-[15px] sm:text-[17px] leading-[1.75] text-zinc-300" style="font-family: var(--font-serif);"></p>
+          </div>
+        `;
+        counterPointsEl.appendChild(itemEl);
+        itemEls.push({ el: itemEl, index: idx, text });
+      });
+
+      // 显示容器
+      counterPointsEl.classList.remove('hidden');
+
+      const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+      // reduced-motion 降级：直接填充所有文字，无动效
+      if (reduceMotion) {
+        headerEl.querySelector('.cp-target').textContent = targetLabel;
+        itemEls.forEach(({ el, index, text }) => {
+          el.querySelector('.cp-index').textContent = index;
+          el.querySelector('.cp-text').textContent = text;
+        });
+        return;
+      }
+
+      // ============ 动效编排 ============
+      // 节奏：header 先入场（glitch + decode）→ 6 条观点 stagger 入场
+      // 每条观点 = 容器 fade-up + 序号解码 + 正文解码
+      const HEADER_GLITCH_DUR = 500;
+      const HEADER_TEXT_DUR = 600;
+      const HEADER_TEXT_DELAY = 120;
+      const ITEM_FADE_DUR = 450;
+      const ITEM_STAGGER = 150;
+      const ITEM_INDEX_DUR = 350;
+      const ITEM_TEXT_DUR = 850;
+      const ITEM_TEXT_DELAY = 90;
+      const ITEM_BASE_DELAY = 250; // 第一条观点相对 header 的起始延后
+
+      // 1. header 入场：fade-up + label glitch + target decode
+      const labelEl = headerEl.querySelector('.cp-label');
+      const targetEl = headerEl.querySelector('.cp-target');
+      headerEl.style.opacity = '0';
+      headerEl.style.transform = 'translateY(6px)';
+      headerEl.style.transition = `opacity ${ITEM_FADE_DUR}ms cubic-bezier(0.16, 1, 0.3, 1), transform ${ITEM_FADE_DUR}ms cubic-bezier(0.16, 1, 0.3, 1)`;
+      requestAnimationFrame(() => {
+        requestAnimationFrame(() => {
+          headerEl.style.opacity = '1';
+          headerEl.style.transform = 'translateY(0)';
+          // label glitch RGB 分离入场
+          labelEl.classList.add('cp-glitch');
+          setTimeout(() => labelEl.classList.remove('cp-glitch'), HEADER_GLITCH_DUR);
+          // target 文本解码
+          scrambleText(targetEl, targetLabel, {
+            duration: HEADER_TEXT_DUR,
+            delay: HEADER_TEXT_DELAY
+          });
+        });
+      });
+
+      // 2. 逐条观点 stagger 入场
+      itemEls.forEach(({ el, index, text }, i) => {
+        const indexEl = el.querySelector('.cp-index');
+        const textEl = el.querySelector('.cp-text');
+
+        el.style.opacity = '0';
+        el.style.transform = 'translateY(8px)';
+        el.style.transition = `opacity ${ITEM_FADE_DUR}ms cubic-bezier(0.16, 1, 0.3, 1), transform ${ITEM_FADE_DUR}ms cubic-bezier(0.16, 1, 0.3, 1)`;
+
+        const itemStartDelay = ITEM_BASE_DELAY + i * ITEM_STAGGER;
+
+        setTimeout(() => {
+          if (!el.isConnected) return;
+          el.style.opacity = '1';
+          el.style.transform = 'translateY(0)';
+          // 序号快速解码（mono 数字滚动）
+          scrambleText(indexEl, index, {
+            duration: ITEM_INDEX_DUR,
+            charset: SCRAMBLE_DIGITS,
+            delay: 0
+          });
+          // 正文逐字解码（serif 衬线，矩阵风）
+          scrambleText(textEl, text, {
+            duration: ITEM_TEXT_DUR,
+            delay: ITEM_TEXT_DELAY
+          });
+        }, itemStartDelay);
+      });
+
+      // 3. 动画总时长（供 handleChoice 计算 resetWrap 出现时机）
+      const totalDuration = ITEM_BASE_DELAY + (itemEls.length - 1) * ITEM_STAGGER + ITEM_TEXT_DUR + ITEM_TEXT_DELAY;
+      return totalDuration;
+    }
+
+    function handleChoice(choice) {
+      if (collisionLocked) return;
+      collisionLocked = true;
+
+      const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+      const duration = reduceMotion ? 0 : 500;
+
+      // 标记 choice，CSS 据此切换序号光晕颜色
+      collisionStage.setAttribute('data-collision-choice', choice);
+
+      // 1. 淡出问题与未选按钮
+      collisionQuestion.style.opacity = '0';
+      collisionQuestion.style.transform = 'translateY(-8px)';
+      collisionChoices.style.opacity = '0';
+      collisionChoices.style.pointerEvents = 'none';
+
+      // 2. 延迟后隐藏并显示反驳区
+      setTimeout(() => {
+        collisionQuestion.classList.add('hidden');
+        collisionChoices.classList.add('hidden');
+
+        // 配置 chosen badge
+        const chosenLabel = document.getElementById('chosenLabel');
+        const chosenText = document.getElementById('chosenText');
+        const chosenBadge = document.getElementById('chosenBadge');
+        if (choice === 'yes') {
+          chosenLabel.textContent = 'YOUR_CHOICE';
+          chosenLabel.style.color = 'var(--color-brand-300)';
+          chosenText.textContent = '有 · 具有正当性';
+          chosenText.style.color = 'var(--color-brand-200)';
+          chosenBadge.style.borderColor = 'rgba(0,122,255,0.4)';
+          chosenBadge.style.backgroundColor = 'rgba(0,122,255,0.08)';
+        } else {
+          chosenLabel.textContent = 'YOUR_CHOICE';
+          chosenLabel.style.color = '#ff6b78';
+          chosenText.textContent = '没有 · 不具有正当性';
+          chosenText.style.color = '#ff8a96';
+          chosenBadge.style.borderColor = 'rgba(255,69,84,0.4)';
+          chosenBadge.style.backgroundColor = 'rgba(255,69,84,0.08)';
+        }
+        collisionChosen.classList.remove('hidden');
+
+        // chosen badge 状态切换微反馈（淡入 + 微缩放 + blur 收锐）
+        if (!reduceMotion) {
+          chosenBadge.classList.remove('cp-chosen-in');
+          void chosenBadge.offsetWidth; // 强制 reflow 以重启动画
+          chosenBadge.classList.add('cp-chosen-in');
+        }
+
+        // 3. 更新状态
+        collisionStatus.textContent = 'COUNTER_LOADED';
+
+        // 4. 渲染并 stagger 显示反驳观点，返回总时长
+        const animDuration = renderCounterPoints(choice) || 1500;
+
+        // 5. 显示重置药丸（待动效整体完成后）
+        //    黑客帝国红蓝药丸隐喻：选蓝 → 给红药丸，选红 → 给蓝药丸
+        const resetDelay = reduceMotion ? 0 : Math.max(animDuration + 200, 1500);
+        setTimeout(() => {
+          const resetBtnEl = resetWrap.querySelector('.cp-reset-btn');
+          if (resetBtnEl) {
+            resetBtnEl.setAttribute('data-pill', choice === 'yes' ? 'red' : 'blue');
+          }
+          resetWrap.classList.remove('hidden');
+          if (!reduceMotion && resetBtnEl) {
+            resetBtnEl.classList.remove('cp-reset-in');
+            void resetBtnEl.offsetWidth; // 强制 reflow 以重启动画
+            resetBtnEl.classList.add('cp-reset-in');
+          }
+        }, resetDelay);
+      }, duration);
+    }
+
+    function resetCollision() {
+      collisionLocked = false;
+
+      // 清除 choice 标记
+      collisionStage.removeAttribute('data-collision-choice');
+
+      // 重置状态
+      collisionStatus.textContent = 'AWAITING_CHOICE';
+
+      // 隐藏 chosen / counterPoints / reset
+      collisionChosen.classList.add('hidden');
+      // 清空 counterPoints 会切断 scrambleText 的 rAF（el.isConnected 检查）
+      counterPointsEl.innerHTML = '';
+      counterPointsEl.classList.add('hidden');
+      resetWrap.classList.add('hidden');
+
+      // 恢复问题与按钮
+      collisionQuestion.classList.remove('hidden');
+      collisionChoices.classList.remove('hidden');
+      collisionChoices.style.pointerEvents = '';
+
+      // 触发淡入
+      requestAnimationFrame(() => {
+        requestAnimationFrame(() => {
+          collisionQuestion.style.opacity = '1';
+          collisionQuestion.style.transform = 'translateY(0)';
+          collisionChoices.style.opacity = '1';
+          collisionChoices.style.transform = 'translateY(0)';
+        });
+      });
+    }
+
+    // 绑定按钮
+    document.getElementById('voteYes').addEventListener('click', () => handleChoice('yes'));
+    document.getElementById('voteNo').addEventListener('click', () => handleChoice('no'));
+    resetBtn.addEventListener('click', resetCollision);
+  </script>
+</body>
+</html>
