@@ -1,1284 +1,1401 @@
 <!DOCTYPE html>
 <html lang="zh-CN" class="light" data-theme="light">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>刑格CPTI - 你的刑法人格鉴定书</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@300;400;500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <style id="theme-vars">
-:root {
-  --color-primary-50: #eef2ff;
-  --background: #ffffff;
-  --foreground: #0f172a;
-  --card: #ffffff;
-  --card-foreground: #1e293b;
-  --color-primary: #4f46e5;
-  --color-primary-600: #4338ca;
-  --color-primary-foreground: #ffffff;
-  --color-muted: #f1f5f9;
-  --color-muted-foreground: #64748b;
-  --color-border: #e2e8f0;
-  --radius-sm: 4px;
-  --radius-md: 8px;
-  --radius-lg: 12px;
-  --font-display: 'Inter', 'Noto Sans SC', system-ui, -apple-system, sans-serif;
-  --font-body: 'Noto Sans SC', 'Inter', system-ui, -apple-system, sans-serif;
-}
-.font-display { font-family: var(--font-display); }
-.font-body { font-family: var(--font-body); }
-    </style>
-    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4.3.1/dist/index.global.js"></script>
-    <script src="https://unpkg.com/lucide@1.8.0/dist/umd/lucide.min.js"></script>
-    <style type="text/tailwindcss">
-  @theme inline {
-    --color-background: var(--background);
-    --color-foreground: var(--foreground);
-    --color-card: var(--card);
-    --color-card-foreground: var(--card-foreground);
-    --color-primary: var(--color-primary);
-    --color-primary-foreground: var(--color-primary-foreground);
-    --color-muted: var(--color-muted);
-    --color-muted-foreground: var(--color-muted-foreground);
-    --color-border: var(--color-border);
-    --radius-sm: var(--radius-sm);
-    --radius-md: var(--radius-md);
-    --radius-lg: var(--radius-lg);
-  }
-  @layer base {
-    body { background: var(--background); color: var(--foreground); }
-  }
-    </style>
-    <style>
-      .page { display: none; }
-      .page.active { display: block; }
-      /* ===== Likert 五级量表按钮（MBTI风格） ===== */
-      .likert-scale {
-        display: flex;
-        gap: 8px;
-        align-items: stretch;
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="Generative Jurisprudence — 生成式法学。AI 时代的法律理论探索期刊。" />
+  <title>Generative Jurisprudence - 生成式法学</title>
+
+  <!-- 字体：DM Sans + JetBrains Mono（设计稿引用但未引入，此处补全） -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600;9..40,700&family=JetBrains+Mono:ital,wght@0,400;0,500;0,600;1,400&display=swap" rel="stylesheet" />
+
+  <style id="theme-vars">
+    :root {
+      --color-brand-50: #e8f2ff;
+      --color-brand-100: #cfe5ff;
+      --color-brand-200: #9fcbff;
+      --color-brand-300: #66abff;
+      --color-brand-400: #2e8dff;
+      --color-brand-500: #007aff;
+      --color-brand-600: #0064d6;
+      --color-brand-700: #004fad;
+      --color-brand-800: #003b82;
+      --color-brand-900: #00275a;
+      --color-background: #ffffff;
+      --color-background-50: #ffffff;
+      --color-background-100: #f7f7fa;
+      --color-background-200: #f2f2f7;
+      --color-background-300: #e5e5ea;
+      --color-background-400: #d1d1d6;
+      --color-background-500: #aeaeb2;
+      --color-background-600: #8e8e93;
+      --color-background-700: #3a3a3c;
+      --color-background-800: #1c1c1e;
+      --color-background-900: #000000;
+      --color-foreground: #1d1d1f;
+      --color-card: #ffffff;
+      --color-primary: #007aff;
+      --color-border: #e5e5ea;
+      --color-muted: #6e6e73;
+      --color-muted-foreground: #8e8e93;
+      --color-accent: #f2f2f7;
+      --color-accent-foreground: #1d1d1f;
+      --color-ring: #007aff;
+      --color-primary-foreground: #ffffff;
+      --color-text-50: #f5f5f7;
+      --color-text-100: #e3e3e8;
+      --color-text-200: #c7c7cc;
+      --color-text-300: #aeaeb2;
+      --color-text-400: #8e8e93;
+      --color-text-500: #6e6e73;
+      --color-text-600: #48484a;
+      --color-text-700: #3c3c43;
+      --color-text-800: #1d1d1f;
+      --color-text-900: #000000;
+      --color-state-success: #34c759;
+      --color-state-success-dark: #30d158;
+      --color-state-error: #ff3b30;
+      --color-chart-1: #30d158;
+      --color-chart-2: #2e8dff;
+      --color-chart-3: #ff9f0a;
+      --color-chart-4: #5e5ce6;
+      --color-chart-5: #bf5af2;
+      --color-sidebar: #f2f2f7;
+      --color-sidebar-primary: #007aff;
+      --font-sans: "DM Sans", "PingFang SC", "Microsoft YaHei", ui-sans-serif, sans-serif, system-ui;
+      --font-mono: "JetBrains Mono", ui-monospace, "SF Mono", Consolas, monospace;
+      --radius-sm: 8px;
+      --radius-md: 12px;
+      --radius-lg: 19.2px;
+      --header-height: 64px;
+      /* 锚点滚动时的视觉呼吸空间：实际 nav 高度 64px + 16px 留白。
+         scroll-padding-top / scroll-margin-top 都引用此值，保证 sticky header
+         不遮挡 section 顶部内容，且视觉上不紧贴。 */
+      --scroll-offset: 80px;
+    }
+    /* 深色主题：基于设计稿内 dark 变量集合 */
+    [data-theme="dark"] {
+      --color-background: #000000;
+      --color-background-50: #0d0d0f;
+      --color-background-100: #1c1c1e;
+      --color-background-200: #2c2c2e;
+      --color-background-300: #3a3a3c;
+      --color-background-400: #48484a;
+      --color-background-500: #636366;
+      --color-background-600: #8e8e93;
+      --color-background-700: #aeaeb2;
+      --color-background-800: #f5f5f7;
+      --color-background-900: #ffffff;
+      --color-foreground: #f5f5f7;
+      --color-card: #1c1c1e;
+      --color-primary: #2e8dff;
+      --color-border: #3a3a3c;
+      --color-muted: #8e8e93;
+      --color-muted-foreground: #8e8e93;
+      --color-accent: #1c1c1e;
+      --color-accent-foreground: #f5f5f7;
+      --color-ring: #2e8dff;
+      --color-primary-foreground: #ffffff;
+      --color-text-50: #000000;
+      --color-text-100: #1d1d1f;
+      --color-text-200: #3c3c43;
+      --color-text-300: #48484a;
+      --color-text-400: #6e6e73;
+      --color-text-500: #8e8e93;
+      --color-text-600: #aeaeb2;
+      --color-text-700: #c7c7cc;
+      --color-text-800: #e3e3e8;
+      --color-text-900: #f5f5f7;
+      --color-sidebar: #1c1c1e;
+    }
+  </style>
+
+  <style id="semantic-token-fallback">
+    .bg-background { background-color: var(--color-background) !important; }
+    .text-foreground { color: var(--color-foreground) !important; }
+    .bg-card { background-color: var(--color-card) !important; }
+    .text-card-foreground { color: var(--color-foreground) !important; }
+    .bg-primary { background-color: var(--color-primary) !important; }
+    .text-primary-foreground { color: var(--color-primary-foreground) !important; }
+    .border-border { border-color: var(--color-border) !important; }
+    .text-muted { color: var(--color-muted) !important; }
+    .text-muted-foreground { color: var(--color-muted-foreground) !important; }
+    .bg-accent { background-color: var(--color-accent) !important; }
+    .text-accent-foreground { color: var(--color-accent-foreground) !important; }
+    .bg-muted { background-color: var(--color-accent) !important; }
+    .ring-ring { --tw-ring-color: var(--color-ring) !important; }
+  </style>
+
+  <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+  <style type="text/tailwindcss">
+    @theme inline {
+      --color-background: var(--color-background);
+      --color-foreground: var(--color-foreground);
+      --color-card: var(--color-card);
+      --color-primary: var(--color-primary);
+      --color-border: var(--color-border);
+      --color-muted: var(--color-muted);
+      --color-muted-foreground: var(--color-muted-foreground);
+      --color-accent: var(--color-accent);
+      --color-accent-foreground: var(--color-accent-foreground);
+      --color-ring: var(--color-ring);
+      --color-brand-50: var(--color-brand-50);
+      --color-brand-100: var(--color-brand-100);
+      --color-brand-200: var(--color-brand-200);
+      --color-brand-300: var(--color-brand-300);
+      --color-brand-400: var(--color-brand-400);
+      --color-brand-500: var(--color-brand-500);
+      --color-brand-600: var(--color-brand-600);
+      --color-brand-700: var(--color-brand-700);
+      --color-brand-800: var(--color-brand-800);
+      --color-brand-900: var(--color-brand-900);
+      --font-sans: var(--font-sans);
+      --font-mono: var(--font-mono);
+      --radius-sm: var(--radius-sm);
+      --radius-md: var(--radius-md);
+      --radius-lg: var(--radius-lg);
+    }
+    @layer base {
+      html {
+        scroll-behavior: smooth;
+        /* 适配 sticky header 的锚点偏移：使用 --scroll-offset 含视觉呼吸空间 */
+        scroll-padding-top: var(--scroll-offset);
       }
-      .likert-btn {
-        flex: 1;
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        justify-content: center;
-        gap: 8px;
-        padding: 22px 8px 20px;
-        border-radius: 16px;
-        border: 2px solid var(--color-border);
-        background: var(--card);
-        color: var(--foreground);
-        cursor: pointer;
-        transition: transform 0.25s cubic-bezier(0.34,1.56,0.64,1), border-color 0.2s, background 0.2s, box-shadow 0.2s;
-        position: relative;
-        overflow: hidden;
-        min-height: 104px;
+      /* 每个 section 的精确兜底：scroll-margin-top 优先级高于 scroll-padding，
+         双重保险以兼容不同浏览器实现。 */
+      section[id] {
+        scroll-margin-top: var(--scroll-offset);
       }
-      .likert-btn::before {
-        content: '';
-        position: absolute;
-        inset: 0;
+      footer[id] {
+        scroll-margin-top: var(--scroll-offset);
+      }
+      body {
+        font-family: var(--font-sans);
+        background-color: var(--color-background);
+        color: var(--color-foreground);
+        -webkit-font-smoothing: antialiased;
+        -moz-osx-font-smoothing: grayscale;
+        transition: background-color 0.4s ease, color 0.4s ease;
+      }
+      .font-mono { font-family: var(--font-mono); }
+      .text-balance { text-wrap: balance; }
+      ::selection { background-color: var(--color-brand-100); color: var(--color-brand-900); }
+      [data-theme="dark"] ::selection { background-color: var(--color-brand-800); color: var(--color-brand-100); }
+    }
+    @media (prefers-reduced-motion: no-preference) {
+      .reveal {
         opacity: 0;
-        transition: opacity 0.2s;
-        pointer-events: none;
+        transform: translateY(20px);
+        animation: reveal-in 0.7s cubic-bezier(0.16, 1, 0.3, 1) forwards;
       }
-      /* 顶部色条指示器 */
-      .likert-bar {
-        width: 100%;
-        height: 4px;
-        border-radius: 2px;
-        position: absolute;
-        top: 0;
-        left: 0;
-        opacity: 0.5;
-        transition: opacity 0.2s;
-      }
-      .likert-btn[data-level="2"]  .likert-bar { background: #059669; }
-      .likert-btn[data-level="1"]  .likert-bar { background: #10b981; }
-      .likert-btn[data-level="0"]  .likert-bar { background: #94a3b8; }
-      .likert-btn[data-level="-1"] .likert-bar { background: #f43f5e; }
-      .likert-btn[data-level="-2"] .likert-bar { background: #dc2626; }
-      /* hover 时色条加亮 */
-      .likert-btn:hover .likert-bar { opacity: 1; height: 5px; }
-      .likert-btn.selected .likert-bar { opacity: 0; }
-      /* 各选项的hover背景梯度 */
-      .likert-btn[data-level="2"]::before  { background: linear-gradient(180deg, #10b98115, #05966920); }
-      .likert-btn[data-level="1"]::before  { background: linear-gradient(180deg, #34d39910, #10b98115); }
-      .likert-btn[data-level="0"]::before  { background: linear-gradient(180deg, #94a3b810, #64748b15); }
-      .likert-btn[data-level="-1"]::before { background: linear-gradient(180deg, #fb718510, #f43f5e15); }
-      .likert-btn[data-level="-2"]::before { background: linear-gradient(180deg, #ef444415, #dc262620); }
-      .likert-btn:hover::before { opacity: 1; }
-      .likert-btn:hover {
-        transform: translateY(-3px);
-        border-color: var(--color-primary);
-        box-shadow: 0 8px 24px rgba(79,70,229,0.12);
-      }
-      /* 选中态：用对应强度的纯色填充 */
-      .likert-btn.selected[data-level="2"]  { border-color: #059669; background: #059669; color: #fff; box-shadow: 0 8px 28px rgba(5,150,105,0.35); transform: translateY(-2px); }
-      .likert-btn.selected[data-level="1"]  { border-color: #10b981; background: #10b981; color: #fff; box-shadow: 0 8px 28px rgba(16,185,129,0.35); transform: translateY(-2px); }
-      .likert-btn.selected[data-level="0"]  { border-color: #64748b; background: #64748b; color: #fff; box-shadow: 0 8px 28px rgba(100,116,139,0.35); transform: translateY(-2px); }
-      .likert-btn.selected[data-level="-1"] { border-color: #f43f5e; background: #f43f5e; color: #fff; box-shadow: 0 8px 28px rgba(244,63,94,0.35); transform: translateY(-2px); }
-      .likert-btn.selected[data-level="-2"] { border-color: #dc2626; background: #dc2626; color: #fff; box-shadow: 0 8px 28px rgba(220,38,38,0.35); transform: translateY(-2px); }
-      .likert-btn.selected::before { opacity: 0 !important; }
-      .likert-label {
-        font-size: 15px;
-        font-weight: 600;
-        line-height: 1.3;
-        text-align: center;
-        letter-spacing: 0.02em;
-      }
-      .likert-btn.selected .likert-label { color: #fff; }
-      /* 移动端适配：文字换行控制 */
-      @media (max-width: 480px) {
-        .likert-label { font-size: 13px; }
-        .likert-btn { padding: 18px 4px 16px; min-height: 92px; gap: 6px; }
-        .likert-scale { gap: 5px; }
-      }
-      /* 量表两端的语义标签 */
-      .likert-axis-labels {
-        display: flex;
-        justify-content: space-between;
-        padding: 0 4px;
-        margin-bottom: 10px;
-        font-size: 11px;
-        color: var(--color-muted-foreground);
-        font-weight: 600;
-        letter-spacing: 0.05em;
-      }
-      @keyframes fade-in {
-        from { opacity: 0; transform: translateY(16px); }
+      .reveal:nth-child(2) { animation-delay: 0.08s; }
+      .reveal:nth-child(3) { animation-delay: 0.16s; }
+      .reveal:nth-child(4) { animation-delay: 0.24s; }
+      @keyframes reveal-in {
         to { opacity: 1; transform: translateY(0); }
       }
-      .animate-fade-in { animation: fade-in 0.5s ease forwards; }
-      @keyframes spin-slow {
-        0% { transform: rotate(0deg); }
-        100% { transform: rotate(360deg); }
-      }
-      .animate-spin-slow { animation: spin-slow 1.5s linear infinite; }
-      @keyframes pulse-dot {
-        0%, 80%, 100% { transform: scale(0.6); opacity: 0.4; }
-        40% { transform: scale(1); opacity: 1; }
-      }
-      .loading-dot { animation: pulse-dot 1.4s ease-in-out infinite; }
-      .loading-dot:nth-child(2) { animation-delay: 0.2s; }
-      .loading-dot:nth-child(3) { animation-delay: 0.4s; }
-      .modal-overlay {
-        display: none;
-        position: fixed;
-        inset: 0;
-        z-index: 50;
-        align-items: center;
-        justify-content: center;
-        background: rgba(0,0,0,0.4);
-        backdrop-filter: blur(4px);
-      }
-      .modal-overlay.active { display: flex; }
+    }
+  </style>
 
-      /* ===== Toast 提示 ===== */
-      #toast {
-        position: fixed;
-        top: 24px;
-        left: 50%;
-        transform: translateX(-50%) translateY(-100px);
-        background: #1e293b;
-        color: #fff;
-        padding: 12px 20px;
-        border-radius: 10px;
-        font-size: 14px;
-        font-weight: 500;
-        box-shadow: 0 8px 32px rgba(0,0,0,0.2);
-        z-index: 9999;
+  <!-- 自定义交互样式：滚动条、移动菜单、toast、阅读进度、主题切换过渡 -->
+  <style>
+    /* 自定义滚动条 */
+    ::-webkit-scrollbar { width: 10px; height: 10px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb {
+      background: var(--color-background-400);
+      border-radius: 8px;
+      border: 2px solid var(--color-background);
+    }
+    ::-webkit-scrollbar-thumb:hover { background: var(--color-background-500); }
+
+    /* 滚动触发的渐入：JS 控制 .is-visible 触发 */
+    @media (prefers-reduced-motion: no-preference) {
+      .scroll-reveal {
         opacity: 0;
-        transition: transform 0.4s cubic-bezier(0.34,1.56,0.64,1), opacity 0.3s;
-        pointer-events: none;
-        white-space: nowrap;
-        display: flex;
-        align-items: center;
-        gap: 8px;
+        transform: translateY(24px);
+        transition: opacity 0.7s cubic-bezier(0.16, 1, 0.3, 1), transform 0.7s cubic-bezier(0.16, 1, 0.3, 1);
+        will-change: opacity, transform;
       }
-      #toast.show {
-        transform: translateX(-50%) translateY(0);
+      .scroll-reveal.is-visible {
         opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    /* 移动端菜单抽屉 */
+    .mobile-menu {
+      max-height: 0;
+      overflow: hidden;
+      transition: max-height 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    .mobile-menu.is-open { max-height: 320px; }
+
+    /* 主题切换按钮图标淡入淡出 */
+    .theme-toggle .sun,
+    .theme-toggle .moon {
+      transition: opacity 0.3s ease, transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    [data-theme="light"] .theme-toggle .moon { opacity: 1; transform: rotate(0) scale(1); }
+    [data-theme="light"] .theme-toggle .sun { opacity: 0; transform: rotate(-90deg) scale(0.5); position: absolute; }
+    [data-theme="dark"] .theme-toggle .moon { opacity: 0; transform: rotate(90deg) scale(0.5); position: absolute; }
+    [data-theme="dark"] .theme-toggle .sun { opacity: 1; transform: rotate(0) scale(1); }
+
+    /* 阅读进度条 */
+    .reading-progress {
+      position: fixed;
+      top: 0;
+      left: 0;
+      height: 2px;
+      width: 0%;
+      background: var(--color-brand-500);
+      z-index: 60;
+      transition: width 0.1s linear;
+    }
+
+    /* Toast 通知 */
+    .toast {
+      position: fixed;
+      bottom: 24px;
+      left: 50%;
+      transform: translateX(-50%) translateY(20px);
+      opacity: 0;
+      visibility: hidden;
+      pointer-events: none;
+      background: var(--color-text-800);
+      color: var(--color-background);
+      padding: 12px 20px;
+      border-radius: 12px;
+      font-size: 14px;
+      font-weight: 500;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+      z-index: 100;
+      transition: opacity 0.3s ease, transform 0.4s cubic-bezier(0.16, 1, 0.3, 1), visibility 0s linear 0.4s;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      max-width: calc(100vw - 32px);
+    }
+    .toast.is-toast-visible {
+      transform: translateX(-50%) translateY(0);
+      opacity: 1;
+      visibility: visible;
+      pointer-events: auto;
+      transition: opacity 0.3s ease, transform 0.4s cubic-bezier(0.16, 1, 0.3, 1), visibility 0s;
+    }
+
+    /* 导航高亮 */
+    .nav-link.is-active {
+      color: var(--color-text-800) !important;
+    }
+    [data-theme="dark"] .nav-link.is-active {
+      color: var(--color-text-900) !important;
+    }
+
+    /* 移动端：隐藏装饰性代码块避免水平溢出 */
+    @media (max-width: 640px) {
+      .code-decor-desktop { display: none; }
+    }
+
+    /* 按钮聚焦可达性 */
+    a:focus-visible, button:focus-visible {
+      outline: 2px solid var(--color-ring);
+      outline-offset: 2px;
+      border-radius: 8px;
+    }
+
+    /* ============ 碰撞 反驳观点赛博朋克呈现动效 ============ */
+    @media (prefers-reduced-motion: no-preference) {
+      /* 标签 glitch：RGB 双色分离 + 微抖动，0.5s steps 制造机械感 */
+      .cp-glitch {
+        animation: cp-glitch-rgb 0.5s steps(6) forwards, cp-glitch-jitter 0.5s steps(6) forwards;
+      }
+      @keyframes cp-glitch-rgb {
+        0%   { text-shadow: 0 0 0 transparent; }
+        20%  { text-shadow: -2px 0 rgba(255,69,84,0.85), 2px 0 rgba(0,122,255,0.85); }
+        40%  { text-shadow: 2px 0 rgba(255,69,84,0.85), -2px 0 rgba(0,122,255,0.85); }
+        60%  { text-shadow: -1px 0 rgba(255,69,84,0.6), 1px 0 rgba(0,122,255,0.6); }
+        80%  { text-shadow: 1px 0 rgba(255,69,84,0.4), -1px 0 rgba(0,122,255,0.4); }
+        100% { text-shadow: 0 0 0 transparent; }
+      }
+      @keyframes cp-glitch-jitter {
+        0%, 100% { transform: translateX(0); }
+        25% { transform: translateX(-1px); }
+        50% { transform: translateX(1px); }
+        75% { transform: translateX(-0.5px); }
       }
 
-      /* ===== 未答题提示 ===== */
-      .unanswered-hint {
-        display: none;
-        align-items: center;
-        gap: 6px;
-        margin-bottom: 12px;
-        padding: 8px 14px;
-        border-radius: 8px;
-        background: #fef3c7;
-        border: 1px solid #fcd34d;
-        color: #92400e;
-        font-size: 13px;
-        font-weight: 500;
+      /* chosen badge：状态切换的微反馈 */
+      .cp-chosen-in {
+        animation: cp-chosen-in 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
       }
-      .unanswered-hint.show { display: flex; }
-    </style>
+      @keyframes cp-chosen-in {
+        0%   { opacity: 0; transform: translateY(-4px) scale(0.96); filter: blur(2px); }
+        60%  { opacity: 1; transform: translateY(0) scale(1); filter: blur(0); }
+        100% { opacity: 1; transform: translateY(0) scale(1); filter: blur(0); }
+      }
+
+      /* 序号光晕：常驻 */
+      .cp-index-glow {
+        text-shadow: 0 0 8px rgba(0,122,255,0.35);
+      }
+      [data-collision-choice="no"] .cp-index-glow {
+        text-shadow: 0 0 8px rgba(255,69,84,0.35);
+      }
+    }
+
+    /* reduced-motion 降级：禁用所有动画 */
+    @media (prefers-reduced-motion: reduce) {
+      .cp-glitch,
+      .cp-chosen-in,
+      .cp-index-glow,
+      .cp-reset-btn,
+      .cp-reset-btn::before,
+      .cp-reset-in {
+        animation: none !important;
+        text-shadow: none !important;
+      }
+    }
+
+    /* ============ "重新选择" 赛博朋克学术风药丸按钮 ============
+       设计意图：黑客帝国红蓝药丸隐喻。药丸造型（border-radius 999px），
+       颜色与用户已选立场形成对立：选蓝 → 出现红药丸（觉醒/重新审视）；
+       选红 → 出现蓝药丸（另一条路）。克制霓虹、内发光玻璃质感，高级不浮夸。
+    */
+    .cp-reset-btn {
+      position: relative;
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      padding: 12px 26px;
+      font-family: var(--font-mono);
+      font-size: 12px;
+      font-weight: 600;
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+      border-radius: 999px; /* 药丸 */
+      border: 1px solid transparent;
+      cursor: pointer;
+      isolation: isolate;
+      overflow: hidden;
+      transition: color 0.22s cubic-bezier(0.16, 1, 0.3, 1),
+                  background-color 0.22s cubic-bezier(0.16, 1, 0.3, 1),
+                  border-color 0.22s cubic-bezier(0.16, 1, 0.3, 1),
+                  transform 0.14s cubic-bezier(0.16, 1, 0.3, 1),
+                  box-shadow 0.22s cubic-bezier(0.16, 1, 0.3, 1);
+      will-change: transform;
+    }
+    /* 红药丸（用户选了蓝"有·具有正当性"后出现，邀请重新审视） */
+    .cp-reset-btn[data-pill="red"] {
+      color: #ffb4ba;
+      background:
+        linear-gradient(135deg, rgba(255, 69, 84, 0.16), rgba(255, 69, 84, 0.06)),
+        rgba(255, 69, 84, 0.05);
+      border-color: rgba(255, 107, 120, 0.55);
+      box-shadow:
+        inset 0 1px 0 rgba(255, 180, 186, 0.22),
+        inset 0 -1px 0 rgba(255, 69, 84, 0.18),
+        0 0 0 1px rgba(255, 69, 84, 0.12),
+        0 6px 24px rgba(255, 69, 84, 0.18);
+    }
+    .cp-reset-btn[data-pill="red"] .cp-reset-icon {
+      color: #ff8a96;
+      text-shadow: 0 0 8px rgba(255, 69, 84, 0.7);
+    }
+    .cp-reset-btn[data-pill="red"]:hover {
+      color: #ffffff;
+      background:
+        linear-gradient(135deg, rgba(255, 69, 84, 0.32), rgba(255, 69, 84, 0.14)),
+        rgba(255, 69, 84, 0.10);
+      border-color: rgba(255, 138, 150, 0.85);
+      box-shadow:
+        inset 0 1px 0 rgba(255, 200, 205, 0.32),
+        inset 0 -1px 0 rgba(255, 69, 84, 0.28),
+        0 0 0 1px rgba(255, 69, 84, 0.22),
+        0 10px 32px rgba(255, 69, 84, 0.32);
+      transform: translateY(-1px);
+    }
+    .cp-reset-btn[data-pill="red"]:hover .cp-reset-icon {
+      color: #ffffff;
+    }
+    /* 蓝药丸（用户选了红"没有·不具有正当性"后出现，邀请尝试另一条路） */
+    .cp-reset-btn[data-pill="blue"] {
+      color: #b9d7ff;
+      background:
+        linear-gradient(135deg, rgba(0, 122, 255, 0.16), rgba(0, 122, 255, 0.06)),
+        rgba(0, 122, 255, 0.05);
+      border-color: rgba(102, 171, 255, 0.55);
+      box-shadow:
+        inset 0 1px 0 rgba(185, 215, 255, 0.22),
+        inset 0 -1px 0 rgba(0, 122, 255, 0.18),
+        0 0 0 1px rgba(0, 122, 255, 0.12),
+        0 6px 24px rgba(0, 122, 255, 0.18);
+    }
+    .cp-reset-btn[data-pill="blue"] .cp-reset-icon {
+      color: #66abff;
+      text-shadow: 0 0 8px rgba(0, 122, 255, 0.7);
+    }
+    .cp-reset-btn[data-pill="blue"]:hover {
+      color: #ffffff;
+      background:
+        linear-gradient(135deg, rgba(0, 122, 255, 0.32), rgba(0, 122, 255, 0.14)),
+        rgba(0, 122, 255, 0.10);
+      border-color: rgba(138, 199, 255, 0.85);
+      box-shadow:
+        inset 0 1px 0 rgba(205, 225, 255, 0.32),
+        inset 0 -1px 0 rgba(0, 122, 255, 0.28),
+        0 0 0 1px rgba(0, 122, 255, 0.22),
+        0 10px 32px rgba(0, 122, 255, 0.32);
+      transform: translateY(-1px);
+    }
+    .cp-reset-btn[data-pill="blue"]:hover .cp-reset-icon {
+      color: #ffffff;
+    }
+    .cp-reset-btn:active {
+      transform: translateY(0) scale(0.985);
+    }
+    .cp-reset-btn:focus-visible {
+      outline: 2px solid #ffffff;
+      outline-offset: 3px;
+    }
+    .cp-reset-btn .cp-reset-icon {
+      font-size: 13px;
+      line-height: 1;
+      transition: color 0.22s ease-out;
+    }
+    /* 玻璃高光：顶部内反光，营造药丸胶囊的材质感 */
+    .cp-reset-btn::after {
+      content: "";
+      position: absolute;
+      inset: 1px;
+      border-radius: 999px;
+      background: linear-gradient(
+        180deg,
+        rgba(255, 255, 255, 0.14) 0%,
+        rgba(255, 255, 255, 0.02) 38%,
+        transparent 60%
+      );
+      pointer-events: none;
+      z-index: -1;
+    }
+    /* 扫描线 hover：单次缓慢扫过的微弱光带 */
+    @media (prefers-reduced-motion: no-preference) {
+      .cp-reset-btn::before {
+        content: "";
+        position: absolute;
+        top: 0;
+        left: -120%;
+        width: 50%;
+        height: 100%;
+        background: linear-gradient(
+          90deg,
+          transparent 0%,
+          rgba(255, 255, 255, 0.20) 50%,
+          transparent 100%
+        );
+        pointer-events: none;
+        opacity: 0;
+        z-index: 1;
+      }
+      .cp-reset-btn:hover::before {
+        opacity: 1;
+        animation: cp-scan-sweep 0.95s ease-out;
+      }
+      @keyframes cp-scan-sweep {
+        0% { left: -120%; }
+        100% { left: 120%; }
+      }
+      /* 入场：药丸浮现，与反驳观点动效语言统一 */
+      .cp-reset-in {
+        animation: cp-reset-in 0.55s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+      }
+      @keyframes cp-reset-in {
+        0% {
+          opacity: 0;
+          transform: translateY(8px) scale(0.94);
+          filter: blur(2px);
+        }
+        60% {
+          opacity: 1;
+          transform: translateY(0) scale(1);
+          filter: blur(0);
+        }
+        100% {
+          opacity: 1;
+          transform: translateY(0) scale(1);
+        }
+      }
+    }
+  </style>
 </head>
-<body class="min-h-screen font-body antialiased">
-<div id="toast"></div>
-<main>
+<body class="bg-background text-foreground">
 
-  <!-- ==================== 开始页 ==================== -->
-  <div id="page-intro" class="page active">
-    <nav class="flex items-center justify-between px-6 py-4 max-w-3xl mx-auto">
-      <a href="#" onclick="return false;" class="flex items-center gap-2 text-lg font-semibold tracking-tight text-foreground no-underline hover:text-primary transition-colors">
-        <i data-lucide="scale" class="w-5 h-5 text-primary"></i>
-        <span class="font-display">刑格 <span class="text-muted-foreground font-normal text-sm">CPTI</span></span>
+  <!-- 阅读进度条 -->
+  <div class="reading-progress" id="readingProgress" aria-hidden="true"></div>
+
+  <!-- ============ NAVIGATION ============ -->
+  <header class="sticky top-0 z-50 bg-[var(--color-background)]/80 backdrop-blur-xl border-b border-[var(--color-background-300)]">
+    <nav class="max-w-6xl mx-auto px-6 lg:px-8 h-16 flex items-center justify-between">
+      <a href="#" class="flex items-center gap-2.5 group">
+        <span class="inline-flex items-center justify-center w-8 h-8 rounded-[8px] bg-[var(--color-brand-500)] text-white font-bold text-[13px] tracking-tight" style="font-family:var(--font-mono);">GJ</span>
+        <span class="hidden sm:block text-[14px] font-semibold tracking-tight text-[var(--color-text-800)] group-hover:text-[var(--color-brand-600)] transition-colors">Generative Jurisprudence</span>
       </a>
-      <div class="flex items-center gap-4 text-sm text-muted-foreground">
-        <a href="generative-jurisprudence/index.html" class="flex items-center gap-2 no-underline text-muted-foreground hover:text-primary transition-colors group" title="返回 Generative Jurisprudence 主站">
-          <span class="inline-flex items-center justify-center w-6 h-6 rounded-[5px] bg-muted text-foreground font-bold text-[10px] tracking-tight transition-colors group-hover:bg-primary group-hover:text-primary-foreground" style="font-family: ui-monospace, 'SF Mono', Consolas, monospace;">GJ</span>
-          <span class="text-xs font-medium tracking-tight hidden sm:inline">Generative Jurisprudence</span>
-        </a>
-        <button onclick="showAbout()" class="hover:text-foreground transition-colors no-underline text-muted-foreground bg-transparent border-none cursor-pointer flex items-center gap-1">
-          <i data-lucide="info" class="w-4 h-4 inline-block align-[-2px]"></i>关于
+      <ul class="hidden md:flex items-center gap-0.5">
+        <li><a href="#manifesto" class="nav-link px-3 py-2 text-[13px] font-medium text-[var(--color-text-500)] hover:text-[var(--color-text-800)] rounded-[8px] transition-colors">宣言</a></li>
+        <li><a href="#lab" class="nav-link px-3 py-2 text-[13px] font-medium text-[var(--color-text-500)] hover:text-[var(--color-text-800)] rounded-[8px] transition-colors">实验室</a></li>
+        <li><a href="#readings" class="nav-link px-3 py-2 text-[13px] font-medium text-[var(--color-text-500)] hover:text-[var(--color-text-800)] rounded-[8px] transition-colors">阅读</a></li>
+        <li><a href="#collision" class="nav-link px-3 py-2 text-[13px] font-medium text-[var(--color-text-500)] hover:text-[var(--color-text-800)] rounded-[8px] transition-colors">碰撞</a></li>
+        <li><a href="#about" class="nav-link px-3 py-2 text-[13px] font-medium text-[var(--color-text-500)] hover:text-[var(--color-text-800)] rounded-[8px] transition-colors">关于</a></li>
+      </ul>
+      <div class="flex items-center gap-2">
+        <!-- 主题切换按钮 -->
+        <button id="themeToggle" class="theme-toggle relative inline-flex items-center justify-center w-9 h-9 rounded-[8px] text-[var(--color-text-800)] hover:bg-[var(--color-background-200)] transition-colors" aria-label="切换主题">
+          <i data-lucide="moon" class="moon w-5 h-5"></i>
+          <i data-lucide="sun" class="sun w-5 h-5"></i>
         </button>
-        <button onclick="shareResult()" class="hover:text-foreground transition-colors no-underline text-muted-foreground bg-transparent border-none cursor-pointer flex items-center gap-1">
-          <i data-lucide="share-2" class="w-4 h-4 inline-block align-[-2px]"></i>分享
+        <!-- 移动端菜单按钮 -->
+        <button id="menuToggle" class="md:hidden inline-flex items-center justify-center w-9 h-9 rounded-[8px] text-[var(--color-text-800)] hover:bg-[var(--color-background-200)] transition-colors" aria-label="菜单" aria-expanded="false">
+          <i data-lucide="menu" class="w-5 h-5" id="menuIcon"></i>
         </button>
       </div>
     </nav>
 
-    <section class="flex flex-col items-center text-center px-6 pt-12 pb-16 max-w-2xl mx-auto">
-      <span class="inline-block px-3 py-1 rounded-full bg-primary-50 text-primary text-xs font-medium tracking-wide mb-6">CPTI 2.0</span>
-      <h1 class="font-display text-4xl md:text-5xl font-bold tracking-tight text-foreground leading-tight mb-6">你的「刑法人格」鉴定书</h1>
-      <p class="text-muted-foreground text-base md:text-lg leading-relaxed max-w-lg mb-10">本测试可能暴露你的学术立场、你的导师类型、甚至你为什么在刑法研讨课上跟人吵架。请根据真实直觉作答。</p>
-      <button onclick="goToPage('quiz-1')" class="inline-flex items-center gap-2 px-8 py-3.5 rounded-lg bg-primary text-primary-foreground font-medium text-base hover:bg-primary-600 active:bg-primary-700 transition-colors shadow-sm cursor-pointer">
-        <i data-lucide="play" class="w-4 h-4"></i>
-        开始测试
-      </button>
-      <p class="text-xs text-muted-foreground mt-3">16 题 · 约 5 分钟 · 无对错之分</p>
-    </section>
-
-    <section class="px-6 pb-16 max-w-2xl mx-auto">
-      <div class="bg-card border border-border rounded-lg p-6 md:p-8">
-        <h2 class="font-display text-xl font-semibold text-foreground mb-6 flex items-center gap-2">
-          <i data-lucide="book-open" class="w-5 h-5 text-primary"></i>
-          测试规则
-        </h2>
-        <div class="space-y-5">
-          <div class="flex gap-4">
-            <div class="flex-shrink-0 w-8 h-8 rounded-full bg-primary-50 text-primary text-sm font-semibold flex items-center justify-center">1</div>
-            <div>
-              <p class="text-foreground font-medium text-sm mb-1">凭直觉选</p>
-              <p class="text-muted-foreground text-sm leading-relaxed">不要思考"标准答案"，选择你最真实的认同程度。</p>
-            </div>
-          </div>
-          <div class="flex gap-4">
-            <div class="flex-shrink-0 w-8 h-8 rounded-full bg-primary-50 text-primary text-sm font-semibold flex items-center justify-center">2</div>
-            <div>
-              <p class="text-foreground font-medium text-sm mb-1">五级量表</p>
-              <p class="text-muted-foreground text-sm leading-relaxed">非常赞同 / 赞同 / 中立 / 反对 / 非常反对。</p>
-            </div>
-          </div>
-          <div class="flex gap-4">
-            <div class="flex-shrink-0 w-8 h-8 rounded-full bg-primary-50 text-primary text-sm font-semibold flex items-center justify-center">3</div>
-            <div>
-              <p class="text-foreground font-medium text-sm mb-1">四维人格</p>
-              <p class="text-muted-foreground text-sm leading-relaxed">立场(S/O)、解释(F/E)、目的(R/P)、边界(Ex/Re)。正分越偏向O/E/P/Re，负分越偏向S/F/R/Ex。</p>
-            </div>
-          </div>
-        </div>
-      </div>
-    </section>
-
-    <section class="px-6 pb-16 max-w-2xl mx-auto">
-      <h2 class="font-display text-xl font-semibold text-foreground mb-6 flex items-center gap-2">
-        <i data-lucide="git-compare-arrows" class="w-5 h-5 text-primary"></i>
-        四轴对照
-      </h2>
-      <div class="space-y-3">
-        <div class="bg-card border border-border rounded-lg px-4 py-3 sm:px-5 sm:py-4 flex items-center gap-3 sm:gap-4">
-          <span class="flex-shrink-0 px-2 py-0.5 sm:px-2.5 sm:py-1 rounded bg-primary text-primary-foreground text-xs font-semibold tracking-wide">立场</span>
-          <div class="flex-1 flex items-center justify-between text-xs sm:text-sm min-w-0">
-            <div class="flex items-center gap-1 sm:gap-2"><span class="inline-block w-2 h-2 sm:w-2.5 sm:h-2.5 rounded-full bg-red-400"></span><span class="text-muted-foreground text-xs">S</span><span class="text-foreground font-medium">主观主义</span></div>
-            <span class="text-border mx-1">—</span>
-            <div class="flex items-center gap-1 sm:gap-2"><span class="text-foreground font-medium">客观主义</span><span class="text-muted-foreground text-xs">O</span><span class="inline-block w-2 h-2 sm:w-2.5 sm:h-2.5 rounded-full bg-blue-400"></span></div>
-          </div>
-        </div>
-        <div class="bg-card border border-border rounded-lg px-4 py-3 sm:px-5 sm:py-4 flex items-center gap-3 sm:gap-4">
-          <span class="flex-shrink-0 px-2 py-0.5 sm:px-2.5 sm:py-1 rounded bg-primary text-primary-foreground text-xs font-semibold tracking-wide">解释</span>
-          <div class="flex-1 flex items-center justify-between text-xs sm:text-sm min-w-0">
-            <div class="flex items-center gap-1 sm:gap-2"><span class="inline-block w-2 h-2 sm:w-2.5 sm:h-2.5 rounded-full bg-red-400"></span><span class="text-muted-foreground text-xs">F</span><span class="text-foreground font-medium">形式解释</span></div>
-            <span class="text-border mx-1">—</span>
-            <div class="flex items-center gap-1 sm:gap-2"><span class="text-foreground font-medium">实质解释</span><span class="text-muted-foreground text-xs">E</span><span class="inline-block w-2 h-2 sm:w-2.5 sm:h-2.5 rounded-full bg-blue-400"></span></div>
-          </div>
-        </div>
-        <div class="bg-card border border-border rounded-lg px-4 py-3 sm:px-5 sm:py-4 flex items-center gap-3 sm:gap-4">
-          <span class="flex-shrink-0 px-2 py-0.5 sm:px-2.5 sm:py-1 rounded bg-primary text-primary-foreground text-xs font-semibold tracking-wide">目的</span>
-          <div class="flex-1 flex items-center justify-between text-xs sm:text-sm min-w-0">
-            <div class="flex items-center gap-1 sm:gap-2"><span class="inline-block w-2 h-2 sm:w-2.5 sm:h-2.5 rounded-full bg-red-400"></span><span class="text-muted-foreground text-xs">R</span><span class="text-foreground font-medium">报应刑</span></div>
-            <span class="text-border mx-1">—</span>
-            <div class="flex items-center gap-1 sm:gap-2"><span class="text-foreground font-medium">预防刑</span><span class="text-muted-foreground text-xs">P</span><span class="inline-block w-2 h-2 sm:w-2.5 sm:h-2.5 rounded-full bg-blue-400"></span></div>
-          </div>
-        </div>
-        <div class="bg-card border border-border rounded-lg px-4 py-3 sm:px-5 sm:py-4 flex items-center gap-3 sm:gap-4">
-          <span class="flex-shrink-0 px-2 py-0.5 sm:px-2.5 sm:py-1 rounded bg-primary text-primary-foreground text-xs font-semibold tracking-wide">边界</span>
-          <div class="flex-1 flex items-center justify-between text-xs sm:text-sm min-w-0">
-            <div class="flex items-center gap-1 sm:gap-2"><span class="inline-block w-2 h-2 sm:w-2.5 sm:h-2.5 rounded-full bg-red-400"></span><span class="text-muted-foreground text-xs">Ex</span><span class="text-foreground font-medium">扩张派</span></div>
-            <span class="text-border mx-1">—</span>
-            <div class="flex items-center gap-1 sm:gap-2"><span class="text-foreground font-medium">限缩派</span><span class="text-muted-foreground text-xs">Re</span><span class="inline-block w-2 h-2 sm:w-2.5 sm:h-2.5 rounded-full bg-blue-400"></span></div>
-          </div>
-        </div>
-      </div>
-    </section>
-
-    <footer class="px-6 pb-10 text-center text-xs text-muted-foreground">
-      <p>&copy; 2025 刑格 CPTI &middot; 仅供娱乐，不构成任何学术或法律建议</p>
-    </footer>
-  </div>
-
-  <!-- ==================== 答题页 ==================== -->
-  <div id="page-quiz" class="page">
-    <div class="mx-auto max-w-2xl px-5 py-6 sm:px-8">
-      <div class="flex items-center gap-3 mb-6">
-        <button onclick="goBack()" class="flex items-center justify-center w-9 h-9 rounded-full border border-border text-muted-foreground hover:bg-muted transition-colors bg-transparent cursor-pointer" aria-label="返回">
-          <i data-lucide="arrow-left" class="w-4 h-4"></i>
-        </button>
-        <span id="quiz-progress-text" class="text-sm font-medium text-muted-foreground">1 / 16</span>
-      </div>
-      <div class="w-full h-1.5 rounded-full bg-muted overflow-hidden mb-8">
-        <div id="quiz-progress-bar" class="h-full rounded-full bg-primary transition-all duration-300" style="width:6.25%"></div>
-      </div>
-
-      <div id="unanswered-hint" class="unanswered-hint">
-        <i data-lucide="alert-triangle" class="w-4 h-4"></i>
-        <span>这道题你还没有作答</span>
-      </div>
-
-      <div class="rounded-xl border border-border bg-card shadow-sm p-6 sm:p-8 mb-6">
-        <h2 id="quiz-statement" class="text-lg sm:text-xl font-bold text-card-foreground leading-relaxed"></h2>
-      </div>
-
-      <div class="likert-axis-labels">
-        <span>← 赞同</span>
-        <span>反对 →</span>
-      </div>
-      <div id="quiz-options" class="likert-scale mb-10"></div>
-
-      <div class="flex items-center justify-between gap-4 pb-8">
-        <button id="btn-prev" onclick="goPrev()" class="inline-flex items-center gap-2 rounded-lg px-5 py-2.5 text-sm font-medium text-muted-foreground bg-muted/60 cursor-not-allowed opacity-50 border-none" disabled>
-          <i data-lucide="chevron-left" class="w-4 h-4"></i>上一题
-        </button>
-        <button id="btn-next" onclick="goNext()" class="inline-flex items-center gap-2 rounded-lg bg-primary px-5 py-2.5 text-sm font-semibold text-primary-foreground shadow-sm hover:bg-primary-600 transition-colors cursor-pointer border-none">
-          下一题<i data-lucide="chevron-right" class="w-4 h-4"></i>
-        </button>
-      </div>
+    <!-- 移动端菜单抽屉 -->
+    <div id="mobileMenu" class="mobile-menu md:hidden border-t border-[var(--color-background-300)] bg-[var(--color-background)]">
+      <ul class="px-6 py-3 flex flex-col gap-1">
+        <li><a href="#manifesto" class="mobile-nav-link block px-3 py-3 text-[15px] font-medium text-[var(--color-text-600)] hover:text-[var(--color-brand-600)] hover:bg-[var(--color-background-100)] rounded-[8px] transition-colors">宣言</a></li>
+        <li><a href="#lab" class="mobile-nav-link block px-3 py-3 text-[15px] font-medium text-[var(--color-text-600)] hover:text-[var(--color-brand-600)] hover:bg-[var(--color-background-100)] rounded-[8px] transition-colors">实验室</a></li>
+        <li><a href="#readings" class="mobile-nav-link block px-3 py-3 text-[15px] font-medium text-[var(--color-text-600)] hover:text-[var(--color-brand-600)] hover:bg-[var(--color-background-100)] rounded-[8px] transition-colors">阅读</a></li>
+        <li><a href="#collision" class="mobile-nav-link block px-3 py-3 text-[15px] font-medium text-[var(--color-text-600)] hover:text-[var(--color-brand-600)] hover:bg-[var(--color-background-100)] rounded-[8px] transition-colors">碰撞</a></li>
+        <li><a href="#about" class="mobile-nav-link block px-3 py-3 text-[15px] font-medium text-[var(--color-text-600)] hover:text-[var(--color-brand-600)] hover:bg-[var(--color-background-100)] rounded-[8px] transition-colors">关于</a></li>
+      </ul>
     </div>
-  </div>
+  </header>
 
-  <!-- ==================== 计算中 ==================== -->
-  <div id="page-scoring" class="page">
-    <div class="max-w-2xl mx-auto px-4 py-24 text-center">
-      <div class="inline-flex items-center justify-center w-16 h-16 mb-6">
-        <i data-lucide="scale" class="w-10 h-10 text-primary animate-spin-slow"></i>
+  <main>
+    <!-- ============ HERO ============ -->
+    <section class="relative overflow-hidden">
+      <!-- Decorative code background -->
+      <div class="absolute inset-0 pointer-events-none select-none overflow-hidden" aria-hidden="true">
+        <pre class="code-decor-desktop absolute -right-12 top-20 text-[10px] sm:text-[11px] leading-[1.7] font-mono text-[var(--color-text-300)] whitespace-pre max-w-md" style="font-family:var(--font-mono); opacity:0.22;"><span class="text-[var(--color-brand-400)]">// lex.generativa</span>
+<span class="text-[var(--color-chart-4)]">function</span> <span class="text-[var(--color-brand-600)]">generateJustice</span>(facts, norms) {
+  <span class="text-[var(--color-chart-4)]">const</span> principle = weigh(norms);
+  <span class="text-[var(--color-chart-4)]">const</span> holding = deliberate(principle, facts);
+  <span class="text-[var(--color-chart-3)]">return</span> justify(holding, principle);
+}</pre>
       </div>
-      <h2 class="text-xl font-bold text-foreground mb-3">正在计算你的刑格...</h2>
-      <p class="text-sm text-muted-foreground mb-8">正在比对 16 种刑法人格模型</p>
-      <div class="flex justify-center gap-2">
-        <span class="w-2.5 h-2.5 bg-primary rounded-full loading-dot"></span>
-        <span class="w-2.5 h-2.5 bg-primary rounded-full loading-dot"></span>
-        <span class="w-2.5 h-2.5 bg-primary rounded-full loading-dot"></span>
+
+      <div class="relative max-w-6xl mx-auto px-6 lg:px-8 pt-20 pb-20 sm:pt-24 sm:pb-28 lg:pt-28 lg:pb-32">
+        <div class="max-w-3xl">
+          <!-- Eyebrow -->
+          <p class="text-[11px] font-mono text-[var(--color-text-400)] tracking-[0.15em] uppercase mb-8 reveal">
+            2026 &nbsp; A Website of AI and Legal Theory
+          </p>
+
+          <!-- Headline: single H1, two lines -->
+          <h1 class="text-[44px] sm:text-6xl lg:text-7xl font-bold tracking-[-0.035em] leading-[0.98] text-[var(--color-text-800)] mb-5 reveal">
+            Generative<br/>Jurisprudence
+          </h1>
+
+          <!-- Subtext: Chinese thesis + English, combined as one element -->
+          <p class="text-xl sm:text-2xl text-[var(--color-text-500)] leading-[1.5] mb-2 max-w-2xl reveal">
+            法的未来不是被发现的，而是被生成的。
+          </p>
+          <p class="text-[15px] sm:text-base font-mono text-[var(--color-text-400)] italic mb-10 max-w-2xl reveal">
+            The future of law is generated, not discovered.
+          </p>
+
+          <!-- CTAs -->
+          <div class="flex flex-wrap items-center gap-3 reveal">
+            <a href="#manifesto" data-dom-id="cta-manifesto" class="inline-flex items-center gap-2 px-6 py-3 rounded-[12px] bg-[var(--color-brand-500)] text-white text-[14px] font-semibold hover:bg-[var(--color-brand-600)] active:bg-[var(--color-brand-700)] active:translate-y-[1px] transition-all shadow-sm">
+              阅读宣言
+              <i data-lucide="arrow-right" class="w-4 h-4"></i>
+            </a>
+            <a href="#lab" data-dom-id="cta-lab" class="inline-flex items-center gap-2 px-6 py-3 rounded-[12px] bg-transparent text-[var(--color-text-800)] text-[14px] font-semibold border border-[var(--color-background-400)] hover:border-[var(--color-brand-400)] hover:text-[var(--color-brand-600)] active:translate-y-[1px] transition-all">
+              <i data-lucide="flask-conical" class="w-4 h-4"></i>
+              进入实验室
+            </a>
+          </div>
+        </div>
       </div>
-    </div>
-  </div>
+    </section>
 
-  <!-- ==================== 结果页 ==================== -->
-  <div id="page-result" class="page">
-    <div class="max-w-2xl mx-auto px-6 py-10 animate-fade-in">
-      <section class="text-center mb-10">
-        <span class="inline-block text-xs font-medium tracking-wide text-primary bg-primary-50 px-3 py-1 rounded-full mb-4">你的刑格类型</span>
-        <h1 id="result-type" class="font-display text-5xl font-bold text-foreground tracking-tight mb-2">S-E-R-Re</h1>
-        <p id="result-nickname" class="text-2xl font-semibold text-primary mb-4">持刀哲学家</p>
-        <div id="result-tags" class="flex flex-wrap justify-center gap-2"></div>
-      </section>
+    <!-- ============ MANIFESTO ============ -->
+    <section id="manifesto" class="border-t border-[var(--color-background-300)]">
+      <div class="max-w-6xl mx-auto px-6 lg:px-8 py-24 sm:py-32 lg:py-40">
+        <div class="grid lg:grid-cols-12 gap-10 lg:gap-20">
+          <!-- 边栏：章节标识（marginalia） -->
+          <div class="lg:col-span-3 scroll-reveal">
+            <h2 class="text-[14px] font-semibold text-[var(--color-text-800)] tracking-wide uppercase">宣言 Manifesto</h2>
+          </div>
 
-      <section class="bg-card border border-border rounded-lg p-6 mb-8 shadow-sm">
-        <h2 class="font-display text-sm font-semibold text-muted-foreground uppercase tracking-wider mb-5">四维人格坐标</h2>
-        <div class="space-y-5" id="axis-container"></div>
-      </section>
+          <!-- 正文列 -->
+          <div class="lg:col-span-9">
+            <!-- 英文题铭 -->
+            <div class="scroll-reveal mb-16 lg:mb-24">
+              <blockquote class="text-2xl sm:text-3xl lg:text-[34px] font-mono italic leading-[1.35] tracking-[-0.015em] text-[var(--color-text-800)] text-balance">
+                Machines generate text;<br/>only humans generate justification.
+              </blockquote>
+              <p class="mt-4 text-[12px] font-mono text-[var(--color-text-400)] tracking-[0.05em]">生成式法学宣言 题铭</p>
+            </div>
 
-      <section class="bg-card border border-border rounded-lg p-6 mb-8 shadow-sm">
-        <div class="flex items-center gap-2 mb-3">
-          <i data-lucide="scroll-text" class="w-5 h-5 text-primary"></i>
-          <h2 class="font-display text-lg font-semibold text-foreground">判词</h2>
+            <!-- 宣言正文：衬线体，编辑式排版 -->
+            <div class="scroll-reveal max-w-[44rem] space-y-8 text-[17px] leading-[1.95] text-[var(--color-text-700)]" style="font-family: 'Source Han Serif SC', 'Noto Serif SC', 'Songti SC', 'STSong', 'SimSun', Georgia, serif;">
+              <!-- § 一：首字下沉，开篇定调 -->
+              <p class="first-letter:float-left first-letter:text-[5em] first-letter:leading-[0.82] first-letter:font-bold first-letter:mr-3 first-letter:mt-1 first-letter:text-[var(--color-brand-500)]">
+                机器开始写作了。它能起草合同、预测判决、生成论文，甚至颇为不敬地模仿法学家的口吻谈论正义。于是有人问，法学家还剩下什么？我们的回答是，最重要的部分。机器可以生成文本，但不能生成正当性。它知道下一个词最可能是什么，却不知道我们应当如何共同生活。预测裁判是一回事，为裁判负责是另一回事。责任以立场为前提，而立场需要一具会疼痛、会犹疑、会在深夜里辗转反侧的血肉之躯。这是法学不可让渡的领地。
+              </p>
+              <p>
+                法学本无须向人工智能让渡生成二字。这门学问从来就是生成式的，每一代人都在旧文本中生成新意义，在既有规则中生成新秩序。法解释学的千年传统早已深谙生成之道，只不过我们的模型以良心为底座，以论辩为训练，以整个法律共同体的实践为语料。人工智能不是法学的掘墓人，是一面镜子，照见法律思维中可以机械化的部分，也反衬出判断、衡平与想象这些不可替代的东西。
+              </p>
+            </div>
+
+            <!-- 中心论点：pull quote，论文核心命题的视觉强调 -->
+            <div class="scroll-reveal my-16 lg:my-24 max-w-[44rem]">
+              <p class="text-[22px] sm:text-[26px] lg:text-[30px] font-semibold leading-[1.4] tracking-[-0.015em] text-[var(--color-text-900)] text-balance" style="font-family: 'Source Han Serif SC', 'Noto Serif SC', 'Songti SC', Georgia, serif;">
+                机器可以生成文本，<br/>但不能生成正当性。
+              </p>
+            </div>
+
+            <!-- 宣言正文续 -->
+            <div class="scroll-reveal max-w-[44rem] space-y-8 text-[17px] leading-[1.95] text-[var(--color-text-700)]" style="font-family: 'Source Han Serif SC', 'Noto Serif SC', 'Songti SC', 'STSong', 'SimSun', Georgia, serif;">
+              <p>
+                我们拒绝两种姿态，技术乐观主义的盲目欢呼，与人文主义者的末日哀叹。前者忘记了法律关乎权力与服从，后者忘记了法学从来都在技术变迁中生长。生成式法学的任务，是在人机之际重新勘定法学的疆域。技术深入生活之处，皆需法学为之定向。不是因为法学强大到无视技术。恰恰相反，技术走得越远，越需要法学告诉它边界在哪里。
+              </p>
+              <p>
+                最后，一点坦白，我们以学术为志业，但不打算永远板着脸。法学可以是严肃的志业，也可以是有趣的游戏。本文每一个字都经人逐句推敲、如假包换。至于这句话是真是假，就交给诸君自己判断了。
+              </p>
+            </div>
+
+            <!-- 收尾：短分隔线 + 核心论断 + 落款 -->
+            <div class="scroll-reveal mt-16 lg:mt-20 max-w-[44rem]">
+              <div class="w-12 h-px bg-[var(--color-text-300)] mb-8"></div>
+              <p class="text-xl sm:text-2xl font-semibold leading-[1.45] tracking-[-0.015em] text-[var(--color-text-900)] text-balance" style="font-family: 'Source Han Serif SC', 'Noto Serif SC', 'Songti SC', Georgia, serif;">
+                法律由人制定、为人存在，其意义必须由人生成。
+              </p>
+              <p class="mt-5 text-sm font-mono italic text-[var(--color-text-400)] tracking-wide">
+                是为生成式法学。
+              </p>
+            </div>
+          </div>
         </div>
-        <p id="result-judgment" class="text-card-foreground leading-relaxed"></p>
-      </section>
+      </div>
+    </section>
 
-      <section class="relative bg-primary-50 border border-primary-100 rounded-lg p-6 mb-8">
-        <div class="absolute top-4 left-4 text-primary-200"><i data-lucide="quote" class="w-8 h-8"></i></div>
-        <blockquote id="result-quote" class="pl-8 text-card-foreground leading-relaxed italic"></blockquote>
-      </section>
-
-      <section class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-10">
-        <div class="bg-emerald-50 border border-emerald-200 rounded-lg p-5">
-          <div class="flex items-center gap-2 mb-3"><i data-lucide="heart-handshake" class="w-4 h-4 text-emerald-600"></i><h3 class="font-display text-sm font-semibold text-emerald-700">互粉</h3></div>
-          <ul id="result-friends" class="space-y-3"></ul>
+    <!-- ============ LABORATORY ============ -->
+    <section id="lab" class="border-t border-[var(--color-background-300)]">
+      <div class="max-w-6xl mx-auto px-6 lg:px-8 py-20 sm:py-24 lg:py-28">
+        <div class="mb-12 max-w-2xl scroll-reveal">
+          <h2 class="text-3xl sm:text-4xl font-bold tracking-[-0.02em] text-[var(--color-text-800)] mb-2">实验室</h2>
+          <p class="text-base font-mono text-[var(--color-text-500)] italic">The Laboratory</p>
+          <p class="text-[15px] text-[var(--color-text-500)] mt-3 leading-relaxed">法学在这里开始游戏。<span class="font-mono italic text-[var(--color-text-300)]"> Where jurisprudence meets play.</span></p>
         </div>
-        <div class="bg-rose-50 border border-rose-200 rounded-lg p-5">
-          <div class="flex items-center gap-2 mb-3"><i data-lucide="swords" class="w-4 h-4 text-rose-600"></i><h3 class="font-display text-sm font-semibold text-rose-700">互怼</h3></div>
-          <ul id="result-enemies" class="space-y-3"></ul>
-        </div>
-      </section>
 
-      <section class="bg-card border border-border rounded-lg p-6 mb-10 shadow-sm">
-        <div class="flex items-center gap-2 mb-4"><i data-lucide="gavel" class="w-5 h-5 text-primary"></i><h2 class="font-display text-lg font-semibold text-foreground">如果当法官，被告人的表情</h2></div>
-        <div id="result-judge" class="flex items-center justify-center gap-4 sm:gap-6 py-4 flex-wrap"></div>
-      </section>
-
-     </div>
-
-      <section class="flex flex-col sm:flex-row items-center justify-center gap-4 pb-10">
-        <button onclick="resetTest()" class="inline-flex items-center gap-2 px-6 py-3 text-sm font-semibold text-primary border-2 border-primary rounded-lg hover:bg-primary-50 transition-colors duration-150 cursor-pointer bg-transparent">
-          <i data-lucide="rotate-ccw" class="w-4 h-4"></i>重新测试
-        </button>
-        <button onclick="saveAsImage()" class="inline-flex items-center gap-2 px-6 py-3 text-sm font-semibold text-primary-foreground bg-primary rounded-lg hover:bg-primary-600 transition-colors duration-150 shadow-sm cursor-pointer border-none">
-          <i data-lucide="download" class="w-4 h-4"></i>保存图片
-        </button>
-        <button onclick="shareResult()" class="inline-flex items-center gap-2 px-6 py-3 text-sm font-semibold text-primary border-2 border-primary rounded-lg hover:bg-primary-50 transition-colors duration-150 cursor-pointer bg-transparent">
-          <i data-lucide="share-2" class="w-4 h-4"></i>分享结果
-        </button>
-      </section>
-
-      <div class="flex justify-center pb-6">
-        <a href="generative-jurisprudence/index.html" class="flex items-center gap-2 no-underline text-muted-foreground hover:text-primary transition-colors group" title="返回 Generative Jurisprudence 主站">
-          <span class="inline-flex items-center justify-center w-6 h-6 rounded-[5px] bg-muted text-foreground font-bold text-[10px] tracking-tight transition-colors group-hover:bg-primary group-hover:text-primary-foreground" style="font-family: ui-monospace, 'SF Mono', Consolas, monospace;">GJ</span>
-          <span class="text-xs font-medium tracking-tight">Generative Jurisprudence</span>
+        <!-- Feature card: 刑法人格测试入口（链接到 cpti/index.html） -->
+        <a href="cpti/index.html" data-dom-id="lab-cpti" class="scroll-reveal group relative overflow-hidden rounded-[19px] bg-[var(--color-brand-900)] text-white p-8 sm:p-12 hover:shadow-xl transition-all block">
+          <div class="relative z-10 flex flex-col lg:flex-row lg:items-end lg:justify-between gap-8">
+            <div class="max-w-xl">
+              <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-[6px] bg-[var(--color-state-success)]/20 text-[var(--color-state-success-dark)] text-[11px] font-mono font-semibold mb-5">
+                <i data-lucide="circle-check" class="w-3 h-3"></i>
+                可用 · AVAILABLE
+              </span>
+              <h3 class="text-2xl sm:text-3xl font-bold tracking-tight mb-2">刑格 CPTI</h3>
+              <p class="text-lg font-medium text-white/70 mb-3">刑法人格鉴定书</p>
+              <p class="text-[14.5px] leading-[1.75] text-white/60 max-w-lg">
+                通过经典刑法案例的五级量表作答，测出你独有的刑法人格类型。四个维度、一份专属鉴定书——严肃的刑法命题，以人格测试的游戏方式展开。
+              </p>
+            </div>
+            <div class="flex-shrink-0">
+              <span class="inline-flex items-center gap-2 px-5 py-3 rounded-[12px] bg-white text-[var(--color-brand-900)] text-[14px] font-semibold group-hover:bg-white/90 group-hover:gap-3 active:translate-y-[1px] transition-all">
+                开始测试
+                <i data-lucide="arrow-right" class="w-4 h-4"></i>
+              </span>
+            </div>
+          </div>
         </a>
       </div>
+    </section>
 
-      <footer class="text-center text-xs text-muted-foreground pb-8">刑格 CPTI 2.0 &middot; 仅供娱乐，不构成任何学术或法律建议</footer>
+    <!-- ============ FEATURED READINGS (Asymmetric: 1 featured + 2 secondary) ============ -->
+    <section id="readings" class="border-t border-[var(--color-background-300)] bg-[var(--color-background-100)]">
+      <div class="max-w-6xl mx-auto px-6 lg:px-8 py-20 sm:py-24 lg:py-28">
+        <div class="mb-12 scroll-reveal">
+          <h2 class="text-3xl sm:text-4xl font-bold tracking-[-0.02em] text-[var(--color-text-800)] mb-2">阅读</h2>
+          <p class="text-base font-mono text-[var(--color-text-500)] italic">Readings</p>
+        </div>
+
+        <!-- 单篇论文卡片 -->
+        <a href="paper.html" class="scroll-reveal group block p-8 sm:p-10 rounded-[19px] bg-[var(--color-background-50)] border border-[var(--color-background-300)] hover:shadow-md hover:border-[var(--color-brand-200)] transition-all">
+          <div class="flex items-center gap-3 mb-6">
+            <span class="inline-flex items-center px-2.5 py-0.5 rounded-[6px] bg-[var(--color-brand-50)] text-[var(--color-brand-600)] text-[11px] font-semibold">论文</span>
+            <span class="text-[11px] font-mono text-[var(--color-text-300)]">刑法教义学 · 客观归责</span>
+          </div>
+          <h3 class="text-2xl sm:text-3xl font-bold leading-[1.3] tracking-[-0.02em] text-[var(--color-text-800)] mb-4 group-hover:text-[var(--color-brand-600)] transition-colors">
+            人工智能控制人形机器人通过脑机接口伪造生物信息在元宇宙中自动驾驶构成犯罪吗
+          </h3>
+          <p class="text-[14.5px] leading-[1.8] text-[var(--color-text-500)] mb-8 max-w-2xl">
+            当通用人工智能控制人形机器人、通过脑机接口伪造生物信息、在元宇宙平台中篡改自动驾驶车辆参数的极端场景同时发生，现行中国刑法能否完成归责，构成何种犯罪，是本文试图回答的核心问题。本文以中国刑法教义学为立足点，以客观归责理论的三重检验框架为主分析工具，在多技术叠加场景下重新勘定归责的边界。
+          </p>
+          <div class="flex items-center justify-between pt-5 border-t border-[var(--color-background-300)]">
+            <div class="flex items-center gap-2.5">
+              <div class="w-8 h-8 rounded-full bg-[var(--color-brand-100)] flex items-center justify-center text-[11px] font-bold text-[var(--color-brand-700)]">T</div>
+              <div>
+                <p class="text-[13px] font-semibold text-[var(--color-text-800)]">Tcjt</p>
+                <p class="text-[11px] font-mono text-[var(--color-text-300)]">2026</p>
+              </div>
+            </div>
+            <span class="inline-flex items-center gap-1 text-[13px] font-semibold text-[var(--color-brand-600)] group-hover:gap-2 transition-all">
+              Read <i data-lucide="arrow-right" class="w-3.5 h-3.5"></i>
+            </span>
+          </div>
+        </a>
+      </div>
+    </section>
+
+    <!-- ============ 碰撞 / COLLISION ============ -->
+    <section id="collision" class="border-t border-[var(--color-background-300)]">
+      <div class="max-w-6xl mx-auto px-6 lg:px-8 py-20 sm:py-24 lg:py-28">
+        <div class="scroll-reveal max-w-3xl mx-auto">
+          <!-- 章节标识 -->
+          <div class="mb-10 text-center">
+            <h2 class="text-3xl sm:text-4xl lg:text-5xl font-bold tracking-[-0.025em] text-[var(--color-text-800)]">碰撞</h2>
+            <p class="mt-2 text-[12px] font-mono italic text-[var(--color-text-400)] tracking-wide">Collision</p>
+          </div>
+
+          <!-- 碰撞容器：克制的赛博朋克 dark island -->
+          <div class="collision-stage relative overflow-hidden rounded-[14px] bg-[#0a0e14] border border-[var(--color-brand-900)]/40" data-collision-choice="">
+            <!-- 极弱网格背景（克制，不喧宾夺主） -->
+            <div class="absolute inset-0 pointer-events-none opacity-[0.06]" style="background-image: linear-gradient(rgba(0,122,255,0.4) 1px, transparent 1px), linear-gradient(90deg, rgba(0,122,255,0.4) 1px, transparent 1px); background-size: 32px 32px;"></div>
+
+            <div class="relative z-10 p-7 sm:p-10 lg:p-12">
+              <!-- 顶部终端式标签 -->
+              <div class="flex items-center justify-between mb-7 sm:mb-9">
+                <p class="text-[10px] font-mono text-[var(--color-brand-400)] tracking-[0.22em] uppercase">// COUNTER_POINT</p>
+                <p class="text-[10px] font-mono text-zinc-600 tracking-[0.1em]" id="collisionStatus">AWAITING_CHOICE</p>
+              </div>
+
+              <!-- 问题 -->
+              <div id="collisionQuestion" class="collision-pre text-center mb-8 sm:mb-10 transition-all duration-500 ease-out">
+                <p class="text-xl sm:text-2xl lg:text-[26px] font-semibold leading-[1.5] tracking-[-0.01em] text-zinc-100 text-balance">
+                  如果 AI 法官做出了一份比人类法官更「公正」的判决，<br class="hidden sm:block"/>它是否具有正当性？
+                </p>
+                <p class="mt-3 text-[12px] font-mono italic text-zinc-500 leading-relaxed">
+                  If an AI judge delivers a verdict more "just" than any human judge could, does it possess legitimacy?
+                </p>
+              </div>
+
+              <!-- 选择按钮 -->
+              <div id="collisionChoices" class="collision-pre grid grid-cols-2 gap-3 sm:gap-4 transition-all duration-500 ease-out">
+                <button
+                  id="voteYes"
+                  data-vote="yes"
+                  class="vote-btn group relative overflow-hidden rounded-[10px] border border-[var(--color-brand-500)]/60 bg-[var(--color-brand-500)]/[0.06] hover:bg-[var(--color-brand-500)]/[0.12] hover:border-[var(--color-brand-500)] px-6 py-6 sm:py-8 transition-all active:translate-y-[1px]"
+                >
+                  <span class="block text-2xl sm:text-3xl font-bold tracking-tight text-[var(--color-brand-300)] group-hover:text-[var(--color-brand-200)] transition-colors">有</span>
+                  <span class="block text-[10px] font-mono text-[var(--color-brand-400)]/70 tracking-[0.22em] uppercase mt-1">YES</span>
+                </button>
+                <button
+                  id="voteNo"
+                  data-vote="no"
+                  class="vote-btn group relative overflow-hidden rounded-[10px] border border-[#ff4554]/50 bg-[#ff4554]/[0.05] hover:bg-[#ff4554]/[0.1] hover:border-[#ff4554] px-6 py-6 sm:py-8 transition-all active:translate-y-[1px]"
+                >
+                  <span class="block text-2xl sm:text-3xl font-bold tracking-tight text-[#ff4554]/90 group-hover:text-[#ff6b78] transition-colors">没有</span>
+                  <span class="block text-[10px] font-mono text-[#ff4554]/70 tracking-[0.22em] uppercase mt-1">NO</span>
+                </button>
+              </div>
+
+              <!-- 已选择状态：保留被点击的按钮作为视觉锚点 -->
+              <div id="collisionChosen" class="hidden">
+                <div class="flex items-center justify-center gap-3 mb-8 sm:mb-10">
+                  <div id="chosenBadge" class="inline-flex items-center gap-2.5 px-4 py-2 rounded-full border">
+                    <span class="text-[10px] font-mono tracking-[0.22em] uppercase" id="chosenLabel">YOUR_CHOICE</span>
+                    <span class="w-1 h-1 rounded-full bg-current opacity-60"></span>
+                    <span class="text-sm font-semibold" id="chosenText">—</span>
+                  </div>
+                </div>
+              </div>
+
+              <!-- 反驳观点容器：逐条呈现 -->
+              <div id="counterPoints" class="hidden"></div>
+
+              <!-- 重置按钮：赛博朋克像素风操作按钮 -->
+              <div id="resetWrap" class="hidden mt-10 sm:mt-12 pt-6 border-t border-zinc-800/60 text-center">
+                <button id="resetBtn" class="cp-reset-btn" type="button" aria-label="重新选择">
+                  <span class="cp-reset-icon" aria-hidden="true">↻</span>
+                  <span>重新选择</span>
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- ============ FOOTER (关于 / Colophon) ============ -->
+  <footer id="about" class="border-t border-[var(--color-background-300)] bg-[var(--color-background-50)]">
+    <div class="max-w-6xl mx-auto px-6 lg:px-8 py-20 sm:py-28 lg:py-32">
+      <!-- 顶栏：品牌标识 + 简明定位 -->
+      <div class="scroll-reveal grid lg:grid-cols-12 gap-10 lg:gap-16 mb-16 lg:mb-20">
+        <div class="lg:col-span-7">
+          <div class="flex items-center gap-3 mb-6">
+            <span class="inline-flex items-center justify-center w-9 h-9 rounded-[9px] bg-[var(--color-brand-500)] text-white font-bold text-[14px]" style="font-family:var(--font-mono);">GJ</span>
+            <span class="text-[16px] font-bold tracking-tight text-[var(--color-text-800)]">Generative Jurisprudence</span>
+          </div>
+          <p class="text-[18px] sm:text-[20px] leading-[1.55] tracking-[-0.01em] text-[var(--color-text-700)] max-w-xl text-balance" style="font-family: 'Source Han Serif SC', 'Noto Serif SC', 'Songti SC', Georgia, serif;">
+            在机器开始写作的时代，重新勘定法学的疆域。
+          </p>
+        </div>
+        <div class="lg:col-span-5 lg:pt-2">
+          <p class="text-[14px] leading-[1.75] text-[var(--color-text-500)] max-w-sm">
+            一个关于人工智能与法律的写作计划。我们既非技术乐观主义的鼓手，也非人文主义的送葬人。在此发布宣言、实验与阅读笔记。
+          </p>
+        </div>
+      </div>
+
+      <!-- 中段：单一列导航，无 uppercase 标签，发丝线分隔 -->
+      <nav class="scroll-reveal border-t border-[var(--color-background-300)] pt-10 mb-16">
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-x-8 gap-y-6">
+          <a href="#manifesto" class="group block">
+            <p class="text-[13px] font-mono text-[var(--color-text-300)] mb-1.5">01</p>
+            <p class="text-[15px] text-[var(--color-text-800)] group-hover:text-[var(--color-brand-600)] transition-colors">宣言</p>
+            <p class="text-[11px] font-mono text-[var(--color-text-400)] mt-0.5">Manifesto</p>
+          </a>
+          <a href="#lab" class="group block">
+            <p class="text-[13px] font-mono text-[var(--color-text-300)] mb-1.5">02</p>
+            <p class="text-[15px] text-[var(--color-text-800)] group-hover:text-[var(--color-brand-600)] transition-colors">实验室</p>
+            <p class="text-[11px] font-mono text-[var(--color-text-400)] mt-0.5">Laboratory</p>
+          </a>
+          <a href="#readings" class="group block">
+            <p class="text-[13px] font-mono text-[var(--color-text-300)] mb-1.5">03</p>
+            <p class="text-[15px] text-[var(--color-text-800)] group-hover:text-[var(--color-brand-600)] transition-colors">阅读</p>
+            <p class="text-[11px] font-mono text-[var(--color-text-400)] mt-0.5">Readings</p>
+          </a>
+          <a href="#collision" class="group block">
+            <p class="text-[13px] font-mono text-[var(--color-text-300)] mb-1.5">04</p>
+            <p class="text-[15px] text-[var(--color-text-800)] group-hover:text-[var(--color-brand-600)] transition-colors">碰撞</p>
+            <p class="text-[11px] font-mono text-[var(--color-text-400)] mt-0.5">Collision</p>
+          </a>
+        </div>
+      </nav>
+
+      <!-- 底栏：版权与许可 -->
+      <div class="scroll-reveal pt-8 border-t border-[var(--color-background-300)] flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+        <p class="text-[12px] font-mono text-[var(--color-text-400)] tracking-[0.02em]">
+          © 2026 Generative Jurisprudence
+        </p>
+        <a href="https://creativecommons.org/licenses/by-nc/4.0/" target="_blank" rel="noopener noreferrer" class="text-[12px] font-mono text-[var(--color-text-400)] hover:text-[var(--color-text-700)] transition-colors">
+          CC BY-NC 4.0
+        </a>
+      </div>
     </div>
+  </footer>
+
+  <!-- Toast 通知容器 -->
+  <div class="toast" id="toast" role="status" aria-live="polite">
+    <i data-lucide="check-circle" class="w-4 h-4"></i>
+    <span id="toastMessage">操作成功</span>
   </div>
 
-  <!-- ==================== 关于弹窗 ==================== -->
-  <div id="about-modal" class="modal-overlay" onclick="if(event.target===this)closeAbout()">
-    <div class="bg-white rounded-lg shadow-xl max-w-md mx-4 p-6 animate-fade-in">
-      <div class="flex justify-between items-center mb-4">
-        <h3 class="font-bold text-foreground">关于刑格 CPTI</h3>
-        <button onclick="closeAbout()" class="text-muted-foreground hover:text-foreground bg-transparent border-none cursor-pointer"><i data-lucide="x" class="w-5 h-5"></i></button>
-      </div>
-      <div class="text-sm text-muted-foreground space-y-3 leading-relaxed">
-        <p><strong class="text-foreground">CPTI</strong>（Criminal Personality Type Indicator）是一个基于刑法理论立场的趣味性格测试，灵感来源于 MBTI 和 16Personalities。</p>
-        <p>测试通过 16 个观点陈述，从四个维度测量你的刑法思维偏好：</p>
-        <ul class="list-disc list-inside space-y-1 pl-2">
-          <li><strong class="text-foreground">立场轴 (S/O)</strong>：主观主义 vs 客观主义</li>
-          <li><strong class="text-foreground">解释轴 (F/E)</strong>：形式解释 vs 实质解释</li>
-          <li><strong class="text-foreground">目的轴 (R/P)</strong>：报应刑 vs 预防刑</li>
-          <li><strong class="text-foreground">边界轴 (Ex/Re)</strong>：扩张解释 vs 限缩解释</li>
-        </ul>
-        <p class="text-xs pt-2 border-t border-border">本测试纯属娱乐创作，不代表任何学术机构观点。不构成法律建议。如有法律问题请咨询专业律师。</p>
-      </div>
-    </div>
-  </div>
+  <!-- Lucide Icons CDN -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <script>
+    // 初始化图标
+    lucide.createIcons();
 
-</main>
+    /* ============ 主题切换（localStorage 持久化） ============ */
+    (function initTheme() {
+      const stored = localStorage.getItem('gj-theme');
+      const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+      const theme = stored || (prefersDark ? 'dark' : 'light');
+      applyTheme(theme);
+    })();
 
-<script>
-/* ===== 16道Likert题目 =====
-   每题包含：statement（题干）和 dimMap（各维度计分方向）
-   方向规则：与md一致
-   - S/F/R/Ex：最终得分为选择分值的相反数（负向）
-   - O/E/P/Re：最终得分为选择分值的直接数（正向）
-   选择分值：++=+2, +=+1, 0=0, -=-1, --=-2
-*/
-const quizData = [
-  { id: 1,  statement: "同样是偷两千块钱，一个拿去买毒品，一个给孩子买饭吃。对他们的量刑应当不一样。", dimMap: { so: 'S', fe: null, rp: null, exre: null } },
-  { id: 2,  statement: "法官就该照着法条的字面意思判。就算按字面判会得出荒谬的结论，也是立法机关去改法条，轮不到法官操心。", dimMap: { so: null, fe: 'F', rp: null, exre: null } },
-  { id: 3,  statement: "刑罚的目的就是让罪犯得到跟罪行匹配的惩罚。至于这个判决以后能不能吓住别人、能不能防止再犯——这些事情不应影响判多久。", dimMap: { so: null, fe: null, rp: 'R', exre: null } },
-  { id: 4,  statement: "法条里那些模糊用语——\u201c等\u201d、\u201c其他\u201d、\u201c情节严重\u201d——解释时必须从严。宁可漏掉一些值得罚的，也不能让这些弹性条款变成入罪的口袋。", dimMap: { so: null, fe: null, rp: null, exre: 'Re' } },
-  { id: 5,  statement: "有人因为家人生病急需钱去骗保，有人纯粹想多赚钱去骗保。骗的金额一样，判的刑期就应该一样。动机好坏，不影响刑法怎么判。", dimMap: { so: 'O', fe: null, rp: null, exre: null } },
-  { id: 6,  statement: "一个罪犯已经真心悔改，再犯的可能也排除了。这种情况下还让他把漫长的刑期坐完，这刑罚已经没什么意义了。", dimMap: { so: null, fe: null, rp: 'P', exre: null } },
-  { id: 7,  statement: "如果法条的字面意思和它在当下社会应当实现的目的对不上，法官应该优先考虑这个规范目的，而不是机械地套字眼。", dimMap: { so: null, fe: 'E', rp: null, exre: null } },
-  { id: 8,  statement: "对于法律没写明确但社会危害性很明显的新型行为，法官应当在现有法条的可能语义范围内，通过解释来覆盖它，而不是等着修法。", dimMap: { so: null, fe: null, rp: null, exre: 'Ex' } },
-  { id: 9,  statement: "\u201c借东西没还\u201d和\u201c偷东西\u201d，法条上是两个不同的词。就算借了不还的人跟小偷一样可恶，也不能把\u201c借后侵吞\u201d硬塞进\u201c盗窃\u201d的条文里。", dimMap: { so: null, fe: 'F', rp: null, exre: null } },
-  { id: 10, statement: "被害人有权利看到犯罪人得到和罪行相称的惩罚。这是司法对被害人的交代，跟犯罪人以后还会不会再犯没关系。", dimMap: { so: null, fe: null, rp: 'R', exre: null } },
-  { id: 11, statement: "甲喝到断片后驾车撞死了人。评价他的刑事责任，关键是看行为那一刻的实际状态——意识、控制能力——而不是追究他当初选择喝酒这件事。行为时怎样，就按怎样来定罪。", dimMap: { so: 'O', fe: null, rp: null, exre: null } },
-  { id: 12, statement: "刑事司法系统对待罪犯，应该像医生对待病人——弄清楚犯罪的原因，给出矫正的办法，而不是仅仅基于罪责来施加刑罚。", dimMap: { so: null, fe: null, rp: 'P', exre: null } },
-  { id: 13, statement: "一把改装玩具枪，动能鉴定达到了枪支认定标准，但实际威力连纸都打不穿。这种情况下，不宜仅凭鉴定数据就认定为枪支来定罪。", dimMap: { so: null, fe: 'E', rp: null, exre: null } },
-  { id: 14, statement: "新型毒品化学结构跟列管毒品高度相似，只是还没写进附表。这种情况就该按现有毒品犯罪的条文来认定。化学分子式改一下就能绕开管制，刑法不能留这种空子。", dimMap: { so: null, fe: null, rp: null, exre: 'Ex' } },
-  { id: 15, statement: "在网上发煽动性言论，就算阅读量极小、没一个人真的被煽动起来，也该入罪。恶意已经通过发帖这个行为表现出来了——这才是刑法应当关注的核心，而不是干等危害结果发生。", dimMap: { so: 'S', fe: null, rp: null, exre: null } },
-  { id: 16, statement: "法条的文字存在多种解读都能说得通的时候，应当选择最有利于被告的那种。哪怕这么选会让一些值得处罚的人脱罪。", dimMap: { so: null, fe: null, rp: null, exre: 'Re' } }
-];
-
-/* ===== 16种人格结果数据 ===== */
-const personalities = {
-  'S-F-R-Ex': {
-    nickname: '法条灭霸', tags: ['严刑峻法的绝对信徒', '主观恶性探测器', '扩张解释推土机'],
-    judgment: '你深信「人心惟危，动机不纯即是恶」。判案时，你不仅穷尽法条字眼，还主动扩张解释堵住所有漏洞。在你看来，刑罚就是报应，恶念必须付出代价。法庭上你从不笑，卷宗就是你的生死簿。',
-    quote: '法条没写？那叫「当然解释」。主观恶性？我隔着卷宗都能闻到。',
-    friends: ['S-E-R-Ex', 'O-E-R-Ex', 'S-E-P-Ex'], enemies: ['O-E-P-Re', 'S-E-P-Re', 'O-F-P-Re'],
-    judge: ['😰 紧张', '🤔 疑惑', '😨 恐惧']
-  },
-  'S-F-R-Re': {
-    nickname: '立法者の忠犬', tags: ['罪刑法定的冷面卫道士', '法条原教旨主义者', '克制の复仇者'],
-    judgment: '你极其尊重立法者原意，认为法条没写的恶，再可恶也不能判。但一旦法条白纸黑字写明了主观恶意，你便会毫不留情地施以最重的报应刑。你是「罪刑法定」的终极守门人。',
-    quote: '法无明文规定不为罪？对。法有明文规定必为罪？也对。我的工作是后者。',
-    friends: ['O-F-R-Re', 'S-E-R-Re', 'O-E-R-Re'], enemies: ['S-E-P-Ex', 'O-F-P-Ex', 'S-E-P-Re'],
-    judge: ['😠 愤怒', '😩 绝望', '😶 认命']
-  },
-  'S-F-P-Ex': {
-    nickname: '预防性洁癖', tags: ['净化社会的铁扫帚', '主观恶性+扩张解释双buff', '教育刑の狂信者'],
-    judgment: '你眼里容不得沙子，认为刑法的目的是「扫除一切潜在的破坏分子」。你严格按条文字眼定罪，但为了「预防犯罪」这个大目标，你会毫不犹豫地扩大打击面。最好的社会是「没人敢犯罪」的社会。',
-    quote: '今天不办他，明天他就敢办别人。预防刑不是温柔，是提前温柔地消灭危险。',
-    friends: ['O-F-P-Ex', 'S-E-P-Ex', 'O-E-P-Ex'], enemies: ['O-E-P-Re', 'O-E-R-Re', 'S-E-R-Re'],
-    judge: ['🤞 侥幸', '😧 震惊', '😱 崩溃']
-  },
-  'S-F-P-Re': {
-    nickname: '依法从宽の神', tags: ['依法教化的仁厚长者', '教育刑+形式解释の缝合怪', '体制内宽严相济实操派'],
-    judgment: '你主张「惩前毖后，治病救人」。你看重主观悔过态度，但严守法条边界，绝不乱解释。只要法律写了，就按规矩来教育改造；法律没写的，哪怕对方再像坏人，你也坚持放回去感化。',
-    quote: '法律写了，我按规矩办你；法律没写，我按规矩放你。规矩是我的信仰，也是你的保护伞。',
-    friends: ['O-F-P-Re', 'S-E-P-Re', 'O-E-P-Re'], enemies: ['S-E-R-Ex', 'O-F-R-Ex', 'S-E-P-Ex'],
-    judge: ['😰 紧张', '😊 释然', '🙏 感恩']
-  },
-  'S-E-R-Ex': {
-    nickname: '穿透法条的复仇之眼', tags: ['实质正义狂徒', '主观恶性猎手', '立法精神的刺客'],
-    judgment: '你蔑视僵化的文字游戏，坚信「法律精神就是严惩恶意」。你擅长透过现象看本质，只要认定对方心术不正，就算法条有歧义，你也能用各种解释将其入罪。你是激进派中的战斗机。',
-    quote: '法条是死的，恶意是活的。如果法条挡住了正义，那是法条的问题，不是我的。',
-    friends: ['S-F-R-Ex', 'O-E-R-Ex', 'S-F-P-Ex'], enemies: ['O-F-R-Re', 'O-F-P-Re', 'O-E-P-Re'],
-    judge: ['😏 轻视', '😨 惊恐', '😱 崩溃']
-  },
-  'S-E-R-Re': {
-    nickname: '持刀哲学家', tags: ['洞察恶意但持刀谨慎', '审慎的正义', '刑法界的哈姆雷特'],
-    judgment: '你看人极准，总能捕捉到行为背后的主观恶性。但你是一位哲学家，深知刑法双刃剑的厉害。你坚持「恶意再深，也要有实害才报应」。你是刑法界最迷人的矛盾体——眼睛是复仇的，手是克制的。',
-    quote: '我看见了你心中的恶，但我更看见了刑法中的刀。刀出鞘容易，回鞘难。',
-    friends: ['S-E-P-Re', 'O-E-R-Re', 'S-F-R-Re'], enemies: ['O-F-R-Ex', 'S-E-R-Ex', 'O-E-P-Ex'],
-    judge: ['😰 紧张', '🤔 思考', '😶 沉默']
-  },
-  'S-E-P-Ex': {
-    nickname: '刑法工具人', tags: ['激进社会工程师', '预防乌托邦建筑师', '改造人性の理想主义者'],
-    judgment: '你视刑法为「社会改造工程」的利器。你研究犯罪心理，坚信预防比惩罚重要。为了预防未来犯罪，你会用最开放的实质解释扩张法网。你是「积极刑法观」的终极形态。',
-    quote: '刑法不是手术刀，是疫苗。疫苗要打在没病的人身上，才能预防疾病。',
-    friends: ['O-E-P-Ex', 'S-F-P-Ex', 'O-F-P-Ex'], enemies: ['O-E-R-Re', 'S-E-R-Re', 'S-F-R-Re'],
-    judge: ['🤞 侥幸', '😵 不知所措', '🤯 困惑']
-  },
-  'S-E-P-Re': {
-    nickname: '被告人的天使', tags: ['人道拯救牧师', '救赎派刑法人', '主观恶意の疗愈师'],
-    judgment: '你拥有一颗神父般悲悯的心，重视犯罪人的主观恶源。你主张通过实质解释探究犯罪成因来「拯救」，却坚决反对扩张刑法。你是刑格世界里最温柔的存在——相信每个罪人都有故事。',
-    quote: '我看见了你的罪，也看见了你为什么成为罪人。刑法要惩罚行为，但不该消灭灵魂。',
-    friends: ['O-E-P-Re', 'S-E-R-Re', 'O-F-P-Re'], enemies: ['S-F-R-Ex', 'O-F-R-Ex', 'S-F-P-Ex'],
-    judge: ['😰 紧张', '😭 痛哭流涕', '🙏 感恩']
-  },
-  'O-F-R-Ex': {
-    nickname: '结果导向暴君', tags: ['实证威权法官', '客观归罪推土机', '证据链の独裁者'],
-    judgment: '你是典型的「结果导向」裁判者。不管动机多可怜，只要客观行为触碰了法条字眼，就是犯罪。你为了震慑犯罪，乐于在形式解释边缘适度扩张。你不在乎被告人的眼泪，只在乎证据是否形成了闭环。',
-    quote: '动机？那是小说家关心的事。我只关心：行为有没有发生？法条有没有写？证据够不够？',
-    friends: ['O-E-R-Ex', 'S-F-R-Ex', 'O-F-P-Ex'], enemies: ['S-E-P-Re', 'S-E-R-Re', 'O-E-P-Re'],
-    judge: ['🙏 求情', '😠 愤怒', '🙄 翻白眼']
-  },
-  'O-F-R-Re': {
-    nickname: '法条打印机', tags: ['精密天平法官', '无罪推定の守护者', '司法界の冷面AI'],
-    judgment: '你是司法界最冷静的「天秤」。你只看客观行为和法条文字的严丝合缝，证据不足坚决无罪，证据确凿也坚决不搞「酌情轻判」。你的判决书逻辑严密到无法反驳。',
-    quote: '我是一台法条打印机，输入证据，输出判决。情感是bug，我从不运行。',
-    friends: ['S-F-R-Re', 'O-E-R-Re', 'S-F-P-Re'], enemies: ['S-E-R-Ex', 'S-E-P-Ex', 'O-E-P-Ex'],
-    judge: ['😠 愤怒', '😐 冷漠', '🙄 翻白眼']
-  },
-  'O-F-P-Ex': {
-    nickname: '杀鸡儆猴推广大使', tags: ['威慑主义教头', '一般预防の狂信者', '客观危害+形式解释+扩张の缝合怪'],
-    judgment: '你坚信「刑罚的意义在于警示旁人」。你以客观危害为定罪准绳，死扣法条字眼，但只要法律没有明确禁止扩张，你一定会把案例往重了判，用来吓阻潜在的效仿者。',
-    quote: '判他不是为了他，是为了看新闻的你。你不敢犯罪，我的判决就有价值。',
-    friends: ['S-F-P-Ex', 'O-E-P-Ex', 'S-E-P-Ex'], enemies: ['O-E-R-Re', 'O-E-P-Re', 'S-F-R-Re'],
-    judge: ['🤞 侥幸', '😱 绝望', '🤮 崩溃']
-  },
-  'O-F-P-Re': {
-    nickname: '教育刑の循吏', tags: ['法条主义导师', '依法施教の践行者', '客观主义の温柔刀'],
-    judgment: '你温和而坚定，强调「有客观危害才罚，没写的绝对不罚」。你像一位大学导师，耐心给嫌疑人讲法条，教育为主、惩罚为辅，坚信「好的司法是克制出来的」。',
-    quote: '我罚你，是因为你确实做错了；我教你，是因为我不想你下次再做错。法条是我的教案。',
-    friends: ['S-F-P-Re', 'O-E-P-Re', 'S-E-P-Re'], enemies: ['O-E-R-Ex', 'S-F-R-Ex', 'O-F-P-Ex'],
-    judge: ['😰 紧张', '📝 记笔记', '😊 释然']
-  },
-  'O-E-R-Ex': {
-    nickname: '结果归责复仇者', tags: ['功能报应论者', '实质解释+客观主义+报应+扩张の四重奏', '实用主义重判派'],
-    judgment: '你不在乎罪犯想什么，只在乎实际造成了多大法益侵害。为了惩罚这种「客观恶果」，你不惜动用实质解释来扩张罪名。在你这里，「罪刑法定」不是枷锁，是橡皮筋。',
-    quote: '结果这么严重，法条不解释到位，是对受害人的第二次伤害。',
-    friends: ['S-E-R-Ex', 'O-F-R-Ex', 'S-F-R-Ex'], enemies: ['O-F-P-Re', 'O-E-R-Re', 'O-E-P-Re'],
-    judge: ['😲 震惊', '😨 恐惧', '😱 崩溃']
-  },
-  'O-E-R-Re': {
-    nickname: '自由原教旨', tags: ['古典自由主义祭司', '无实质危害则无罪', '客观主义+实质解释+报应+限缩の终极缝合'],
-    judgment: '你是刑法的「原教旨自由主义者」。你深究行为对社会的实际损害，但只要没损害，哪怕行为再危险、法条再模糊，你都坚持限缩出罪。可一旦确认有实质损害，你便会祭出最严肃的报应刑。',
-    quote: '没危害？那请回，刑法不管。有危害？那请坐，我们好好算算账。',
-    friends: ['O-E-P-Re', 'S-E-R-Re', 'O-F-R-Re'], enemies: ['O-F-P-Ex', 'S-E-P-Ex', 'S-F-P-Ex'],
-    judge: ['😰 紧张', '😌 释然', '😨 或恐惧']
-  },
-  'O-E-P-Ex': {
-    nickname: '安全乌托邦织网者', tags: ['积极预防大家', '积极刑法观代言人', '客观风险の猎手'],
-    judgment: '你是「目的论」的狂热追求者。你看重客观危害的消除，为了社会整体安全，你主张用实质解释的方式积极主动地扩张刑法边界。你是典型的积极刑法观代言人。',
-    quote: '法律不是灭火器，是烟雾报警器。等起火就晚了，我要在冒烟的时候就拉响警报。',
-    friends: ['S-E-P-Ex', 'O-F-P-Ex', 'S-F-P-Ex'], enemies: ['O-F-R-Re', 'O-E-R-Re', 'S-E-R-Re'],
-    judge: ['🤞 侥幸', '😵 困惑', '🤯 不知所措']
-  },
-  'O-E-P-Re': {
-    nickname: '谦抑性玫瑰', tags: ['慈悲人权卫士', '被告人の大宪章守护者', '刑法界最温柔的存在'],
-    judgment: '你是刑格世界里最温柔的「守护神」。你坚守「无客观行为则无犯罪」，用实质解释严格限缩法条。你坚信：「如果刑法不能给人以尊严，它就不配叫正义。」',
-    quote: '刑法是善良人的大宪章，也是被告人的保护伞。如果它变成了所有人的恐惧，那它就已经背叛了自己。',
-    friends: ['S-E-P-Re', 'O-E-R-Re', 'O-F-P-Re'], enemies: ['S-F-R-Ex', 'O-F-R-Ex', 'O-E-P-Ex'],
-    judge: ['😰 紧张', '😊 感动', '🙏 感恩']
-  }
-};
-
-/* ===== 全局状态 ===== */
-const state = {
-  currentQuiz: 1,
-  answers: new Array(16).fill(null),
-  fromSubmit: false
-};
-
-const choiceLabels = [
-  { value: 2,  label: '非常赞同' },
-  { value: 1,  label: '赞同' },
-  { value: 0,  label: '中立' },
-  { value: -1, label: '反对' },
-  { value: -2, label: '非常反对' }
-];
-
-const axisColors = [
-  { barActive: 'bg-indigo-500', barInactive: 'bg-indigo-100', dot: 'bg-indigo-600', leftText: 'text-indigo-700', scoreText: 'text-indigo-600' },
-  { barActive: 'bg-amber-500', barInactive: 'bg-amber-100', dot: 'bg-amber-600', leftText: 'text-amber-700', scoreText: 'text-amber-600' },
-  { barActive: 'bg-emerald-500', barInactive: 'bg-emerald-100', dot: 'bg-emerald-600', leftText: 'text-emerald-700', scoreText: 'text-emerald-600' },
-  { barActive: 'bg-rose-500', barInactive: 'bg-rose-100', dot: 'bg-rose-600', leftText: 'text-rose-700', scoreText: 'text-rose-600' }
-];
-
-/* ===== 页面切换 ===== */
-function goToPage(pageId) {
-  document.querySelectorAll('.page').forEach(function(p) { p.classList.remove('active'); });
-  var actualPageId = pageId.startsWith('quiz-') ? 'quiz' : pageId;
-  var target = document.getElementById('page-' + actualPageId);
-  if (target) {
-    target.classList.add('active');
-    window.scrollTo({ top: 0, behavior: 'smooth' });
-  }
-  if (pageId.startsWith('quiz-')) {
-    var qNum = parseInt(pageId.replace('quiz-', ''));
-    if (qNum >= 1 && qNum <= 16) {
-      state.currentQuiz = qNum;
-      renderQuiz(qNum);
-    }
-  }
-  if (pageId === 'scoring') {
-    startScoring();
-  }
-  if (typeof lucide !== 'undefined') lucide.createIcons();
-}
-
-/* ===== Toast 提示 ===== */
-var toastTimer = null;
-function showToast(msg) {
-  var toast = document.getElementById('toast');
-  toast.innerHTML = '<i data-lucide="info" class="w-4 h-4"></i><span>' + msg + '</span>';
-  if (typeof lucide !== 'undefined') lucide.createIcons();
-  toast.classList.add('show');
-  if (toastTimer) clearTimeout(toastTimer);
-  toastTimer = setTimeout(function() { toast.classList.remove('show'); }, 3000);
-}
-
-/* ===== 渲染答题页 ===== */
-function getAnsweredCount() {
-  return state.answers.filter(function(a) { return a !== null; }).length;
-}
-
-function renderQuiz(num) {
-  var q = quizData[num - 1];
-  var answered = getAnsweredCount();
-  document.getElementById('quiz-progress-text').textContent = num + ' / 16 · 已答 ' + answered;
-  document.getElementById('quiz-progress-bar').style.width = (num / 16 * 100).toFixed(2) + '%';
-  document.getElementById('quiz-statement').textContent = q.statement;
-
-  // 未答题提示：仅当从提交跳转来且当前题未答时显示
-  var hint = document.getElementById('unanswered-hint');
-  if (state.fromSubmit && state.answers[num - 1] === null) {
-    hint.classList.add('show');
-  } else {
-    hint.classList.remove('show');
-  }
-
-  var selectedVal = state.answers[num - 1];
-  var optionsHtml = '';
-  choiceLabels.forEach(function(c) {
-    optionsHtml += '<button onclick="selectOption(' + num + ', ' + c.value + ', this)" data-level="' + c.value + '" class="likert-btn' + (selectedVal === c.value ? ' selected' : '') + '">';
-    optionsHtml += '<span class="likert-bar"></span>';
-    optionsHtml += '<span class="likert-label">' + c.label + '</span>';
-    optionsHtml += '</button>';
-  });
-  document.getElementById('quiz-options').innerHTML = optionsHtml;
-
-  var btnPrev = document.getElementById('btn-prev');
-  var btnNext = document.getElementById('btn-next');
-  if (num === 1) {
-    btnPrev.disabled = true;
-    btnPrev.classList.add('cursor-not-allowed', 'opacity-50');
-  } else {
-    btnPrev.disabled = false;
-    btnPrev.classList.remove('cursor-not-allowed', 'opacity-50');
-  }
-  if (num === 16) {
-    var remaining = 16 - answered;
-    if (remaining > 0) {
-      btnNext.innerHTML = '提交（还剩 ' + remaining + ' 题） <i data-lucide="check" class="w-4 h-4"></i>';
-    } else {
-      btnNext.innerHTML = '提交 <i data-lucide="check" class="w-4 h-4"></i>';
-    }
-    btnNext.onclick = function() { submitQuiz(); };
-  } else {
-    btnNext.innerHTML = '下一题 <i data-lucide="chevron-right" class="w-4 h-4"></i>';
-    btnNext.onclick = function() { goNext(); };
-  }
-}
-
-/* ===== 选择选项 ===== */
-function selectOption(quizNum, score, element) {
-  state.answers[quizNum - 1] = score;
-  var container = document.getElementById('quiz-options');
-  container.querySelectorAll('.likert-btn').forEach(function(btn) { btn.classList.remove('selected'); });
-  element.classList.add('selected');
-  // 选中后隐藏未答题提示，清除提交跳转标记
-  state.fromSubmit = false;
-  document.getElementById('unanswered-hint').classList.remove('show');
-  // 更新进度计数
-  var answered = getAnsweredCount();
-  document.getElementById('quiz-progress-text').textContent = quizNum + ' / 16 · 已答 ' + answered;
-  if (quizNum < 16) {
-    setTimeout(function() { goNext(); }, 450);
-  } else {
-    // 最后一题选中后刷新按钮文字（剩余题数可能变化）
-    var remaining = 16 - answered;
-    var btnNext = document.getElementById('btn-next');
-    if (remaining > 0) {
-      btnNext.innerHTML = '提交（还剩 ' + remaining + ' 题） <i data-lucide="check" class="w-4 h-4"></i>';
-    } else {
-      btnNext.innerHTML = '提交 <i data-lucide="check" class="w-4 h-4"></i>';
-    }
-  }
-}
-
-/* ===== 导航 ===== */
-function goNext() {
-  state.fromSubmit = false;
-  if (state.currentQuiz < 16) {
-    state.currentQuiz++;
-    goToPage('quiz-' + state.currentQuiz);
-  }
-}
-
-function goPrev() {
-  state.fromSubmit = false;
-  if (state.currentQuiz > 1) {
-    state.currentQuiz--;
-    goToPage('quiz-' + state.currentQuiz);
-  }
-}
-
-function goBack() {
-  if (state.currentQuiz > 1) {
-    goPrev();
-  } else {
-    goToPage('intro');
-  }
-}
-
-function submitQuiz() {
-  var unanswered = state.answers.filter(function(a) { return a === null; }).length;
-  if (unanswered > 0) {
-    for (var i = 0; i < 16; i++) {
-      if (state.answers[i] === null) {
-        state.currentQuiz = i + 1;
-        state.fromSubmit = true;
-        showToast('还有 ' + unanswered + ' 题未作答，正在带你回到第 ' + (i + 1) + ' 题');
-        goToPage('quiz-' + state.currentQuiz);
-        break;
-      }
-    }
-    return;
-  }
-  goToPage('scoring');
-}
-
-/* ===== 计算得分 =====
-   dimMap中 S/F/R/Ex 对应负向维度（分值取反），O/E/P/Re 对应正向维度（分值直接计入）
-   例如第1题选 ++(+2)，dimMap.so='S'，则 S/O 维度 += -2
-*/
-function calculateScores() {
-  var scores = { so: 0, fe: 0, rp: 0, exre: 0 };
-  // 同时记录每个维度的题目级原始选择分值（破平规则用）
-  var detail = { so: [], fe: [], rp: [], exre: [] };
-  quizData.forEach(function(q, idx) {
-    var raw = state.answers[idx];
-    if (raw === null) return;
-    ['so','fe','rp','exre'].forEach(function(k) {
-      var dir = q.dimMap[k];
-      if (!dir) return;
-      var sign = (dir === 'S' || dir === 'F' || dir === 'R' || dir === 'Ex') ? -1 : 1;
-      scores[k] += raw * sign;
-      detail[k].push(raw); // 原始选择分值（未取反）
-    });
-  });
-  return { total: [scores.so, scores.fe, scores.rp, scores.exre], detail: detail };
-}
-
-// v3 破平规则：维度总分=0 时判定
-// 返回该维度的字母：'S'/'O' 等；若维持中间型返回 null
-function breakTie(detailArr) {
-  // detailArr: 该维度4题的原始选择分值数组
-  var zeroCount = detailArr.filter(function(v) { return v === 0; }).length;
-  if (zeroCount >= 2) return null;      // ≥2 个"0" → 中间型
-  if (zeroCount === 0) return null;     // 0 个"0"（2赞同2反对）→ 中间型
-  // =1 个"0"，剩3题看赞同/反对各几道
-  var proCount = detailArr.filter(function(v) { return v > 0; }).length;
-  var conCount = detailArr.filter(function(v) { return v < 0; }).length;
-  if (proCount > conCount) return 'pro';   // 赞同多 → >0 侧
-  if (conCount > proCount) return 'con';   // 反对多 → <0 侧
-  return null;                          // 理论上 1 个 0 + 3 题不会出现 pro=con
-}
-
-function getTypeKey(scoresObj) {
-  var scores = scoresObj.total;
-  var detail = scoresObj.detail;
-  var dims = [
-    { name: 'so',   neg: 'S',  pos: 'O'  },
-    { name: 'fe',   neg: 'F',  pos: 'E'  },
-    { name: 'rp',   neg: 'R',  pos: 'P'  },
-    { name: 'exre', neg: 'Ex', pos: 'Re' }
-  ];
-  var letters = [];
-  for (var i = 0; i < 4; i++) {
-    var d = dims[i];
-    if (scores[i] < 0) letters.push(d.neg);
-    else if (scores[i] > 0) letters.push(d.pos);
-    else {
-      // 总分=0，启用破平规则
-      var tie = breakTie(detail[d.name]);
-      if (tie === 'pro') letters.push(d.pos);
-      else if (tie === 'con') letters.push(d.neg);
-      else letters.push(null); // 维持中间型
-    }
-  }
-  if (letters.indexOf(null) >= 0) return 'HYBRID';
-  return letters.join('-');
-}
-
-function startScoring() {
-  setTimeout(function() { showResult(); }, 2500);
-}
-
-function showResult() {
-  var scoreObj = calculateScores();
-  var scores = scoreObj.total;   // 数组，下游统一用数组
-  var typeKey = getTypeKey(scoreObj);
-  var p;
-  if (typeKey === 'HYBRID') {
-    p = buildHybridResult(scores);
-    var d1 = scores[0] <= 0 ? 'S' : 'O';
-    var d2 = scores[1] <= 0 ? 'F' : 'E';
-    var d3 = scores[2] <= 0 ? 'R' : 'P';
-    var d4 = scores[3] <= 0 ? 'Ex' : 'Re';
-    if (scores[0] === 0) d1 = 'S/O';
-    if (scores[1] === 0) d2 = 'F/E';
-    if (scores[2] === 0) d3 = 'R/P';
-    if (scores[3] === 0) d4 = 'Ex/Re';
-    typeKey = d1 + '-' + d2 + '-' + d3 + '-' + d4;
-  } else {
-    p = personalities[typeKey];
-  }
-  renderResult(typeKey, p, scores);
-  goToPage('result');
-}
-
-function buildHybridResult(scores) {
-  var dims = [];
-  if (scores[0] === 0) dims.push('立场缝合');
-  if (scores[1] === 0) dims.push('解释缝合');
-  if (scores[2] === 0) dims.push('目的缝合');
-  if (scores[3] === 0) dims.push('边界缝合');
-  return {
-    nickname: '终极缝合怪',
-    tags: dims.concat(['薛定谔的刑法人', '四维平衡大师']),
-    judgment: '你在某个（或某几个）维度上完美平衡，左和右的拉力在你体内达成了奇妙的均势。你不是没有立场，你是「所有立场都有道理」。在刑法界，你是一个让人又敬又怕的存在——因为你无法被预测。你可能在同一个案子里同时给出入罪和出罪的完美论证。',
-    quote: '我两种观点都认同——这不叫摇摆，这叫辩证法。',
-    friends: ['O-F-P-Re', 'S-E-R-Re', 'O-E-R-Re'], enemies: ['S-F-R-Ex', 'O-E-P-Ex'],
-    judge: ['😵 困惑', '🤯 更困惑', '📚 写论文']
-  };
-}
-
-function renderResult(typeKey, p, scores) {
-  state.lastResult = { typeKey: typeKey, p: p, scores: scores };
-  document.getElementById('result-type').textContent = typeKey;
-  document.getElementById('result-nickname').textContent = p.nickname;
-
-  var tagsHtml = '';
-  p.tags.forEach(function(tag) {
-    tagsHtml += '<span class="text-xs bg-primary-50 text-primary-700 px-3 py-1 rounded-full">' + tag + '</span>';
-  });
-  document.getElementById('result-tags').innerHTML = tagsHtml;
-
-  var axisHtml = '';
-  var dimNames = [['S', '立场', 'O'], ['F', '解释', 'E'], ['R', '目的', 'P'], ['Ex', '边界', 'Re']];
-  for (var i = 0; i < 4; i++) {
-    var score = scores[i];
-    var c = axisColors[i];
-    var maxAbs = 8;
-    var indicatorLeft = score < 0 ? 'calc(50% - ' + (Math.abs(score) / maxAbs * 50) + '% - 6px)' : (score > 0 ? 'calc(50% + ' + (score / maxAbs * 50) + '% - 6px)' : 'calc(50% - 6px)');
-    // 数据条按分数方向着色：负分左条为活跃色，正分右条为活跃色，另一侧为浅色背景细线
-    var leftBarClass = score < 0 ? c.barActive : c.barInactive;
-    var rightBarClass = score > 0 ? c.barActive : c.barInactive;
-    var leftBarW = score < 0 ? (Math.abs(score) / maxAbs * 50) : 8;
-    var rightBarW = score > 0 ? (score / maxAbs * 50) : 8;
-
-    axisHtml += '<div class="flex items-center gap-1 sm:gap-3">';
-    axisHtml += '<span class="w-8 sm:w-10 text-right text-xs font-semibold ' + c.leftText + ' shrink-0">' + dimNames[i][0] + '</span>';
-    axisHtml += '<span class="hidden sm:inline w-10 text-right text-xs text-muted-foreground shrink-0">' + dimNames[i][1] + '</span>';
-    axisHtml += '<div class="flex-1 relative h-6 sm:h-7 flex items-center min-w-0">';
-    axisHtml += '<div class="absolute right-1/2 top-1/2 -translate-y-1/2 h-4 sm:h-5 ' + leftBarClass + ' rounded-l-full" style="width:' + leftBarW + '%"></div>';
-    axisHtml += '<div class="absolute left-1/2 top-1/2 -translate-y-1/2 h-4 sm:h-5 ' + rightBarClass + ' rounded-r-full" style="width:' + rightBarW + '%"></div>';
-    axisHtml += '<div class="absolute left-1/2 top-0 bottom-0 w-px bg-border -translate-x-1/2"></div>';
-    axisHtml += '<div class="absolute top-1/2 -translate-y-1/2 w-3 h-3 rounded-full ' + c.dot + ' border-2 border-white shadow-sm" style="left:' + indicatorLeft + '"></div>';
-    axisHtml += '</div>';
-    axisHtml += '<span class="text-xs sm:text-sm font-bold ' + c.scoreText + ' w-8 text-center shrink-0">' + (score > 0 ? '+' : '') + score + '</span>';
-    axisHtml += '<span class="w-7 sm:w-10 text-left text-xs text-muted-foreground shrink-0">' + dimNames[i][2] + '</span>';
-    axisHtml += '</div>';
-  }
-  document.getElementById('axis-container').innerHTML = axisHtml;
-
-  document.getElementById('result-judgment').textContent = p.judgment;
-  document.getElementById('result-quote').textContent = '「' + p.quote + '」';
-
-  var friendsHtml = '';
-  p.friends.forEach(function(f) {
-    var nick = personalities[f] ? personalities[f].nickname : f;
-    friendsHtml += '<li><p class="text-sm font-semibold text-foreground">' + f + '（' + nick + '）</p></li>';
-  });
-  document.getElementById('result-friends').innerHTML = friendsHtml;
-
-  var enemiesHtml = '';
-  p.enemies.forEach(function(e) {
-    var nick = personalities[e] ? personalities[e].nickname : e;
-    enemiesHtml += '<li><p class="text-sm font-semibold text-foreground">' + e + '（' + nick + '）</p></li>';
-  });
-  document.getElementById('result-enemies').innerHTML = enemiesHtml;
-
-  var judgeHtml = '';
-  p.judge.forEach(function(j, idx) {
-    var parts = j.split(' ');
-    var emoji = parts[0];
-    var label = parts.slice(1).join(' ');
-    judgeHtml += '<div class="flex flex-col items-center gap-1"><span class="text-4xl">' + emoji + '</span><span class="text-xs text-muted-foreground">' + label + '</span></div>';
-    if (idx < p.judge.length - 1) judgeHtml += '<i data-lucide="chevron-right" class="w-5 h-5 text-muted-foreground"></i>';
-  });
-  document.getElementById('result-judge').innerHTML = judgeHtml;
-  if (typeof lucide !== 'undefined') lucide.createIcons();
-}
-
-function resetTest() {
-  state.answers = new Array(16).fill(null);
-  state.currentQuiz = 1;
-  state.fromSubmit = false;
-  goToPage('intro');
-}
-
-function showAbout() {
-  document.getElementById('about-modal').classList.add('active');
-  if (typeof lucide !== 'undefined') lucide.createIcons();
-}
-function closeAbout() {
-  document.getElementById('about-modal').classList.remove('active');
-}
-
-function shareResult() {
-  var text = '我在「刑格 CPTI 2.0」中测出了我的刑法人格！来测测你是哪种？';
-  if (navigator.share) {
-    navigator.share({ title: '刑格 CPTI 2.0', text: text, url: window.location.href }).catch(function(){});
-  } else if (navigator.clipboard) {
-    navigator.clipboard.writeText(window.location.href).then(function() {
-      alert('链接已复制，快去分享给朋友吧！');
-    });
-  } else {
-    prompt('复制以下链接分享给朋友：', window.location.href);
-  }
-}
-
-/* ===== 保存结果为图片 ===== */
-function saveAsImage() {
-  var btn = event.currentTarget;
-  var originalHtml = btn.innerHTML;
-  btn.innerHTML = '正在生成图片...';
-  btn.disabled = true;
-
-  var r = state.lastResult;
-  if (!r) {
-    showToast('无法获取结果数据');
-    btn.innerHTML = originalHtml;
-    btn.disabled = false;
-    if (typeof lucide !== 'undefined') lucide.createIcons();
-    return;
-  }
-
-  // 用原生 Canvas 2D 绘制，严格还原页面结果页设计（仅判词及之前区块）
-  try {
-    var W = 420, PAD = 24, CW = W - PAD * 2, SCALE = 2;
-    var dimNames = [['S','立场','O'],['F','解释','E'],['R','目的','P'],['Ex','边界','Re']];
-    // 与页面 axisColors 一致：indigo/amber/emerald/rose
-    var axisColors = [
-      { active: '#6366f1', inactive: '#e0e7ff', dot: '#4f46e5', leftText: '#4338ca', scoreText: '#4f46e5' },
-      { active: '#f59e0b', inactive: '#fef3c7', dot: '#d97706', leftText: '#b45309', scoreText: '#d97706' },
-      { active: '#10b981', inactive: '#d1fae5', dot: '#059669', leftText: '#047857', scoreText: '#059669' },
-      { active: '#f43f5e', inactive: '#ffe4e6', dot: '#e11d48', leftText: '#be123c', scoreText: '#e11d48' }
-    ];
-    var F = '"Noto Sans SC","Inter",sans-serif';
-    var PRIMARY = '#4f46e5';
-    var BORDER = '#e2e8f0';
-    var MUTED = '#64748b';
-
-    // 圆角矩形
-    function rr(c, x, y, w, h, rad) {
-      c.beginPath();
-      c.moveTo(x + rad, y);
-      c.arcTo(x + w, y, x + w, y + h, rad);
-      c.arcTo(x + w, y + h, x, y + h, rad);
-      c.arcTo(x, y + h, x, y, rad);
-      c.arcTo(x, y, x + w, y, rad);
-      c.closePath();
-    }
-    // 页面 shadow-sm 对应的轻阴影卡片
-    function card(c, x, y, w, h) {
-      c.save();
-      c.shadowColor = 'rgba(15,23,42,0.05)';
-      c.shadowBlur = 6;
-      c.shadowOffsetY = 2;
-      c.fillStyle = '#ffffff';
-      rr(c, x, y, w, h, 8); c.fill();
-      c.restore();
-      c.strokeStyle = BORDER; c.lineWidth = 1;
-      rr(c, x, y, w, h, 8); c.stroke();
+    function applyTheme(theme) {
+      document.documentElement.classList.remove('light', 'dark');
+      document.documentElement.classList.add(theme);
+      document.documentElement.setAttribute('data-theme', theme);
+      localStorage.setItem('gj-theme', theme);
     }
 
-    // 文字换行
-    var _m = document.createElement('canvas').getContext('2d');
-    function wrap(text, maxW, font) {
-      _m.font = font;
-      var lines = [], cur = '';
-      for (var i = 0; i < text.length; i++) {
-        var test = cur + text[i];
-        if (_m.measureText(test).width > maxW && cur) { lines.push(cur); cur = text[i]; }
-        else cur = test;
-      }
-      if (cur) lines.push(cur);
-      return lines;
-    }
-
-    // 预计算判词换行（页面 result-judgment 无内边距限制，按卡片内容宽度）
-    var jLines = wrap(r.p.judgment, CW - 48, '14px ' + F);
-
-    // 预计算 tags 行数（页面 gap-2 = 8px）
-    _m.font = '12px ' + F;
-    var tagRows = 1, tagX = 0;
-    r.p.tags.forEach(function(t) {
-      var w = _m.measureText(t).width + 24;
-      if (tagX + w > CW) { tagRows++; tagX = 0; }
-      tagX += w + 8;
+    document.getElementById('themeToggle').addEventListener('click', () => {
+      const current = document.documentElement.getAttribute('data-theme');
+      applyTheme(current === 'dark' ? 'light' : 'dark');
     });
 
-    // 各区块高度（严格对应页面 section 间距）
-    var hHdr = 16 + 20 + 16 + 48 + 8 + 28 + 16 + tagRows * 28 + 32; // mb-10 = 40px → 32px 间距
-    var hAxis = 24 + 20 + 20 + 4 * 28 + 24; // p-6=24, 标题+mb-5=20+20, 4行*28, p-6=24
-    var hJudg = 24 + 24 + 12 + jLines.length * 22 + 24; // p-6=24, 标题+mb-3=24+12, 正文行高22, p-6=24
-    var totalH = hHdr + hAxis + 32 + hJudg; // 卡片间 mb-8=32
+    /* ============ 移动端菜单 ============ */
+    const menuToggle = document.getElementById('menuToggle');
+    const mobileMenu = document.getElementById('mobileMenu');
+    const menuIcon = document.getElementById('menuIcon');
 
-    var canvas = document.createElement('canvas');
-    canvas.width = W * SCALE;
-    canvas.height = totalH * SCALE;
-    var ctx = canvas.getContext('2d');
-    ctx.scale(SCALE, SCALE);
-    ctx.textBaseline = 'top';
-
-    // 页面背景：纯白
-    ctx.fillStyle = '#ffffff';
-    ctx.fillRect(0, 0, W, totalH);
-
-    var cx = W / 2;
-    var y = 16;
-
-    // 顶部标签（页面：bg-primary-50 text-primary rounded-full）
-    ctx.font = '500 12px ' + F;
-    var lblW = ctx.measureText('你的刑格类型').width + 24;
-    ctx.fillStyle = '#eef2ff';
-    rr(ctx, cx - lblW/2, y, lblW, 24, 12); ctx.fill();
-    ctx.fillStyle = PRIMARY;
-    ctx.textAlign = 'center';
-    ctx.fillText('你的刑格类型', cx, y + 5);
-    y += 24 + 16;
-
-    // 类型码（页面：text-5xl font-bold）
-    ctx.font = '700 48px "Inter",' + F;
-    ctx.fillStyle = '#0f172a';
-    ctx.fillText(r.typeKey, cx, y);
-    y += 48 + 8;
-
-    // 昵称（页面：text-2xl font-semibold text-primary）
-    ctx.font = '600 24px ' + F;
-    ctx.fillStyle = PRIMARY;
-    ctx.fillText(r.p.nickname, cx, y);
-    y += 24 + 16;
-
-    // Tags（页面：text-xs bg-primary-50 text-primary-700 rounded-full gap-2，居中布局）
-    ctx.font = '12px ' + F;
-    // 先按行分组，计算每行总宽度以居中
-    var GAP = 8, tagH = 24;
-    var rows = [[]];
-    var rowW = [0];
-    r.p.tags.forEach(function(t) {
-      var w = ctx.measureText(t).width + 24;
-      if (rowW[rowW.length - 1] + w + (rows[rows.length - 1].length > 0 ? GAP : 0) > CW) {
-        rows.push([]); rowW.push(0);
-      }
-      var idx = rows.length - 1;
-      if (rows[idx].length > 0) rowW[idx] += GAP;
-      rows[idx].push({ t: t, w: w });
-      rowW[idx] += w;
+    menuToggle.addEventListener('click', () => {
+      const isOpen = mobileMenu.classList.toggle('is-open');
+      menuToggle.setAttribute('aria-expanded', String(isOpen));
+      menuIcon.setAttribute('data-lucide', isOpen ? 'x' : 'menu');
+      lucide.createIcons();
     });
-    var ty = y;
-    rows.forEach(function(row, ri) {
-      var startX = PAD + (CW - rowW[ri]) / 2;
-      var tx = startX;
-      row.forEach(function(item) {
-        ctx.fillStyle = '#eef2ff';
-        rr(ctx, tx, ty, item.w, tagH, 12); ctx.fill();
-        ctx.fillStyle = '#4338ca';
-        ctx.textAlign = 'left';
-        ctx.fillText(item.t, tx + 12, ty + 6);
-        tx += item.w + GAP;
+
+    /* ============ 精准锚点滚动 ============
+       统一处理所有内部锚点链接（#xxx），用 JS 主动 scrollTo 替代浏览器原生跳转，
+       确保 sticky header 不遮挡目标 section，并在移动端菜单展开时等过渡完成后再滚动。
+       --scroll-offset（80px = 64px nav + 16px 呼吸）作为唯一偏移基准。
+    */
+    function getScrollOffset() {
+      const v = getComputedStyle(document.documentElement).getPropertyValue('--scroll-offset').trim();
+      return parseFloat(v) || 80;
+    }
+    function smoothScrollToTarget(target) {
+      if (!target) return;
+      const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+      const top = target.getBoundingClientRect().top + window.scrollY - getScrollOffset();
+      window.scrollTo({
+        top: Math.max(0, top),
+        behavior: reduceMotion ? 'auto' : 'smooth'
       });
-      ty += tagH + 8;
-    });
-    y = ty - 8 + 32;
-
-    // 四维坐标卡片（页面：bg-card border rounded-lg p-6 shadow-sm）
-    card(ctx, PAD, y, CW, hAxis);
-    var iy = y + 24;
-    // 标题（页面：text-sm font-semibold text-muted-foreground uppercase tracking-wider mb-5）
-    ctx.font = '600 14px ' + F;
-    ctx.fillStyle = MUTED;
-    ctx.textAlign = 'left';
-    ctx.fillText('四维人格坐标', PAD + 24, iy);
-    iy += 20 + 20;
-
-    for (var i = 0; i < 4; i++) {
-      var score = r.scores[i];
-      var c = axisColors[i];
-      // 页面布局：左字母 w-10 + 中文 w-10 + 坐标条 flex-1 + 分数 w-8 + 右字母 w-10
-      var letterLX = PAD + 24;
-      var dimNameX = letterLX + 40;
-      var barL = dimNameX + 40 + 4;
-      var barR = PAD + CW - 24 - 40 - 32 - 4;
-      var barW = barR - barL;
-      var midX = barL + barW / 2;
-      var rowY = iy;
-
-      // 左字母（页面：text-xs font-semibold leftText）
-      ctx.font = '600 12px "Inter",sans-serif';
-      ctx.fillStyle = c.leftText;
-      ctx.textAlign = 'right';
-      ctx.fillText(dimNames[i][0], letterLX + 32, rowY + 5);
-      // 中文维度名（页面：hidden sm:inline text-xs text-muted-foreground）
-      ctx.font = '12px ' + F;
-      ctx.fillStyle = MUTED;
-      ctx.textAlign = 'right';
-      ctx.fillText(dimNames[i][1], dimNameX + 32, rowY + 5);
-
-      // 坐标条背景（页面：inactive 侧 8% 宽度细线）
-      ctx.fillStyle = c.inactive;
-      rr(ctx, barL, rowY + 8, barW, 6, 3); ctx.fill();
-      // 中线（页面：w-px bg-border）
-      ctx.fillStyle = BORDER;
-      ctx.fillRect(midX - 0.5, rowY + 4, 1, 14);
-
-      // 数据条（页面：active 侧按分数宽度）
-      var pct = Math.abs(score) / 8 * (barW / 2);
-      if (score !== 0) {
-        ctx.fillStyle = c.active;
-        if (score < 0) rr(ctx, midX - pct, rowY + 8, pct, 6, 3);
-        else rr(ctx, midX, rowY + 8, pct, 6, 3);
-        ctx.fill();
-      }
-      // 圆点（页面：w-3 h-3 rounded-full dot border-2 border-white）
-      ctx.fillStyle = c.dot;
-      ctx.beginPath();
-      var dotX = score < 0 ? midX - pct : (score > 0 ? midX + pct : midX);
-      ctx.arc(dotX, rowY + 11, 6, 0, Math.PI * 2);
-      ctx.fill();
-      ctx.strokeStyle = '#ffffff'; ctx.lineWidth = 2;
-      ctx.stroke();
-
-      // 分数（页面：text-sm font-bold scoreText w-8 text-center）
-      ctx.font = '700 14px "Inter",sans-serif';
-      ctx.fillStyle = c.scoreText;
-      ctx.textAlign = 'center';
-      ctx.fillText((score > 0 ? '+' : '') + score, barR + 16, rowY + 4);
-      // 右字母（页面：text-xs text-muted-foreground w-10）
-      ctx.font = '12px "Inter",sans-serif';
-      ctx.fillStyle = MUTED;
-      ctx.textAlign = 'left';
-      ctx.fillText(dimNames[i][2], barR + 36, rowY + 5);
-
-      iy += 28;
     }
-    y += hAxis + 32;
-
-    // 判词卡片（页面：bg-card border rounded-lg p-6 shadow-sm，标题带主色图标）
-    card(ctx, PAD, y, CW, hJudg);
-    iy = y + 24;
-    // 标题图标 + 文字（页面：scroll-text 图标 + "判词"）
-    ctx.font = '600 18px ' + F;
-    ctx.fillStyle = '#0f172a';
-    ctx.textAlign = 'left';
-    // 图标用简单矩形+横线模拟 scroll-text
-    var iconX = PAD + 24;
-    ctx.strokeStyle = PRIMARY; ctx.lineWidth = 1.5;
-    rr(ctx, iconX, iy + 2, 16, 16, 2); ctx.stroke();
-    ctx.fillStyle = PRIMARY;
-    ctx.fillRect(iconX + 3, iy + 6, 10, 1.5);
-    ctx.fillRect(iconX + 3, iy + 10, 10, 1.5);
-    ctx.fillStyle = '#0f172a';
-    ctx.fillText('判词', iconX + 22, iy + 2);
-    iy += 24 + 12;
-    // 正文（页面：text-card-foreground leading-relaxed）
-    ctx.font = '14px ' + F;
-    ctx.fillStyle = '#1e293b';
-    jLines.forEach(function(line) {
-      ctx.fillText(line, PAD + 24, iy);
-      iy += 22;
+    function closeMobileMenu() {
+      if (!mobileMenu.classList.contains('is-open')) return false;
+      mobileMenu.classList.remove('is-open');
+      menuToggle.setAttribute('aria-expanded', 'false');
+      menuIcon.setAttribute('data-lucide', 'menu');
+      lucide.createIcons();
+      return true;
+    }
+    // 覆盖所有内部锚点链接：nav-link / mobile-nav-link / hero CTA / footer 链接
+    document.querySelectorAll('a[href^="#"]').forEach(link => {
+      link.addEventListener('click', (e) => {
+        const href = link.getAttribute('href');
+        // 纯 # 链接（logo）→ 滚动到顶部
+        if (href === '#' || href === '') {
+          e.preventDefault();
+          closeMobileMenu();
+          const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+          window.scrollTo({ top: 0, behavior: reduceMotion ? 'auto' : 'smooth' });
+          history.pushState(null, '', window.location.pathname);
+          return;
+        }
+        const target = document.querySelector(href);
+        if (!target) return; // 目标不存在则回退原生行为
+        e.preventDefault();
+        const menuWasOpen = closeMobileMenu();
+        if (menuWasOpen) {
+          // 等菜单过渡完成（0.4s）后再滚动，避免 header 高度变化干扰定位
+          setTimeout(() => smoothScrollToTarget(target), 420);
+        } else {
+          smoothScrollToTarget(target);
+        }
+        // 更新 URL hash 但不触发原生滚动
+        history.pushState(null, '', href);
+      });
     });
 
-    // 导出 PNG
-    canvas.toBlob(function(blob) {
-      var url = URL.createObjectURL(blob);
-      var link = document.createElement('a');
-      link.download = '刑格_' + r.typeKey + '.png';
-      link.href = url;
-      link.click();
-      setTimeout(function() { URL.revokeObjectURL(url); }, 1000);
-      btn.innerHTML = originalHtml;
-      btn.disabled = false;
-      if (typeof lucide !== 'undefined') lucide.createIcons();
-      showToast('图片已保存到下载文件夹');
-    }, 'image/png');
-  } catch (err) {
-    btn.innerHTML = originalHtml;
-    btn.disabled = false;
-    if (typeof lucide !== 'undefined') lucide.createIcons();
-    showToast('图片生成失败: ' + (err.message || err));
-  }
-}
+    /* ============ 滚动触发动画 ============ */
+    const revealEls = document.querySelectorAll('.scroll-reveal');
+    if ('IntersectionObserver' in window) {
+      const observer = new IntersectionObserver((entries) => {
+        entries.forEach((entry, idx) => {
+          if (entry.isIntersecting) {
+            // 同组内错峰出现
+            const siblings = Array.from(entry.target.parentElement.querySelectorAll('.scroll-reveal'));
+            const sibIdx = siblings.indexOf(entry.target);
+            entry.target.style.transitionDelay = (Math.min(sibIdx, 4) * 0.08) + 's';
+            entry.target.classList.add('is-visible');
+            observer.unobserve(entry.target);
+          }
+        });
+      }, { threshold: 0.12, rootMargin: '0px 0px -60px 0px' });
+      revealEls.forEach(el => observer.observe(el));
+    } else {
+      // 不支持 IntersectionObserver 的浏览器直接显示
+      revealEls.forEach(el => el.classList.add('is-visible'));
+    }
 
-document.addEventListener('DOMContentLoaded', function() {
-  if (typeof lucide !== 'undefined') lucide.createIcons();
-});
-</script>
+    /* ============ 阅读进度条 ============ */
+    const progressBar = document.getElementById('readingProgress');
+    function updateProgress() {
+      const scrollTop = window.scrollY;
+      const docHeight = document.documentElement.scrollHeight - window.innerHeight;
+      const pct = docHeight > 0 ? (scrollTop / docHeight) * 100 : 0;
+      progressBar.style.width = Math.min(pct, 100) + '%';
+    }
+    window.addEventListener('scroll', updateProgress, { passive: true });
+    updateProgress();
+
+    /* ============ 导航栏当前章节高亮 ============ */
+    const sections = ['manifesto', 'lab', 'readings', 'collision', 'about'].map(id => document.getElementById(id)).filter(Boolean);
+    const navLinks = document.querySelectorAll('.nav-link');
+    function updateActiveNav() {
+      // 偏移量与 --scroll-offset 一致（80px），保证高亮判定与实际锚点滚动位置同步
+      const scrollPos = window.scrollY + 80;
+      let activeId = '';
+      sections.forEach(sec => {
+        if (sec.offsetTop <= scrollPos) activeId = sec.id;
+      });
+      navLinks.forEach(link => {
+        const href = link.getAttribute('href');
+        link.classList.toggle('is-active', href === '#' + activeId);
+      });
+    }
+    window.addEventListener('scroll', updateActiveNav, { passive: true });
+    updateActiveNav();
+
+    /* ============ Toast 通知 ============ */
+    const toast = document.getElementById('toast');
+    const toastMessage = document.getElementById('toastMessage');
+    let toastTimer = null;
+    function showToast(message, icon = 'check-circle') {
+      toastMessage.textContent = message;
+      const iconEl = toast.querySelector('[data-lucide]');
+      if (iconEl) iconEl.setAttribute('data-lucide', icon);
+      lucide.createIcons();
+      toast.classList.add('is-toast-visible');
+      clearTimeout(toastTimer);
+      toastTimer = setTimeout(() => toast.classList.remove('is-toast-visible'), 3200);
+    }
+
+    /* ============ 碰撞 反驳观点呈现系统 ============
+       设计逻辑：用户选择"有/没有"后，问题与未选按钮淡出消失，
+       保留被点击按钮作为视觉锚点，逐条呈现对应的反驳观点，让用户直面质疑。
+       无 localStorage、无统计，纯前端一次性交互。
+    */
+    const COUNTER_POINTS = {
+      // 用户选"有"（认为 AI 法官有正当性）→ 反驳此立场
+      yes: [
+        '没有内在观点的裁判，只是在处理符号，而不是在解释法律。',
+        '黑箱里的公正，再精确也是专制，因为你永远不知道为何服从。',
+        '把人的独特性压缩成统计概率，正义就退化成了社会工程。',
+        '不能公开质疑的权力，无论结果多公正，都是披着算法外衣的暴力。',
+        '民众本能排斥机器裁判，这种排斥本身就是正当性赤字的社会证据。',
+        '找不到人负责的判决，不配拥有正当性。'
+      ],
+      // 用户选"没有"（认为 AI 法官无正当性）→ 反驳此立场
+      no: [
+        '我们能容忍人类法官的偏见，却拒绝一个永不疲倦的裁判者，这捍卫的不是正义，而是人类犯错的特权。',
+        '对饱受偏见之苦的人而言，限制人类裁量权的算法，恰恰是最迟来的正义。',
+        '人类法官的「内心确信」同样是黑箱，既然容忍了它，就没有资格用黑箱来审判机器。',
+        '为了坚持「必须由人类宣判」的形式，让穷人继续排队等正义，这是把精英傲慢凌驾于实质公正之上。',
+        '算法早已在帮法官量刑，反对 AI 法官不是反对机器，而是反对机器太显眼，戳破了人类的自恋。',
+        '如果法律共同体最终接受了算法裁判，「只有人类能审判」不过是用旧形而上学对抗正在发生的现实。'
+      ]
+    };
+
+    const collisionStage = document.querySelector('.collision-stage');
+    const collisionQuestion = document.getElementById('collisionQuestion');
+    const collisionChoices = document.getElementById('collisionChoices');
+    const collisionChosen = document.getElementById('collisionChosen');
+    const collisionStatus = document.getElementById('collisionStatus');
+    const counterPointsEl = document.getElementById('counterPoints');
+    const resetWrap = document.getElementById('resetWrap');
+    const resetBtn = document.getElementById('resetBtn');
+
+    let collisionLocked = false; // 防止重复点击
+
+    /* ============ 文字解码工具：赛博朋克 Matrix-style 文本动画 ============
+       设计意图：让反驳观点以"解码"方式逐字呈现，强化"质疑涌现"的冲击感。
+       纯前端、零依赖、honor prefers-reduced-motion。
+    */
+    const SCRAMBLE_CHARS = '!<>-_\\/[]{}=+*^?#$&@~01ABCDEFGHIJKLMNOPQRSTUVWXYZ23456789';
+    const SCRAMBLE_DIGITS = '0123456789';
+    const CP_PRESERVED = new Set([' ', '　', '\n', '「', '」', '『', '』', '（', '）', '(', ')', '，', '。', '、', '；', '：', '？', '！', '…', '《', '》', '·']);
+
+    function pickRandom(str) {
+      return str.charAt(Math.floor(Math.random() * str.length));
+    }
+
+    /**
+     * 对目标元素进行 Matrix 风格的文字解码动画。
+     * 字符从左到右逐个"解锁"：先显示随机字符，最后锁定为真实字符。
+     * @param {HTMLElement} el - 目标元素
+     * @param {string} finalText - 最终文本
+     * @param {Object} opts - { duration, charset, delay, onDone }
+     */
+    function scrambleText(el, finalText, opts = {}) {
+      const { duration = 800, charset = SCRAMBLE_CHARS, delay = 0, onDone = null } = opts;
+      const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+      if (reduceMotion) {
+        el.textContent = finalText;
+        if (onDone) onDone();
+        return;
+      }
+
+      const chars = Array.from(finalText);
+
+      setTimeout(() => {
+        // 元素已被移除（reset 场景），直接终止
+        if (!el.isConnected) return;
+
+        const startTime = performance.now();
+        let lastUpdate = 0;
+
+        function frame(now) {
+          if (!el.isConnected) return; // 双保险
+          const elapsed = now - startTime;
+          const progress = Math.min(elapsed / duration, 1);
+
+          // 限频 ~30fps，避免高负荷重排
+          if (now - lastUpdate > 33 || progress >= 1) {
+            lastUpdate = now;
+            let out = '';
+            for (let i = 0; i < chars.length; i++) {
+              const c = chars[i];
+              if (CP_PRESERVED.has(c)) {
+                out += c;
+                continue;
+              }
+              // 每个字符的解锁窗口：前 65% 时间逐字推进，35% 时间锁定
+              const charStart = (i / chars.length) * 0.65;
+              const charEnd = charStart + 0.35;
+              if (progress >= charEnd) {
+                out += c; // 锁定
+              } else if (progress < charStart) {
+                out += ' '; // 未开始，占位
+              } else {
+                out += pickRandom(charset); // 解码中
+              }
+            }
+            el.textContent = out;
+          }
+
+          if (progress < 1) {
+            requestAnimationFrame(frame);
+          } else {
+            el.textContent = finalText;
+            if (onDone) onDone();
+          }
+        }
+        requestAnimationFrame(frame);
+      }, delay);
+    }
+
+    function renderCounterPoints(choice) {
+      const points = COUNTER_POINTS[choice] || [];
+      // 反驳立场标签
+      const targetLabel = '即将与他们发生碰撞';
+
+      // 清空容器
+      counterPointsEl.innerHTML = '';
+
+      // 顶部反驳立场标签：mono 标签 + serif 标的
+      const headerEl = document.createElement('div');
+      headerEl.className = 'cp-item mb-7 sm:mb-9';
+      headerEl.innerHTML = `
+        <p class="cp-label text-[10px] font-mono text-zinc-500 tracking-[0.22em] uppercase mb-2">// COUNTER_ARGUMENT</p>
+        <p class="cp-target text-[15px] sm:text-base font-semibold text-zinc-200 leading-relaxed" style="font-family: var(--font-serif);"></p>
+      `;
+      counterPointsEl.appendChild(headerEl);
+
+      // 逐条反驳观点（结构与原版一致，但文字留空待 scramble 填充）
+      const itemEls = [];
+      points.forEach((text, i) => {
+        const idx = String(i + 1).padStart(2, '0');
+        const itemEl = document.createElement('div');
+        itemEl.className = 'cp-item py-4 sm:py-5 border-t border-zinc-800/60';
+        itemEl.innerHTML = `
+          <div class="flex items-start gap-4 sm:gap-5">
+            <span class="cp-index cp-index-glow text-[11px] font-mono text-[var(--color-brand-400)] tracking-[0.1em] pt-1 flex-shrink-0 tabular-nums"></span>
+            <p class="cp-text flex-1 text-[15px] sm:text-[17px] leading-[1.75] text-zinc-300" style="font-family: var(--font-serif);"></p>
+          </div>
+        `;
+        counterPointsEl.appendChild(itemEl);
+        itemEls.push({ el: itemEl, index: idx, text });
+      });
+
+      // 显示容器
+      counterPointsEl.classList.remove('hidden');
+
+      const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+      // reduced-motion 降级：直接填充所有文字，无动效
+      if (reduceMotion) {
+        headerEl.querySelector('.cp-target').textContent = targetLabel;
+        itemEls.forEach(({ el, index, text }) => {
+          el.querySelector('.cp-index').textContent = index;
+          el.querySelector('.cp-text').textContent = text;
+        });
+        return;
+      }
+
+      // ============ 动效编排 ============
+      // 节奏：header 先入场（glitch + decode）→ 6 条观点 stagger 入场
+      // 每条观点 = 容器 fade-up + 序号解码 + 正文解码
+      const HEADER_GLITCH_DUR = 500;
+      const HEADER_TEXT_DUR = 600;
+      const HEADER_TEXT_DELAY = 120;
+      const ITEM_FADE_DUR = 450;
+      const ITEM_STAGGER = 150;
+      const ITEM_INDEX_DUR = 350;
+      const ITEM_TEXT_DUR = 850;
+      const ITEM_TEXT_DELAY = 90;
+      const ITEM_BASE_DELAY = 250; // 第一条观点相对 header 的起始延后
+
+      // 1. header 入场：fade-up + label glitch + target decode
+      const labelEl = headerEl.querySelector('.cp-label');
+      const targetEl = headerEl.querySelector('.cp-target');
+      headerEl.style.opacity = '0';
+      headerEl.style.transform = 'translateY(6px)';
+      headerEl.style.transition = `opacity ${ITEM_FADE_DUR}ms cubic-bezier(0.16, 1, 0.3, 1), transform ${ITEM_FADE_DUR}ms cubic-bezier(0.16, 1, 0.3, 1)`;
+      requestAnimationFrame(() => {
+        requestAnimationFrame(() => {
+          headerEl.style.opacity = '1';
+          headerEl.style.transform = 'translateY(0)';
+          // label glitch RGB 分离入场
+          labelEl.classList.add('cp-glitch');
+          setTimeout(() => labelEl.classList.remove('cp-glitch'), HEADER_GLITCH_DUR);
+          // target 文本解码
+          scrambleText(targetEl, targetLabel, {
+            duration: HEADER_TEXT_DUR,
+            delay: HEADER_TEXT_DELAY
+          });
+        });
+      });
+
+      // 2. 逐条观点 stagger 入场
+      itemEls.forEach(({ el, index, text }, i) => {
+        const indexEl = el.querySelector('.cp-index');
+        const textEl = el.querySelector('.cp-text');
+
+        el.style.opacity = '0';
+        el.style.transform = 'translateY(8px)';
+        el.style.transition = `opacity ${ITEM_FADE_DUR}ms cubic-bezier(0.16, 1, 0.3, 1), transform ${ITEM_FADE_DUR}ms cubic-bezier(0.16, 1, 0.3, 1)`;
+
+        const itemStartDelay = ITEM_BASE_DELAY + i * ITEM_STAGGER;
+
+        setTimeout(() => {
+          if (!el.isConnected) return;
+          el.style.opacity = '1';
+          el.style.transform = 'translateY(0)';
+          // 序号快速解码（mono 数字滚动）
+          scrambleText(indexEl, index, {
+            duration: ITEM_INDEX_DUR,
+            charset: SCRAMBLE_DIGITS,
+            delay: 0
+          });
+          // 正文逐字解码（serif 衬线，矩阵风）
+          scrambleText(textEl, text, {
+            duration: ITEM_TEXT_DUR,
+            delay: ITEM_TEXT_DELAY
+          });
+        }, itemStartDelay);
+      });
+
+      // 3. 动画总时长（供 handleChoice 计算 resetWrap 出现时机）
+      const totalDuration = ITEM_BASE_DELAY + (itemEls.length - 1) * ITEM_STAGGER + ITEM_TEXT_DUR + ITEM_TEXT_DELAY;
+      return totalDuration;
+    }
+
+    function handleChoice(choice) {
+      if (collisionLocked) return;
+      collisionLocked = true;
+
+      const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+      const duration = reduceMotion ? 0 : 500;
+
+      // 标记 choice，CSS 据此切换序号光晕颜色
+      collisionStage.setAttribute('data-collision-choice', choice);
+
+      // 1. 淡出问题与未选按钮
+      collisionQuestion.style.opacity = '0';
+      collisionQuestion.style.transform = 'translateY(-8px)';
+      collisionChoices.style.opacity = '0';
+      collisionChoices.style.pointerEvents = 'none';
+
+      // 2. 延迟后隐藏并显示反驳区
+      setTimeout(() => {
+        collisionQuestion.classList.add('hidden');
+        collisionChoices.classList.add('hidden');
+
+        // 配置 chosen badge
+        const chosenLabel = document.getElementById('chosenLabel');
+        const chosenText = document.getElementById('chosenText');
+        const chosenBadge = document.getElementById('chosenBadge');
+        if (choice === 'yes') {
+          chosenLabel.textContent = 'YOUR_CHOICE';
+          chosenLabel.style.color = 'var(--color-brand-300)';
+          chosenText.textContent = '有 · 具有正当性';
+          chosenText.style.color = 'var(--color-brand-200)';
+          chosenBadge.style.borderColor = 'rgba(0,122,255,0.4)';
+          chosenBadge.style.backgroundColor = 'rgba(0,122,255,0.08)';
+        } else {
+          chosenLabel.textContent = 'YOUR_CHOICE';
+          chosenLabel.style.color = '#ff6b78';
+          chosenText.textContent = '没有 · 不具有正当性';
+          chosenText.style.color = '#ff8a96';
+          chosenBadge.style.borderColor = 'rgba(255,69,84,0.4)';
+          chosenBadge.style.backgroundColor = 'rgba(255,69,84,0.08)';
+        }
+        collisionChosen.classList.remove('hidden');
+
+        // chosen badge 状态切换微反馈（淡入 + 微缩放 + blur 收锐）
+        if (!reduceMotion) {
+          chosenBadge.classList.remove('cp-chosen-in');
+          void chosenBadge.offsetWidth; // 强制 reflow 以重启动画
+          chosenBadge.classList.add('cp-chosen-in');
+        }
+
+        // 3. 更新状态
+        collisionStatus.textContent = 'COUNTER_LOADED';
+
+        // 4. 渲染并 stagger 显示反驳观点，返回总时长
+        const animDuration = renderCounterPoints(choice) || 1500;
+
+        // 5. 显示重置药丸（待动效整体完成后）
+        //    黑客帝国红蓝药丸隐喻：选蓝 → 给红药丸，选红 → 给蓝药丸
+        const resetDelay = reduceMotion ? 0 : Math.max(animDuration + 200, 1500);
+        setTimeout(() => {
+          const resetBtnEl = resetWrap.querySelector('.cp-reset-btn');
+          if (resetBtnEl) {
+            resetBtnEl.setAttribute('data-pill', choice === 'yes' ? 'red' : 'blue');
+          }
+          resetWrap.classList.remove('hidden');
+          if (!reduceMotion && resetBtnEl) {
+            resetBtnEl.classList.remove('cp-reset-in');
+            void resetBtnEl.offsetWidth; // 强制 reflow 以重启动画
+            resetBtnEl.classList.add('cp-reset-in');
+          }
+        }, resetDelay);
+      }, duration);
+    }
+
+    function resetCollision() {
+      collisionLocked = false;
+
+      // 清除 choice 标记
+      collisionStage.removeAttribute('data-collision-choice');
+
+      // 重置状态
+      collisionStatus.textContent = 'AWAITING_CHOICE';
+
+      // 隐藏 chosen / counterPoints / reset
+      collisionChosen.classList.add('hidden');
+      // 清空 counterPoints 会切断 scrambleText 的 rAF（el.isConnected 检查）
+      counterPointsEl.innerHTML = '';
+      counterPointsEl.classList.add('hidden');
+      resetWrap.classList.add('hidden');
+
+      // 恢复问题与按钮
+      collisionQuestion.classList.remove('hidden');
+      collisionChoices.classList.remove('hidden');
+      collisionChoices.style.pointerEvents = '';
+
+      // 触发淡入
+      requestAnimationFrame(() => {
+        requestAnimationFrame(() => {
+          collisionQuestion.style.opacity = '1';
+          collisionQuestion.style.transform = 'translateY(0)';
+          collisionChoices.style.opacity = '1';
+          collisionChoices.style.transform = 'translateY(0)';
+        });
+      });
+    }
+
+    // 绑定按钮
+    document.getElementById('voteYes').addEventListener('click', () => handleChoice('yes'));
+    document.getElementById('voteNo').addEventListener('click', () => handleChoice('no'));
+    resetBtn.addEventListener('click', resetCollision);
+  </script>
 </body>
 </html>
