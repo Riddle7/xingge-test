@@ -298,6 +298,59 @@ test('hPeers 公式: 最后一条文字底部不应超出卡片底部', () => {
   });
 });
 
+// ===== Canvas 复合标签绘制测试 =====
+// 用户报告 bug：图片保存功能中，四维人格坐标左边的"主观/形式/报应/扩张"和 SFREx 中间的 / 没有正确显示
+test('Canvas 复合标签: slashW 不应测量 3 字符 " / "（应为单字符 /）', () => {
+  const fs = require('fs');
+  const html = fs.readFileSync(__dirname + '/../cpti/index.html', 'utf8');
+  // 错误模式：measureText(' / ') 测量的是 3 字符（含两空格），但绘制只画 / 1 字符
+  const badSlashW = /measureText\(\s*['"]\/\s+['"]\s*\)|measureText\(\s*['"]\s+\/\s+['"]\s*\)|measureText\(\s*['"]\s+\/['"]\s*\)/;
+  assert.ok(!badSlashW.test(html), 'slashW 不应测量含空格的 " / "，会导致字母位置错位、与含义重叠');
+});
+
+test('Canvas 复合标签: 字母 weight 应固定 700（不随 active 变化）', () => {
+  const fs = require('fs');
+  const html = fs.readFileSync(__dirname + '/../cpti/index.html', 'utf8');
+  // 错误模式：leftWeight/rightWeight = active ? '700 ' : '400 '，用于字母绘制
+  // DOM 中字母内层 font-weight: 700 是 inline style，永远 700
+  const badLetterWeight = /(left|right)Weight\s*=\s*(left|right)Active\s*\?\s*['"]700\s*['"]\s*:\s*['"]400\s*['"]/;
+  assert.ok(!badLetterWeight.test(html), '字母 weight 应固定 700，颜色和含义 weight 才随 active 变化');
+});
+
+test('Canvas 复合标签: 测量字母宽度前应先设置 _m.font', () => {
+  const fs = require('fs');
+  const html = fs.readFileSync(__dirname + '/../cpti/index.html', 'utf8');
+  // 提取复合标签绘制区段（从 "var monoF" 到 "iy += 28"）
+  const blockMatch = html.match(/var monoF[\s\S]*?iy \+= 28;/);
+  assert.ok(blockMatch, '应找到复合标签绘制代码块');
+  const block = blockMatch[0];
+  // 找到所有 _m.measureText(dimNames[i][X]) 调用
+  const measureCalls = block.match(/_m\.measureText\(dimNames\[i\]\[\d\]\)\.width/g) || [];
+  assert.ok(measureCalls.length > 0, '应至少有 2 次测量字母宽度');
+  // 每次测量字母前，应确保最近一次 _m.font 设置是 mono 14px 700
+  // 简化检查：代码块中应存在 _m.font = '700 14px ' + monoF 这样的设置
+  assert.ok(/_m\.font\s*=\s*['"]700\s*14px\s*['"]\s*\+\s*monoF/.test(block),
+    '测量字母宽度前应设置 _m.font = "700 14px " + monoF，否则测量结果错误');
+});
+
+test('Canvas 复合标签: 左复合标签应整体右对齐到 chipLX+chipW', () => {
+  const fs = require('fs');
+  const html = fs.readFileSync(__dirname + '/../cpti/index.html', 'utf8');
+  const blockMatch = html.match(/var monoF[\s\S]*?iy \+= 28;/);
+  const block = blockMatch[0];
+  // 含义应右对齐到 chipLX + chipW - leftMeaningW
+  assert.ok(/leftMeaningX\s*=\s*chipLX\s*\+\s*chipW\s*-\s*leftMeaningW/.test(block),
+    '左复合标签含义应右对齐到 chipLX+chipW-leftMeaningW');
+  // 斜杠位置应基于含义位置反推，不应独立设置
+  assert.ok(/leftSlashX\s*=\s*leftMeaningX\s*-\s*gap2?\s*-\s*slashW/.test(block) ||
+            /leftSlashX\s*=\s*leftMeaningX\s*-\s*\d+\s*-\s*slashW/.test(block),
+    '左复合标签斜杠位置应基于含义位置反推');
+  // 字母位置应基于斜杠位置反推
+  assert.ok(/leftLetterX\s*=\s*leftSlashX\s*-\s*gap1?\s*-\s*leftLetterW/.test(block) ||
+            /leftLetterX\s*=\s*leftSlashX\s*-\s*\d+\s*-\s*leftLetterW/.test(block),
+    '左复合标签字母位置应基于斜杠位置反推');
+});
+
 // ===== showResult 的 HYBRID 分支边界测试 =====
 test('showResult HYBRID: scores[k]<0 时 d 应为 neg 字母（非 S/O 形式）', () => {
   // HYBRID 分支：var d1 = scores[0] <= 0 ? 'S' : 'O';

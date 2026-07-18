@@ -1326,6 +1326,8 @@ function saveAsImage() {
     var monoF = '"SF Mono", Consolas, ui-monospace, monospace';
     // 复合标签宽度：字母(约 14px) + 间距 + / + 间距 + 含义(2字约 22px) ≈ 64px
     var chipW = 64, gap = 12, scoreW = 28;
+    // 复合标签内部间距（呼应 DOM gap-1 = 4px）
+    var gap1 = 4, gap2 = 4;
     for (var i = 0; i < 4; i++) {
       var score = r.scores[i];
       var c = axisColors[i];
@@ -1339,31 +1341,34 @@ function saveAsImage() {
       var chipRX = scoreCX + scoreW / 2 + gap;
       var rowY = iy;
 
-      // 左复合标签：字母 mono 维度色 + / 弱化 + 含义 sans（偏向侧加粗着色）
-      // 字母右对齐到 chipLX+chipW-含义宽度-gap-斜杠宽度，简化为：字母靠右、含义紧随其后
-      // 布局：[字母 mono][ / ][含义 sans]，整体右对齐到 chipLX+chipW
+      // 左复合标签：[字母 700 mono 维度色][gap1][/ 10px 弱化][gap2][含义 11px sans]，整体右对齐到 chipLX+chipW
+      // DOM 中字母内层 font-weight: 700 是 inline style，永远 700（只有颜色和含义 weight 随 active 变化）
       var leftActive = score < 0;
       var leftColor = leftActive ? c.leftText : '#94a3b8';
-      var leftWeight = leftActive ? '700 ' : '400 ';
-      // 测量含义宽度以定位字母
-      ctx.font = (leftActive ? '600 ' : '400 ') + '11px ' + F;
+      // 先用 _m 测量三段宽度（每次显式设置 _m.font，避免沿用错误字体）
+      _m.font = '700 14px ' + monoF;
+      var leftLetterW = _m.measureText(dimNames[i][0]).width;
+      _m.font = '10px ' + F;
+      var slashW = _m.measureText('/').width;
+      _m.font = (leftActive ? '600 ' : '400 ') + '11px ' + F;
       var leftMeaningW = _m.measureText(dimMeanings[i][0]).width;
-      ctx.font = '10px ' + F;
-      var slashW = _m.measureText(' / ').width;
-      // 字母右对齐位置 = chipLX+chipW - 含义宽 - 斜杠宽
-      var leftLetterX = chipLX + chipW - leftMeaningW - slashW;
-      ctx.font = leftWeight + '14px ' + monoF;
+      // 整体右对齐：含义右边缘 = chipLX + chipW，向前反推斜杠与字母位置
+      var leftMeaningX = chipLX + chipW - leftMeaningW;
+      var leftSlashX = leftMeaningX - gap2 - slashW;
+      var leftLetterX = leftSlashX - gap1 - leftLetterW;
+      // 绘制字母（永远 700 weight）
+      ctx.font = '700 14px ' + monoF;
       ctx.fillStyle = leftColor;
       ctx.textAlign = 'left';
       ctx.fillText(dimNames[i][0], leftLetterX, rowY + 5);
-      // 斜杠分隔符（弱化）
+      // 斜杠（弱化色）
       ctx.font = '10px ' + F;
       ctx.fillStyle = '#cbd5e1';
-      ctx.fillText('/', leftLetterX + _m.measureText(dimNames[i][0]).width + 4, rowY + 5);
-      // 含义
+      ctx.fillText('/', leftSlashX, rowY + 5);
+      // 含义（active 时 600，inactive 时 400）
       ctx.font = (leftActive ? '600 ' : '400 ') + '11px ' + F;
       ctx.fillStyle = leftColor;
-      ctx.fillText(dimMeanings[i][0], chipLX + chipW - leftMeaningW, rowY + 5);
+      ctx.fillText(dimMeanings[i][0], leftMeaningX, rowY + 5);
 
       // 坐标条背景（页面：inactive 侧 8% 宽度细线）
       ctx.fillStyle = c.inactive;
@@ -1395,24 +1400,33 @@ function saveAsImage() {
       ctx.textAlign = 'center';
       ctx.fillText((score > 0 ? '+' : '') + score, scoreCX, rowY + 5);
 
-      // 右复合标签：字母 mono + / + 含义 sans（左对齐到 chipRX）
+      // 右复合标签：[字母 700 mono 维度色][gap1][/ 10px 弱化][gap2][含义 11px sans]，整体左对齐到 chipRX
       var rightActive = score > 0;
       var rightColor = rightActive ? c.leftText : '#94a3b8';
-      var rightWeight = rightActive ? '700 ' : '400 ';
-      // 字母左对齐到 chipRX
-      ctx.font = rightWeight + '14px ' + monoF;
+      // 测量三段宽度（每次显式设置 _m.font）
+      _m.font = '700 14px ' + monoF;
+      var rightLetterW = _m.measureText(dimNames[i][1]).width;
+      _m.font = '10px ' + F;
+      var rSlashW = _m.measureText('/').width;
+      _m.font = (rightActive ? '600 ' : '400 ') + '11px ' + F;
+      var rightMeaningW = _m.measureText(dimMeanings[i][1]).width;
+      // 整体左对齐：字母左边缘 = chipRX，向后推算斜杠与含义位置
+      var rightLetterX = chipRX;
+      var rightSlashX = rightLetterX + rightLetterW + gap1;
+      var rightMeaningX = rightSlashX + rSlashW + gap2;
+      // 绘制字母（永远 700 weight）
+      ctx.font = '700 14px ' + monoF;
       ctx.fillStyle = rightColor;
       ctx.textAlign = 'left';
-      ctx.fillText(dimNames[i][1], chipRX, rowY + 5);
-      // 斜杠
-      var rightLetterW = _m.measureText(dimNames[i][1]).width;
+      ctx.fillText(dimNames[i][1], rightLetterX, rowY + 5);
+      // 斜杠（弱化色）
       ctx.font = '10px ' + F;
       ctx.fillStyle = '#cbd5e1';
-      ctx.fillText('/', chipRX + rightLetterW + 4, rowY + 5);
-      // 含义
+      ctx.fillText('/', rightSlashX, rowY + 5);
+      // 含义（active 时 600，inactive 时 400）
       ctx.font = (rightActive ? '600 ' : '400 ') + '11px ' + F;
       ctx.fillStyle = rightColor;
-      ctx.fillText(dimMeanings[i][1], chipRX + rightLetterW + slashW, rowY + 5);
+      ctx.fillText(dimMeanings[i][1], rightMeaningX, rowY + 5);
 
       iy += 28; // 单行布局，行高 28px
     }
