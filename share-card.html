@@ -61,13 +61,13 @@
     border: 1px solid #d1d1d6;
     color: #1d1d1f;
   }
-  button.secondary:hover { background: #e5e5ea; }
+  button.secondary:hover { background: #f2f2f7; }
 </style>
 </head>
 <body>
-  <h1>GJ · Share Card Generator</h1>
-  <p class="sub">点击下载 1200×630 PNG（用于微信/Twitter/Facebook OG 分享图）</p>
-  <canvas id="cv" width="1200" height="630"></canvas>
+  <h1>Generative Jurisprudence · Share Card</h1>
+  <p class="sub">1200×1200 正方形 · 微信 OG 分享图（目标 &lt; 200KB）</p>
+  <canvas id="cv" width="1200" height="1200"></canvas>
   <div class="actions">
     <button onclick="downloadPNG()">下载 og-image.png</button>
     <button class="secondary" onclick="window.history.back()">返回</button>
@@ -75,288 +75,177 @@
 
 <script>
 (function() {
-  // ===== Generative Jurisprudence 主站分享图（1200x630） =====
-  // 设计语言：Apple-inspired 浅色 + 品牌蓝 #007aff + DM Sans + JetBrains Mono
-  // 与 cpti 分享卡（赛博朋克深色风）形成主站/子站视觉区分
+  // ===== Apple 浅色风分享图（1200×1200 正方形） =====
+  // 设计语言：白底 + #007aff 品牌蓝 + DM Sans + JetBrains Mono
+  // 布局：顶部品牌条 / 中央巨型标题 / 三栏导航 / 底部域名
   var cv = document.getElementById('cv');
   var ctx = cv.getContext('2d');
-  var W = 1200, H = 630;
+  var W = 1200, H = 1200;
 
-  // 主站品牌色（与 index.html :root 一致）
+  // 颜色（与主站 :root 一致）
   var C = {
-    bg:         '#ffffff',
-    bgSoft:     '#f7f7fa',
-    bgGrid:     '#f2f2f7',
-    bgGridDim:  '#fafafc',
-    brand:      '#007aff',  // 主品牌蓝
-    brandDk:    '#0064d6',
-    brandLt:    '#2e8dff',
-    brand50:    '#e8f2ff',
-    ink:        '#1d1d1f',  // 主文字
-    ink2:       '#3c3c43',
-    muted:      '#6e6e73',
-    mutedLt:    '#8e8e93',
-    border:     '#e5e5ea',
-    borderDk:   '#d1d1d6'
+    bg:        '#ffffff',
+    bgSoft:    '#f7f7fa',
+    bgCard:    '#fbfbfd',
+    brand:     '#007aff',
+    brandDark: '#004fad',
+    brandSoft: '#e8f2ff',
+    ink:       '#1d1d1f',
+    ink2:      '#3a3a3c',
+    muted:     '#6e6e73',
+    mutedLt:   '#8e8e93',
+    border:    '#e5e5ea',
+    borderDk:  '#d1d1d6'
   };
   var sansF = '"DM Sans", "PingFang SC", "Microsoft YaHei", system-ui, sans-serif';
   var monoF = '"JetBrains Mono", ui-monospace, "SF Mono", Consolas, monospace';
 
-  // ===== 1. 背景 =====
+  // ===== 1. 白色背景 =====
   ctx.fillStyle = C.bg;
   ctx.fillRect(0, 0, W, H);
 
-  // 左上品牌蓝微辉光（径向）
-  var glow = ctx.createRadialGradient(180, 120, 0, 180, 120, 700);
-  glow.addColorStop(0, 'rgba(0, 122, 255, 0.10)');
-  glow.addColorStop(1, 'rgba(0, 122, 255, 0)');
-  ctx.fillStyle = glow;
-  ctx.fillRect(0, 0, W, H);
+  // ===== 2. 顶部品牌条（0-120px） =====
+  // 顶部品牌蓝细线
+  ctx.fillStyle = C.brand;
+  ctx.fillRect(0, 0, W, 4);
 
-  // 右下淡蓝点缀
-  var glow2 = ctx.createRadialGradient(1050, 520, 0, 1050, 520, 400);
-  glow2.addColorStop(0, 'rgba(46, 141, 255, 0.08)');
-  glow2.addColorStop(1, 'rgba(46, 141, 255, 0)');
-  ctx.fillStyle = glow2;
-  ctx.fillRect(0, 0, W, H);
-
-  // ===== 2. 极淡网格背景（学术纸感） =====
-  ctx.strokeStyle = C.bgGridDim;
-  ctx.lineWidth = 1;
-  var gridSize = 60;
-  for (var x = 0; x <= W; x += gridSize) {
-    ctx.beginPath();
-    ctx.moveTo(x + 0.5, 0);
-    ctx.lineTo(x + 0.5, H);
-    ctx.stroke();
-  }
-  for (var y = 0; y <= H; y += gridSize) {
-    ctx.beginPath();
-    ctx.moveTo(0, y + 0.5);
-    ctx.lineTo(W, y + 0.5);
-    ctx.stroke();
-  }
-
-  // 主网格线（每 300px 略深）
-  ctx.strokeStyle = C.bgGrid;
-  for (var x2 = 0; x2 <= W; x2 += 300) {
-    ctx.beginPath();
-    ctx.moveTo(x2 + 0.5, 0);
-    ctx.lineTo(x2 + 0.5, H);
-    ctx.stroke();
-  }
-  for (var y2 = 0; y2 <= H; y2 += 300) {
-    ctx.beginPath();
-    ctx.moveTo(0, y2 + 0.5);
-    ctx.lineTo(W, y2 + 0.5);
-    ctx.stroke();
-  }
-
-  // ===== 3. 顶部品牌色细线 =====
-  ctx.strokeStyle = C.brand;
-  ctx.lineWidth = 3;
-  ctx.beginPath();
-  ctx.moveTo(0, 0);
-  ctx.lineTo(W, 0);
-  ctx.stroke();
-
-  // 顶部第二条（淡）
-  ctx.strokeStyle = 'rgba(0, 122, 255, 0.2)';
-  ctx.lineWidth = 1;
-  ctx.beginPath();
-  ctx.moveTo(0, 6);
-  ctx.lineTo(W, 6);
-  ctx.stroke();
-
-  // ===== 4. 左上角：期刊标识 =====
-  // mono 编号风格
-  ctx.font = '600 14px ' + monoF;
+  // 左上：mono 品牌标识
+  ctx.font = '600 18px ' + monoF;
   ctx.fillStyle = C.brand;
   ctx.textBaseline = 'top';
   ctx.textAlign = 'left';
-  ctx.fillText('// JOURNAL · 2026', 72, 60);
+  ctx.fillText('GENERATIVE JURISPRUDENCE', 80, 56);
 
-  // 右上角：状态标签
-  ctx.font = '500 13px ' + monoF;
-  ctx.fillStyle = C.muted;
+  // 右上：版本标识（mono）
+  ctx.font = '500 14px ' + monoF;
+  ctx.fillStyle = C.mutedLt;
   ctx.textAlign = 'right';
-  ctx.fillText('ISSN 0000-0000', W - 72, 62);
+  ctx.fillText('GJ // 001', W - 80, 60);
 
-  // ===== 5. 中央左侧：主标题区 =====
-  // "Generative" DM Sans 大字
-  ctx.fillStyle = C.ink;
-  ctx.font = '700 96px ' + sansF;
-  ctx.textBaseline = 'alphabetic';
-  ctx.textAlign = 'left';
-  ctx.fillText('Generative', 72, 280);
-
-  // "Jurisprudence" 品牌蓝
-  ctx.fillStyle = C.brand;
-  ctx.fillText('Jurisprudence', 72, 380);
-
-  // 中文副标
-  ctx.fillStyle = C.ink2;
-  ctx.font = '500 32px ' + sansF;
-  ctx.fillText('生成式法学', 72, 432);
-
-  // 标语（mono 装饰）
-  ctx.fillStyle = C.muted;
-  ctx.font = '500 16px ' + monoF;
-  ctx.fillText('AI 时代的法律理论探索期刊', 72, 470);
-
-  // 装饰：标题下方品牌蓝短线
-  ctx.strokeStyle = C.brand;
-  ctx.lineWidth = 3;
-  ctx.beginPath();
-  ctx.moveTo(72, 495);
-  ctx.lineTo(72 + 64, 495);
-  ctx.stroke();
-
-  // 短线后接灰色细线
-  ctx.strokeStyle = C.borderDk;
+  // 顶部下方分隔线
+  ctx.strokeStyle = C.border;
   ctx.lineWidth = 1;
   ctx.beginPath();
-  ctx.moveTo(72 + 64 + 10, 495);
-  ctx.lineTo(72 + 280, 495);
+  ctx.moveTo(80, 120);
+  ctx.lineTo(W - 80, 120);
   ctx.stroke();
 
-  // ===== 6. 右侧：三栏导航卡片（碰撞/阅读/实验室） =====
+  // ===== 3. 中央 Hero 区（120-720px） =====
+  // 巨型中文主标题（居中）
+  ctx.fillStyle = C.ink;
+  ctx.font = '800 200px ' + sansF;
+  ctx.textBaseline = 'middle';
+  ctx.textAlign = 'center';
+  ctx.fillText('生成式法学', W / 2, 360);
+
+  // 标题下方品牌蓝小色条（视觉锚点）
+  ctx.fillStyle = C.brand;
+  ctx.fillRect(W / 2 - 40, 480, 80, 6);
+
+  // 英文副标题
+  ctx.fillStyle = C.muted;
+  ctx.font = '500 28px ' + monoF;
+  ctx.fillText('Generative Jurisprudence', W / 2, 540);
+
+  // 中文副标题（核心 slogan）
+  ctx.fillStyle = C.ink2;
+  ctx.font = '500 36px ' + sansF;
+  ctx.fillText('AI 时代的法律理论探索期刊', W / 2, 600);
+
+  // 描述行（小字 mono）
+  ctx.fillStyle = C.mutedLt;
+  ctx.font = '400 18px ' + monoF;
+  ctx.fillText('以代码重写法理  ·  以对话生成学说', W / 2, 660);
+
+  // ===== 4. 三栏导航卡片（720-1040px） =====
   var cards = [
     { label: '01', title: '碰撞', en: 'COLLIDE', desc: '立场对话' },
     { label: '02', title: '阅读', en: 'READ',    desc: '论文与札记' },
     { label: '03', title: '实验室', en: 'LAB',   desc: '项目缘起' }
   ];
 
-  var cardX = 720;
-  var cardY = 180;
-  var cardW = 380;
-  var cardH = 360;
-  var cardGap = 0;
-  var rowH = (cardH - cardGap * 2) / 3;
+  var cardY = 760;
+  var cardH = 240;
+  var cardGap = 20;
+  var cardW = (W - 160 - cardGap * 2) / 3;  // 两侧各 80px 边距
 
-  // 容器边框（淡）
-  ctx.strokeStyle = C.border;
-  ctx.lineWidth = 1;
-  ctx.strokeRect(cardX + 0.5, cardY + 0.5, cardW, cardH);
-
-  // 容器顶部标签
-  ctx.font = '500 12px ' + monoF;
-  ctx.fillStyle = C.muted;
-  ctx.textAlign = 'left';
-  ctx.textBaseline = 'top';
-  ctx.fillText('SECTIONS', cardX, cardY - 22);
-
-  ctx.textAlign = 'right';
-  ctx.fillText('[ 03 ]', cardX + cardW, cardY - 22);
-
-  // 绘制 3 个卡片
   for (var i = 0; i < 3; i++) {
-    var cy = cardY + i * (rowH + cardGap);
+    var cx = 80 + i * (cardW + cardGap);
     var c = cards[i];
 
     // 第一个卡片用品牌蓝填充作为视觉锚点
     if (i === 0) {
       ctx.fillStyle = C.brand;
-      ctx.fillRect(cardX, cy, cardW, rowH);
+      ctx.fillRect(cx, cardY, cardW, cardH);
     } else {
-      // 其他卡片用极淡背景
-      ctx.fillStyle = i % 2 === 0 ? C.bgSoft : C.bg;
-      ctx.fillRect(cardX + 1, cy + 1, cardW - 2, rowH - 2);
+      // 其他卡片用极淡背景 + 边框
+      ctx.fillStyle = C.bgCard;
+      ctx.fillRect(cx, cardY, cardW, cardH);
+      ctx.strokeStyle = C.border;
+      ctx.lineWidth = 1;
+      ctx.strokeRect(cx + 0.5, cardY + 0.5, cardW, cardH);
     }
 
-    // 编号（mono）
-    ctx.font = '500 13px ' + monoF;
+    // 编号（mono，左上）
+    ctx.font = '500 16px ' + monoF;
     ctx.fillStyle = i === 0 ? 'rgba(255,255,255,0.7)' : C.mutedLt;
     ctx.textAlign = 'left';
     ctx.textBaseline = 'top';
-    ctx.fillText(c.label, cardX + 24, cy + 28);
+    ctx.fillText(c.label, cx + 28, cardY + 28);
 
-    // 中文标题（大）
-    ctx.font = '700 44px ' + sansF;
-    ctx.fillStyle = i === 0 ? '#ffffff' : C.ink;
-    ctx.textBaseline = 'middle';
-    ctx.fillText(c.title, cardX + 24, cy + rowH / 2 + 4);
-
-    // 英文标签（右侧 mono）
+    // 英文标签（mono，右上）
     ctx.font = '500 13px ' + monoF;
     ctx.fillStyle = i === 0 ? 'rgba(255,255,255,0.85)' : C.brand;
     ctx.textAlign = 'right';
-    ctx.fillText(c.en, cardX + cardW - 24, cy + 28);
+    ctx.fillText(c.en, cx + cardW - 28, cardY + 30);
 
-    // 描述（右下）
-    ctx.font = '400 13px ' + sansF;
+    // 中文标题（大，居中偏上）
+    ctx.font = '700 56px ' + sansF;
+    ctx.fillStyle = i === 0 ? '#ffffff' : C.ink;
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText(c.title, cx + cardW / 2, cardY + cardH / 2 - 8);
+
+    // 描述（小字，居中偏下）
+    ctx.font = '400 16px ' + sansF;
     ctx.fillStyle = i === 0 ? 'rgba(255,255,255,0.75)' : C.muted;
-    ctx.textAlign = 'right';
-    ctx.textBaseline = 'bottom';
-    ctx.fillText(c.desc, cardX + cardW - 24, cy + rowH - 24);
-
-    // 卡片间分隔线（除最后一个）
-    if (i < 2) {
-      ctx.strokeStyle = C.border;
-      ctx.lineWidth = 1;
-      ctx.beginPath();
-      ctx.moveTo(cardX, cy + rowH + 0.5);
-      ctx.lineTo(cardX + cardW, cy + rowH + 0.5);
-      ctx.stroke();
-    }
+    ctx.fillText(c.desc, cx + cardW / 2, cardY + cardH - 36);
   }
 
-  // ===== 7. 底部：域名 + CTA =====
-  // 左下：域名
-  ctx.font = '600 16px ' + monoF;
-  ctx.fillStyle = C.ink;
-  ctx.textAlign = 'left';
-  ctx.textBaseline = 'alphabetic';
-  ctx.fillText('generative-jurisprudence.top', 72, H - 56);
-
-  // 域名下的描述行
-  ctx.font = '400 13px ' + monoF;
-  ctx.fillStyle = C.muted;
-  ctx.fillText('以代码重写法理，以对话生成学说', 72, H - 34);
-
-  // 右下：CTA
-  ctx.font = '600 15px ' + sansF;
-  ctx.fillStyle = C.brand;
-  ctx.textAlign = 'right';
-  ctx.fillText('→ 进入期刊', W - 72, H - 56);
-
-  ctx.font = '400 12px ' + monoF;
-  ctx.fillStyle = C.muted;
-  ctx.fillText('enter journal', W - 72, H - 34);
-
-  // ===== 8. 边角装饰：左上和右下 L 形角标 =====
-  // 左上角
-  ctx.strokeStyle = C.brand;
-  ctx.lineWidth = 2;
-  ctx.beginPath();
-  ctx.moveTo(40, 40);
-  ctx.lineTo(40, 80);
-  ctx.moveTo(40, 40);
-  ctx.lineTo(80, 40);
-  ctx.stroke();
-
-  // 右下角
-  ctx.beginPath();
-  ctx.moveTo(W - 40, H - 40);
-  ctx.lineTo(W - 40, H - 80);
-  ctx.moveTo(W - 40, H - 40);
-  ctx.lineTo(W - 80, H - 40);
-  ctx.stroke();
-
-  // ===== 9. 底部品牌色细线（与顶部呼应） =====
-  ctx.strokeStyle = 'rgba(0, 122, 255, 0.2)';
+  // ===== 5. 底部信息区（1040-1200px） =====
+  // 上方分隔线
+  ctx.strokeStyle = C.border;
   ctx.lineWidth = 1;
   ctx.beginPath();
-  ctx.moveTo(0, H - 6);
-  ctx.lineTo(W, H - 6);
+  ctx.moveTo(80, 1060);
+  ctx.lineTo(W - 80, 1060);
   ctx.stroke();
 
-  ctx.strokeStyle = C.brand;
-  ctx.lineWidth = 3;
-  ctx.beginPath();
-  ctx.moveTo(0, H);
-  ctx.lineTo(W, H);
-  ctx.stroke();
+  // 左下：URL
+  ctx.font = '500 18px ' + monoF;
+  ctx.fillStyle = C.ink;
+  ctx.textAlign = 'left';
+  ctx.textBaseline = 'middle';
+  ctx.fillText('riddle7.github.io/xingge-test', 80, 1110);
+
+  // URL 下方描述
+  ctx.font = '400 13px ' + monoF;
+  ctx.fillStyle = C.mutedLt;
+  ctx.fillText('Scan or visit to explore', 80, 1140);
+
+  // 右下：品牌签名
+  ctx.font = '600 14px ' + monoF;
+  ctx.fillStyle = C.brand;
+  ctx.textAlign = 'right';
+  ctx.fillText('GJ · 2026', W - 80, 1110);
+
+  ctx.font = '400 13px ' + monoF;
+  ctx.fillStyle = C.mutedLt;
+  ctx.fillText('Generative Jurisprudence', W - 80, 1140);
+
+  // 底部品牌蓝细线（与顶部呼应）
+  ctx.fillStyle = C.brand;
+  ctx.fillRect(0, H - 4, W, 4);
 })();
 
 function downloadPNG() {

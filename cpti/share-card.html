@@ -66,8 +66,8 @@
 </head>
 <body>
   <h1>CPTI · Share Card Generator</h1>
-  <p class="sub">点击下载生成 1200×630 PNG（用于微信/Twitter/Facebook OG 分享图）</p>
-  <canvas id="cv" width="1200" height="630"></canvas>
+  <p class="sub">1200×1200 正方形 · 微信 OG 分享图（目标 &lt; 200KB）</p>
+  <canvas id="cv" width="1200" height="1200"></canvas>
   <div class="actions">
     <button onclick="downloadPNG()">下载 og-image.png</button>
     <button class="secondary" onclick="window.history.back()">返回</button>
@@ -75,20 +75,21 @@
 
 <script>
 (function() {
-  // ===== 赛博朋克学术风分享图（1200x630） =====
+  // ===== 赛博朋克学术风分享图（1200×1200 正方形） =====
   // 设计语言：indigo 主色 + mono 字体 + slate 深底 + 扫描线/网格
+  // 布局：顶部品牌条 / 中央主标题 / 四维矩阵 / 16 型号代码 / 底部域名
   var cv = document.getElementById('cv');
   var ctx = cv.getContext('2d');
-  var W = 1200, H = 630;
+  var W = 1200, H = 1200;
 
   // 颜色（与 cpti/index.html 一致）
   var C = {
-    bg:        '#0f172a',  // slate-900
-    bgGrid:    '#1e293b',  // slate-800
+    bg:        '#0f172a',
+    bgGrid:    '#1e293b',
     bgGridDim: '#172033',
-    indigo:    '#4f46e5',  // 主色
-    indigoLt:  '#818cf8',  // indigo-400
-    amber:     '#f59e0b',  // 强调
+    indigo:    '#4f46e5',
+    indigoLt:  '#818cf8',
+    amber:     '#f59e0b',
     slate400:  '#94a3b8',
     slate500:  '#64748b',
     slate300:  '#cbd5e1',
@@ -98,22 +99,8 @@
   var monoF = "ui-monospace, 'SF Mono', Consolas, 'Liberation Mono', monospace";
   var sansF = "'Inter', 'Noto Sans SC', system-ui, -apple-system, sans-serif";
 
-  // ===== 1. 背景 + 渐变 =====
+  // ===== 1. 背景 =====
   ctx.fillStyle = C.bg;
-  ctx.fillRect(0, 0, W, H);
-
-  // 左侧 indigo 微辉光（径向）
-  var glow = ctx.createRadialGradient(200, 200, 0, 200, 200, 600);
-  glow.addColorStop(0, 'rgba(79, 70, 229, 0.18)');
-  glow.addColorStop(1, 'rgba(79, 70, 229, 0)');
-  ctx.fillStyle = glow;
-  ctx.fillRect(0, 0, W, H);
-
-  // 右侧 amber 微辉光
-  var glow2 = ctx.createRadialGradient(1050, 450, 0, 1050, 450, 500);
-  glow2.addColorStop(0, 'rgba(245, 158, 11, 0.10)');
-  glow2.addColorStop(1, 'rgba(245, 158, 11, 0)');
-  ctx.fillStyle = glow2;
   ctx.fillRect(0, 0, W, H);
 
   // ===== 2. 网格背景（赛博朋克终端） =====
@@ -150,7 +137,6 @@
   }
 
   // ===== 3. 顶部扫描线装饰 =====
-  // 顶部细 indigo 线
   ctx.strokeStyle = C.indigo;
   ctx.lineWidth = 2;
   ctx.beginPath();
@@ -158,12 +144,230 @@
   ctx.lineTo(W, 0);
   ctx.stroke();
 
-  // 顶部第二条（带间隔感）
   ctx.strokeStyle = 'rgba(129, 140, 248, 0.3)';
   ctx.lineWidth = 1;
   ctx.beginPath();
   ctx.moveTo(0, 4);
   ctx.lineTo(W, 4);
+  ctx.stroke();
+
+  // ===== 4. 顶部品牌条（0-100px） =====
+  // 左上：CPTI 标识
+  ctx.font = '600 18px ' + monoF;
+  ctx.fillStyle = C.indigoLt;
+  ctx.textBaseline = 'top';
+  ctx.textAlign = 'left';
+  ctx.fillText('// CPTI v2.0', 64, 56);
+
+  // 右上：状态指示
+  ctx.font = '500 14px ' + monoF;
+  ctx.fillStyle = C.slate500;
+  ctx.textAlign = 'right';
+  ctx.fillText('READY', W - 80, 60);
+
+  // 状态点（amber）
+  ctx.fillStyle = C.amber;
+  ctx.beginPath();
+  ctx.arc(W - 80 - 70, 67, 4, 0, Math.PI * 2);
+  ctx.fill();
+
+  // ===== 5. 中央 Hero 区（100-560px） =====
+  // "刑格" 大字（居中）
+  ctx.fillStyle = C.slate100;
+  ctx.font = '700 220px ' + sansF;
+  ctx.textBaseline = 'middle';
+  ctx.textAlign = 'center';
+  ctx.fillText('刑格', W / 2 - 110, 280);
+
+  // "CPTI" mono 标识（紧跟在"刑格"右侧）
+  ctx.fillStyle = C.indigoLt;
+  ctx.font = '700 100px ' + monoF;
+  ctx.fillText('CPTI', W / 2 + 180, 285);
+
+  // 副标题
+  ctx.fillStyle = C.slate300;
+  ctx.font = '500 44px ' + sansF;
+  ctx.fillText('你的刑法人格鉴定书', W / 2, 430);
+
+  // 描述（mono 标签）
+  ctx.fillStyle = C.slate400;
+  ctx.font = '500 20px ' + monoF;
+  ctx.fillText('16 题  ·  约 5 分钟  ·  四维人格坐标系', W / 2, 500);
+
+  // 标题下方 indigo 分隔线
+  ctx.strokeStyle = C.indigo;
+  ctx.lineWidth = 3;
+  ctx.beginPath();
+  ctx.moveTo(W / 2 - 50, 545);
+  ctx.lineTo(W / 2 + 50, 545);
+  ctx.stroke();
+
+  // ===== 6. 四维矩阵（580-940px） =====
+  var dims = [
+    { letters: ['S', 'O'], label: '立场', color: C.indigoLt },
+    { letters: ['F', 'M'], label: '解释', color: C.amber },
+    { letters: ['R', 'P'], label: '目的', color: C.indigoLt },
+    { letters: ['E', 'Re'], label: '边界', color: C.amber }
+  ];
+
+  var matrixY = 620;
+  var matrixW = 720;
+  var matrixH = 280;
+  var matrixX = (W - matrixW) / 2;
+  var cellW = matrixW / 2;
+  var cellH = matrixH / 2;
+
+  // 容器标签
+  ctx.font = '500 14px ' + monoF;
+  ctx.fillStyle = C.slate500;
+  ctx.textAlign = 'left';
+  ctx.textBaseline = 'top';
+  ctx.fillText('FOUR-DIMENSIONAL MATRIX', matrixX, matrixY - 26);
+
+  ctx.textAlign = 'right';
+  ctx.fillText('[ 4×4 ]', matrixX + matrixW, matrixY - 26);
+
+  // 容器边框
+  ctx.strokeStyle = '#334155';
+  ctx.lineWidth = 1;
+  ctx.strokeRect(matrixX + 0.5, matrixY + 0.5, matrixW, matrixH);
+
+  // 四角装饰
+  function corner(x, y, dx, dy) {
+    ctx.strokeStyle = C.indigo;
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.moveTo(x, y + dy * 14);
+    ctx.lineTo(x, y);
+    ctx.lineTo(x + dx * 14, y);
+    ctx.stroke();
+  }
+  corner(matrixX, matrixY, 1, 1);
+  corner(matrixX + matrixW, matrixY, -1, 1);
+  corner(matrixX, matrixY + matrixH, 1, -1);
+  corner(matrixX + matrixW, matrixY + matrixH, -1, -1);
+
+  // 内部分隔线
+  ctx.strokeStyle = '#1e293b';
+  ctx.lineWidth = 1;
+  ctx.beginPath();
+  ctx.moveTo(matrixX + cellW + 0.5, matrixY);
+  ctx.lineTo(matrixX + cellW + 0.5, matrixY + matrixH);
+  ctx.stroke();
+  ctx.beginPath();
+  ctx.moveTo(matrixX, matrixY + cellH + 0.5);
+  ctx.lineTo(matrixX + matrixW, matrixY + cellH + 0.5);
+  ctx.stroke();
+
+  // 绘制 4 个维度
+  for (var i = 0; i < 4; i++) {
+    var col = i % 2;
+    var row = Math.floor(i / 2);
+    var cx = matrixX + col * cellW + cellW / 2;
+    var cy = matrixY + row * cellH + cellH / 2;
+    var d = dims[i];
+
+    // 字母对
+    ctx.font = '700 52px ' + monoF;
+    ctx.fillStyle = d.color;
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    var letterText = d.letters[0] + ' / ' + d.letters[1];
+    ctx.fillText(letterText, cx, cy - 12);
+
+    // 维度标签
+    ctx.font = '500 16px ' + sansF;
+    ctx.fillStyle = C.slate400;
+    ctx.fillText(d.label, cx, cy + 32);
+  }
+
+  // ===== 7. 16 型号代码网格（940-1080px） =====
+  var typeCodes = [
+    'S-F-R-Re', 'S-F-R-E', 'S-F-P-Re', 'S-F-P-E',
+    'S-M-R-Re', 'S-M-R-E', 'S-M-P-Re', 'S-M-P-E',
+    'O-F-R-Re', 'O-F-R-E', 'O-F-P-Re', 'O-F-P-E',
+    'O-M-R-Re', 'O-M-R-E', 'O-M-P-Re', 'O-M-P-E'
+  ];
+
+  var gridY = 970;
+  var gridCols = 4;
+  var gridRows = 4;
+  var gridCellW = 240;
+  var gridCellH = 30;
+  var gridTotalW = gridCols * gridCellW;
+  var gridX = (W - gridTotalW) / 2;
+
+  // 网格标签
+  ctx.font = '500 12px ' + monoF;
+  ctx.fillStyle = C.slate500;
+  ctx.textAlign = 'left';
+  ctx.textBaseline = 'top';
+  ctx.fillText('16 TYPES · 4×4 MATRIX', gridX, gridY - 22);
+
+  ctx.textAlign = 'right';
+  ctx.fillText('[ 16 ]', gridX + gridTotalW, gridY - 22);
+
+  // 绘制 16 个型号代码
+  for (var j = 0; j < 16; j++) {
+    var gcol = j % gridCols;
+    var grow = Math.floor(j / gridCols);
+    var gcx = gridX + gcol * gridCellW + gridCellW / 2;
+    var gcy = gridY + grow * gridCellH + gridCellH / 2;
+
+    ctx.font = '500 13px ' + monoF;
+    ctx.fillStyle = (gcol + grow) % 2 === 0 ? C.indigoLt : C.slate400;
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText(typeCodes[j], gcx, gcy);
+  }
+
+  // ===== 8. 底部信息区（1080-1200px） =====
+  // 上方分隔线
+  ctx.strokeStyle = '#334155';
+  ctx.lineWidth = 1;
+  ctx.beginPath();
+  ctx.moveTo(64, 1100);
+  ctx.lineTo(W - 64, 1100);
+  ctx.stroke();
+
+  // 左下：URL
+  ctx.font = '500 16px ' + monoF;
+  ctx.fillStyle = C.slate300;
+  ctx.textAlign = 'left';
+  ctx.textBaseline = 'middle';
+  ctx.fillText('riddle7.github.io/xingge-test/cpti', 64, 1135);
+
+  ctx.font = '400 12px ' + monoF;
+  ctx.fillStyle = C.slate500;
+  ctx.fillText('Generative Jurisprudence · 生成式法学', 64, 1160);
+
+  // 右下：CTA
+  ctx.font = '600 16px ' + monoF;
+  ctx.fillStyle = C.indigoLt;
+  ctx.textAlign = 'right';
+  ctx.fillText('→ 测出你的刑法人格', W - 64, 1135);
+
+  ctx.font = '400 12px ' + monoF;
+  ctx.fillStyle = C.slate500;
+  ctx.fillText('scan to start', W - 64, 1160);
+
+  // ===== 9. 边角装饰 =====
+  // 左上
+  ctx.strokeStyle = C.indigo;
+  ctx.lineWidth = 2;
+  ctx.beginPath();
+  ctx.moveTo(40, 40);
+  ctx.lineTo(40, 80);
+  ctx.moveTo(40, 40);
+  ctx.lineTo(80, 40);
+  ctx.stroke();
+
+  // 右下
+  ctx.beginPath();
+  ctx.moveTo(W - 40, H - 40);
+  ctx.lineTo(W - 40, H - 80);
+  ctx.moveTo(W - 40, H - 40);
+  ctx.lineTo(W - 80, H - 40);
   ctx.stroke();
 
   // 底部线
@@ -179,213 +383,6 @@
   ctx.beginPath();
   ctx.moveTo(0, H);
   ctx.lineTo(W, H);
-  ctx.stroke();
-
-  // ===== 4. 左上角：CPTI 标识（mono） =====
-  ctx.font = '600 16px ' + monoF;
-  ctx.fillStyle = C.indigoLt;
-  ctx.textBaseline = 'top';
-  ctx.textAlign = 'left';
-  ctx.fillText('// CPTI v2.0', 64, 56);
-
-  // 右上角：状态点（赛博朋克终端状态指示）
-  ctx.font = '500 13px ' + monoF;
-  ctx.fillStyle = C.slate500;
-  ctx.textAlign = 'right';
-  ctx.fillText('READY', W - 64, 60);
-
-  // 右上角状态点
-  ctx.fillStyle = C.amber;
-  ctx.beginPath();
-  ctx.arc(W - 64 - 60, 67, 4, 0, Math.PI * 2);
-  ctx.fill();
-  // 微辉光
-  ctx.fillStyle = 'rgba(245, 158, 11, 0.3)';
-  ctx.beginPath();
-  ctx.arc(W - 64 - 60, 67, 8, 0, Math.PI * 2);
-  ctx.fill();
-
-  // ===== 5. 中央左侧：主标题区 =====
-  // "刑格" 大字（中文显示主标题）
-  ctx.fillStyle = C.slate100;
-  ctx.font = '700 120px ' + sansF;
-  ctx.textBaseline = 'alphabetic';
-  ctx.textAlign = 'left';
-  ctx.fillText('刑格', 64, 290);
-
-  // "CPTI" mono 标识（紧跟在"刑格"右侧）
-  ctx.fillStyle = C.indigoLt;
-  ctx.font = '700 88px ' + monoF;
-  // 测量"刑格"宽度以定位 CPTI
-  ctx.font = '700 120px ' + sansF;
-  var titleW = ctx.measureText('刑格').width;
-  ctx.fillStyle = C.indigoLt;
-  ctx.font = '700 72px ' + monoF;
-  ctx.fillText('CPTI', 64 + titleW + 24, 285);
-
-  // 副标题
-  ctx.fillStyle = C.slate300;
-  ctx.font = '400 28px ' + sansF;
-  ctx.fillText('你的刑法人格鉴定书', 64, 340);
-
-  // 描述（mono 风格标签）
-  ctx.fillStyle = C.slate400;
-  ctx.font = '500 16px ' + monoF;
-  ctx.fillText('16 题  ·  约 5 分钟  ·  四维人格坐标系', 64, 388);
-
-  // 装饰：标题下方的 indigo 分隔线
-  ctx.strokeStyle = C.indigo;
-  ctx.lineWidth = 3;
-  ctx.beginPath();
-  ctx.moveTo(64, 410);
-  ctx.lineTo(64 + 80, 410);
-  ctx.stroke();
-
-  // 分隔线后续 slate-700 细线
-  ctx.strokeStyle = '#334155';
-  ctx.lineWidth = 1;
-  ctx.beginPath();
-  ctx.moveTo(64 + 80 + 8, 410);
-  ctx.lineTo(64 + 280, 410);
-  ctx.stroke();
-
-  // ===== 6. 右侧：四维字母组合（赛博朋克终端风） =====
-  // S/O · F/M · R/P · E/Re
-  var dims = [
-    { letters: ['S', 'O'], label: '立场', color: C.indigoLt },
-    { letters: ['F', 'M'], label: '解释', color: C.amber },
-    { letters: ['R', 'P'], label: '目的', color: C.indigoLt },
-    { letters: ['E', 'Re'], label: '边界', color: C.amber }
-  ];
-
-  var dimBoxX = 780;
-  var dimBoxY = 180;
-  var dimBoxW = 380;
-  var dimBoxH = 280;
-  var cellW = dimBoxW / 2;
-  var cellH = dimBoxH / 2;
-
-  // 容器边框
-  ctx.strokeStyle = '#334155';
-  ctx.lineWidth = 1;
-  ctx.strokeRect(dimBoxX + 0.5, dimBoxY + 0.5, dimBoxW, dimBoxH);
-
-  // 四角装饰（赛博朋克角标）
-  function corner(x, y, dx, dy) {
-    ctx.strokeStyle = C.indigo;
-    ctx.lineWidth = 2;
-    ctx.beginPath();
-    ctx.moveTo(x, y + dy * 12);
-    ctx.lineTo(x, y);
-    ctx.lineTo(x + dx * 12, y);
-    ctx.stroke();
-  }
-  corner(dimBoxX, dimBoxY, 1, 1);
-  corner(dimBoxX + dimBoxW, dimBoxY, -1, 1);
-  corner(dimBoxX, dimBoxY + dimBoxH, 1, -1);
-  corner(dimBoxX + dimBoxW, dimBoxY + dimBoxH, -1, -1);
-
-  // 容器标签
-  ctx.font = '500 12px ' + monoF;
-  ctx.fillStyle = C.slate500;
-  ctx.textAlign = 'left';
-  ctx.textBaseline = 'top';
-  ctx.fillText('FOUR-DIMENSIONAL MATRIX', dimBoxX, dimBoxY - 22);
-
-  ctx.textAlign = 'right';
-  ctx.fillText('[ 4×4 ]', dimBoxX + dimBoxW, dimBoxY - 22);
-
-  // 绘制 4 个维度
-  for (var i = 0; i < 4; i++) {
-    var col = i % 2;
-    var row = Math.floor(i / 2);
-    var cx = dimBoxX + col * cellW + cellW / 2;
-    var cy = dimBoxY + row * cellH + cellH / 2;
-
-    // 网格分隔线
-    if (col === 1) {
-      ctx.strokeStyle = '#1e293b';
-      ctx.lineWidth = 1;
-      ctx.beginPath();
-      ctx.moveTo(dimBoxX + cellW + 0.5, dimBoxY);
-      ctx.lineTo(dimBoxX + cellW + 0.5, dimBoxY + dimBoxH);
-      ctx.stroke();
-    }
-    if (row === 1) {
-      ctx.strokeStyle = '#1e293b';
-      ctx.lineWidth = 1;
-      ctx.beginPath();
-      ctx.moveTo(dimBoxX, dimBoxY + cellH + 0.5);
-      ctx.lineTo(dimBoxX + dimBoxW, dimBoxY + cellH + 0.5);
-      ctx.stroke();
-    }
-
-    var d = dims[i];
-
-    // 字母对（如 "S / O"）
-    ctx.font = '700 44px ' + monoF;
-    ctx.fillStyle = d.color;
-    ctx.textAlign = 'center';
-    ctx.textBaseline = 'middle';
-    var letterText = d.letters[0] + ' / ' + d.letters[1];
-    ctx.fillText(letterText, cx, cy - 8);
-
-    // 维度标签
-    ctx.font = '500 13px ' + sansF;
-    ctx.fillStyle = C.slate400;
-    ctx.fillText(d.label, cx, cy + 28);
-  }
-
-  // ===== 7. 底部：网站信息 + 二维码占位 =====
-  // 左下：域名
-  ctx.font = '500 14px ' + monoF;
-  ctx.fillStyle = C.slate400;
-  ctx.textAlign = 'left';
-  ctx.textBaseline = 'alphabetic';
-  ctx.fillText('generative-jurisprudence.top', 64, H - 56);
-
-  // 域名下的描述行
-  ctx.font = '400 12px ' + monoF;
-  ctx.fillStyle = C.slate500;
-  ctx.fillText('Generative Jurisprudence · 生成式法学', 64, H - 36);
-
-  // 右下：CTA 标签
-  ctx.font = '600 14px ' + monoF;
-  ctx.fillStyle = C.indigoLt;
-  ctx.textAlign = 'right';
-  ctx.fillText('→ 测出你的刑法人格', W - 64, H - 56);
-
-  ctx.font = '400 12px ' + monoF;
-  ctx.fillStyle = C.slate500;
-  ctx.fillText('scan to start', W - 64, H - 36);
-
-  // ===== 8. 微微的 RGB 偏移（赛博朋克 glitch 装饰，仅左上标题） =====
-  // 在主标题"刑格"上叠加微弱的红/蓝偏移（仅几个像素）
-  ctx.globalCompositeOperation = 'screen';
-  ctx.font = '700 120px ' + sansF;
-  ctx.fillStyle = 'rgba(244, 63, 94, 0.18)'; // rose-500
-  ctx.fillText('刑格', 64 + 2, 290);
-  ctx.fillStyle = 'rgba(34, 211, 238, 0.18)'; // cyan-400
-  ctx.fillText('刑格', 64 - 2, 290);
-  ctx.globalCompositeOperation = 'source-over';
-
-  // ===== 9. 边角装饰：左上和右下的角标线 =====
-  // 左上角
-  ctx.strokeStyle = C.indigo;
-  ctx.lineWidth = 2;
-  ctx.beginPath();
-  ctx.moveTo(40, 40);
-  ctx.lineTo(40, 80);
-  ctx.moveTo(40, 40);
-  ctx.lineTo(80, 40);
-  ctx.stroke();
-
-  // 右下角
-  ctx.beginPath();
-  ctx.moveTo(W - 40, H - 40);
-  ctx.lineTo(W - 40, H - 80);
-  ctx.moveTo(W - 40, H - 40);
-  ctx.lineTo(W - 80, H - 40);
   ctx.stroke();
 })();
 
