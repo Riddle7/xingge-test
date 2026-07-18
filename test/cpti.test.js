@@ -351,6 +351,43 @@ test('Canvas 复合标签: 左复合标签应整体右对齐到 chipLX+chipW', (
     '左复合标签字母位置应基于斜杠位置反推');
 });
 
+// ===== saveAsImage 文件名 bug 测试 =====
+// 用户报告 bug：图片保存的文件名是 undefined
+// 根因：QR 码绘制循环 for(var r = 0; ...) 覆盖了外层 var r = state.lastResult
+// var 无块级作用域，循环结束后 r 仍是数字，导致 link.download = '刑格_' + r.typeKey + '.png' 中 r.typeKey = undefined
+test('saveAsImage: 函数体内 r 变量不应被重复赋值或声明（避免覆盖 state.lastResult）', () => {
+  const fs = require('fs');
+  const html = fs.readFileSync(__dirname + '/../cpti/index.html', 'utf8');
+  // 提取 saveAsImage 函数体（从 "function saveAsImage()" 到匹配的 "}"）
+  const startIdx = html.indexOf('function saveAsImage()');
+  assert.ok(startIdx >= 0, '应找到 saveAsImage 函数');
+  // 从 { 开始配对 } 找到函数结束
+  let braceStart = html.indexOf('{', startIdx);
+  let depth = 0, endIdx = -1;
+  for (let i = braceStart; i < html.length; i++) {
+    if (html[i] === '{') depth++;
+    else if (html[i] === '}') {
+      depth--;
+      if (depth === 0) { endIdx = i; break; }
+    }
+  }
+  assert.ok(endIdx > 0, '应找到 saveAsImage 函数结束');
+  const fnBody = html.slice(startIdx, endIdx + 1);
+
+  // 初始声明：var r = state.lastResult（合法）
+  const initDecl = /\bvar\s+r\s*=\s*state\.lastResult\b/;
+  assert.ok(initDecl.test(fnBody), '应有初始声明 var r = state.lastResult');
+
+  // 移除初始声明后，不应再有对 r 的赋值或声明（如 var r = 0、r = 0、r++、r--）
+  // 先移除注释（// 行注释和 /* */ 块注释）避免误判
+  const noComments = fnBody.replace(/\/\*[\s\S]*?\*\//g, '').replace(/\/\/[^\n]*/g, '');
+  const afterInit = noComments.replace(/\bvar\s+r\s*=\s*state\.lastResult\b/, '');
+  // 检测：var r = ...、r = ...、r++、r--、for (var r = ...)
+  const reassignPattern = /\bvar\s+r\b|\br\s*=[^=]|\br\+\+|\br--|\+\+r|--r/;
+  const badMatch = afterInit.match(reassignPattern);
+  assert.ok(!badMatch, `saveAsImage 内 r 不应被重复赋值或声明，发现：${badMatch ? badMatch[0] : '无'}`);
+});
+
 // ===== showResult 的 HYBRID 分支边界测试 =====
 test('showResult HYBRID: scores[k]<0 时 d 应为 neg 字母（非 S/O 形式）', () => {
   // HYBRID 分支：var d1 = scores[0] <= 0 ? 'S' : 'O';

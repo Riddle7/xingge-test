@@ -1590,19 +1590,20 @@ function saveAsImage() {
 
       // 用 Canvas 重绘 QR 矩阵：数据模块画圆点，finder pattern 画方块
       // 判断某模块是否属于 finder pattern（三个角的 7×7 区域）
-      function isFinder(r, c) {
-        var inTL = r < 7 && c < 7;
-        var inTR = r < 7 && c >= mc - 7;
-        var inBL = r >= mc - 7 && c < 7;
+      // 注意：循环变量用 ri/ci，避免与外层 var r = state.lastResult 冲突（var 无块级作用域）
+      function isFinder(ri, ci) {
+        var inTL = ri < 7 && ci < 7;
+        var inTR = ri < 7 && ci >= mc - 7;
+        var inBL = ri >= mc - 7 && ci < 7;
         return inTL || inTR || inBL;
       }
       ctx.fillStyle = QR_COLOR;
-      for (var r = 0; r < mc; r++) {
-        for (var c = 0; c < mc; c++) {
-          if (!qr.isDark(r, c)) continue;
-          var px = qrX + QR_QUIET + c * QR_MODULE;
-          var py = qrY + QR_QUIET + r * QR_MODULE;
-          if (isFinder(r, c)) {
+      for (var ri = 0; ri < mc; ri++) {
+        for (var ci = 0; ci < mc; ci++) {
+          if (!qr.isDark(ri, ci)) continue;
+          var px = qrX + QR_QUIET + ci * QR_MODULE;
+          var py = qrY + QR_QUIET + ri * QR_MODULE;
+          if (isFinder(ri, ci)) {
             // finder 模块画方块（扫码器硬要求）
             ctx.fillRect(px, py, QR_MODULE, QR_MODULE);
           } else {
