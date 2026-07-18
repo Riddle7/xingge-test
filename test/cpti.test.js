@@ -11,9 +11,9 @@ test('calculateScores: 16 题全部 +2（非常赞同）应得极端分数', () 
   const result = box.calculateScores();
   // 每维度 4 题，每题 +2
   // so: 题1(S,-1) +2*-1=-2, 题5(O,+1) +2*1=2, 题11(O,+1) +2, 题15(S,-1) +2*-1=-2 → so=0
-  // fe: 题2(F,-1) -2, 题7(E,+1) +2, 题9(F,-1) -2, 题13(E,+1) +2 → fe=0
+  // fe: 题2(F,-1) -2, 题7(M,+1) +2, 题9(F,-1) -2, 题13(M,+1) +2 → fe=0
   // rp: 题3(R,-1) -2, 题6(P,+1) +2, 题10(R,-1) -2, 题12(P,+1) +2 → rp=0
-  // exre: 题4(Re,+1) +2, 题8(Ex,-1) -2, 题14(Ex,-1) -2, 题16(Re,+1) +2 → exre=0
+  // exre: 题4(Re,+1) +2, 题8(E,-1) -2, 题14(E,-1) -2, 题16(Re,+1) +2 → exre=0
   // 注意：每维度都是 2 正 2 负的 dir，全选+2 总分必然=0
   assert.strictEqual(result.total[0], 0, 'so 全选+2 应为 0（2正2负抵消）');
   assert.strictEqual(result.total[1], 0, 'fe 全选+2 应为 0');
@@ -79,10 +79,10 @@ test('breakTie: 2 中立 + 2 赞应返回 null（≥2 中立不判）', () => {
 });
 
 // ===== inferFromOtherDims 测试 =====
-test('inferFromOtherDims: 其他三维全偏阵营A(O,E,P)→推断Ex(阵营A)', () => {
-  // dimIdx=3 (exre), 其他三维 letters=[O,E,P,null]
-  const result = box.inferFromOtherDims(['O', 'E', 'P', null], 3);
-  assert.strictEqual(result, 'Ex', '偏阵营A→第4维应推断为Ex(扩张解释)');
+test('inferFromOtherDims: 其他三维全偏阵营A(O,M,P)→推断E(阵营A)', () => {
+  // dimIdx=3 (exre), 其他三维 letters=[O,M,P,null]
+  const result = box.inferFromOtherDims(['O', 'M', 'P', null], 3);
+  assert.strictEqual(result, 'E', '偏阵营A→第4维应推断为E(扩张解释)');
 });
 
 test('inferFromOtherDims: 其他三维全偏阵营B(S,F,R)→推断Re(阵营B)', () => {
@@ -90,8 +90,8 @@ test('inferFromOtherDims: 其他三维全偏阵营B(S,F,R)→推断Re(阵营B)',
   assert.strictEqual(result, 'Re', '偏阵营B→第4维应推断为Re(限缩解释)');
 });
 
-test('inferFromOtherDims: 第1维平分+其他偏A(E,P,Ex)→推断O', () => {
-  const result = box.inferFromOtherDims([null, 'E', 'P', 'Ex'], 0);
+test('inferFromOtherDims: 第1维平分+其他偏A(M,P,E)→推断O', () => {
+  const result = box.inferFromOtherDims([null, 'M', 'P', 'E'], 0);
   assert.strictEqual(result, 'O');
 });
 
@@ -100,10 +100,10 @@ test('inferFromOtherDims: 第1维平分+其他偏B(F,R,Re)→推断S', () => {
   assert.strictEqual(result, 'S');
 });
 
-test('inferFromOtherDims: 第4维平分+其他2A1B(O,E,R)→推断Ex(+1)', () => {
-  // O(A)+E(A)+R(B) = +1 → 阵营A → Ex
-  const result = box.inferFromOtherDims(['O', 'E', 'R', null], 3);
-  assert.strictEqual(result, 'Ex');
+test('inferFromOtherDims: 第4维平分+其他2A1B(O,M,R)→推断E(+1)', () => {
+  // O(A)+M(A)+R(B) = +1 → 阵营A → E
+  const result = box.inferFromOtherDims(['O', 'M', 'R', null], 3);
+  assert.strictEqual(result, 'E');
 });
 
 test('inferFromOtherDims: 第4维平分+其他1A2B(O,F,R)→推断Re(-1)', () => {
@@ -124,8 +124,8 @@ test('getTypeKey: 1 维平分(2赞2反)+其他3维偏A→跨维度推断', () =>
     total: [0, 3, 3, -3],
     detail: { so: [2,-2,1,-1], fe: [2,1,0,0], rp: [2,1,0,0], exre: [-2,-1,0,0] }
   };
-  // 其他三维: E(A), P(A), Ex(A) → +3 → O
-  assert.strictEqual(box.getTypeKey(scoreObj), 'O-E-P-Ex');
+  // 其他三维: M(A), P(A), E(A) → +3 → O
+  assert.strictEqual(box.getTypeKey(scoreObj), 'O-M-P-E');
 });
 
 test('getTypeKey: 1 维平分(2赞2反)+其他3维偏B→跨维度推断', () => {
@@ -150,20 +150,20 @@ test('getTypeKey: 无平分直接判定', () => {
     total: [3, 3, 3, -3],
     detail: { so: [], fe: [], rp: [], exre: [] }
   };
-  // scores>0→O/E/P, scores[3]<0→Ex
-  assert.strictEqual(box.getTypeKey(scoreObj), 'O-E-P-Ex');
+  // scores>0→O/M/P, scores[3]<0→E
+  assert.strictEqual(box.getTypeKey(scoreObj), 'O-M-P-E');
 });
 
 test('getTypeKey: 全部 16 种组合都能找到对应 personalities', () => {
   // 遍历所有可能的 typeKey，验证 personalities 中存在
-  const dims = [['S','O'], ['F','E'], ['R','P'], ['Ex','Re']];
+  const dims = [['S','O'], ['F','M'], ['R','P'], ['E','Re']];
   for (const d0 of dims[0]) for (const d1 of dims[1]) for (const d2 of dims[2]) for (const d3 of dims[3]) {
     const key = `${d0}-${d1}-${d2}-${d3}`;
     assert.ok(personalities[key], `personalities 应包含 ${key}`);
   }
 });
 
-test('getTypeKey: 全 0 分时 buildHybridResult 应生成 S/O-F/E-R/P-Ex/Re', () => {
+test('getTypeKey: 全 0 分时 buildHybridResult 应生成 S/O-F/M-R/P-E/Re', () => {
   const scores = [0, 0, 0, 0];
   const p = box.buildHybridResult(scores);
   assert.strictEqual(p.nickname, '终极缝合怪');
@@ -191,8 +191,8 @@ test('wrap: 长文本应按宽度换行', () => {
 test('wrap: 闭合标点禁则 - 孤立右括号应合并回上一行', () => {
   if (typeof box.wrap !== 'function') return;
   // 构造场景：文本宽度刚好让右括号单独成行
-  // S-E-R-Re（持刀哲学家） → 如果 （持刀哲学家） 中 ） 单独成行
-  const text = 'S-E-R-Re（持刀哲学家）';
+  // S-M-R-Re（持刀哲学家） → 如果 （持刀哲学家） 中 ） 单独成行
+  const text = 'S-M-R-Re（持刀哲学家）';
   // 用很窄的宽度强制换行
   const lines = box.wrap(text, 80, '12px sans-serif');
   // 验证没有行是孤立的右括号
@@ -299,7 +299,7 @@ test('hPeers 公式: 最后一条文字底部不应超出卡片底部', () => {
 });
 
 // ===== Canvas 复合标签绘制测试 =====
-// 用户报告 bug：图片保存功能中，四维人格坐标左边的"主观/形式/报应/扩张"和 SFREx 中间的 / 没有正确显示
+// 用户报告 bug：图片保存功能中，四维人格坐标左边的"主观/形式/报应/扩张"和 SFRE 中间的 / 没有正确显示
 test('Canvas 复合标签: slashW 不应测量 3 字符 " / "（应为单字符 /）', () => {
   const fs = require('fs');
   const html = fs.readFileSync(__dirname + '/../cpti/index.html', 'utf8');
@@ -402,9 +402,9 @@ test('showResult HYBRID: scores[k]<0 时 d 应为 neg 字母（非 S/O 形式）
 
 test('showResult HYBRID: scores[k]=0 时 d 应为 S/O 形式', () => {
   const scores = [0, 0, 3, -3];
-  let d2 = scores[1] <= 0 ? 'F' : 'E';
-  if (scores[1] === 0) d2 = 'F/E';
-  assert.strictEqual(d2, 'F/E', 'scores[1]=0 时 d2 应为 F/E');
+  let d2 = scores[1] <= 0 ? 'F' : 'M';
+  if (scores[1] === 0) d2 = 'F/M';
+  assert.strictEqual(d2, 'F/M', 'scores[1]=0 时 d2 应为 F/M');
 });
 
 // ===== quizData dimMap 完整性测试 =====
@@ -428,8 +428,8 @@ test('quizData: 16 题覆盖 4 维各 4 题', () => {
   assert.strictEqual(dimCount.exre, 4, 'exre 维度应有 4 题');
 });
 
-test('quizData: dimMap 值只能是 S/O/F/E/R/P/Ex/Re', () => {
-  const valid = ['S', 'O', 'F', 'E', 'R', 'P', 'Ex', 'Re'];
+test('quizData: dimMap 值只能是 S/O/F/M/R/P/E/Re', () => {
+  const valid = ['S', 'O', 'F', 'M', 'R', 'P', 'E', 'Re'];
   quizData.forEach(q => {
     Object.values(q.dimMap).forEach(v => {
       if (v !== null) {
