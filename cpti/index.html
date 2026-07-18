@@ -418,6 +418,19 @@
         <blockquote id="result-quote" class="pl-8 text-card-foreground leading-relaxed italic"></blockquote>
       </section>
 
+      <section class="bg-card border border-border rounded-lg p-6 mb-8 shadow-sm">
+        <div class="flex items-center gap-2 mb-2">
+          <i data-lucide="briefcase" class="w-5 h-5 text-primary"></i>
+          <h2 class="font-display text-lg font-semibold text-foreground">职业适配</h2>
+        </div>
+        <p class="text-xs text-muted-foreground mb-5">基于你的刑法人格直觉，最不拧巴的职业路线</p>
+        <div class="border-l-4 border-primary bg-primary-50/60 rounded-r px-4 py-3 mb-5">
+          <p class="text-xs text-muted-foreground mb-1">推荐职业</p>
+          <p class="text-base font-semibold text-primary" id="result-career-job"></p>
+        </div>
+        <p id="result-career-reason" class="text-card-foreground leading-loose text-[15px] max-w-prose"></p>
+      </section>
+
       <section class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-10">
         <div class="bg-emerald-50 border border-emerald-200 rounded-lg p-5">
           <div class="flex items-center gap-2 mb-3"><i data-lucide="heart-handshake" class="w-4 h-4 text-emerald-600"></i><h3 class="font-display text-sm font-semibold text-emerald-700">互粉</h3></div>
@@ -516,112 +529,128 @@ const personalities = {
     judgment: '你深信「人心惟危，动机不纯即是恶」。判案时，你不仅穷尽法条字眼，还主动扩张解释堵住所有漏洞。在你看来，刑罚就是报应，恶念必须付出代价。法庭上你从不笑，卷宗就是你的生死簿。',
     quote: '法条没写？那叫「当然解释」。主观恶性？我隔着卷宗都能闻到。',
     friends: ['S-E-R-Ex', 'O-E-R-Ex', 'S-E-P-Ex'], enemies: ['O-E-P-Re', 'S-E-P-Re', 'O-F-P-Re'],
-    judge: ['😰 紧张', '🤔 疑惑', '😨 恐惧']
+    judge: ['😰 紧张', '🤔 疑惑', '😨 恐惧'],
+    career: { job: '公诉人', reason: '于职业生涯中，你内心深处燃烧着一种确信，恶人理应受罚，法条便是你手中有形的剑。你在公诉席上翻阅案卷时目光总是先落在行为人的恶意上，穿透纸面直抵人心的直觉让你格外胜任追诉犯罪的工作。严格依循法条却又主张在模糊地带扩张适用，你在起诉书上写下每一个罪名的时候都感到一种秩序被匡正的踏实。这里没有模棱两可，只有罪与罚的清晰比例。' }
   },
   'S-F-R-Re': {
     nickname: '立法者の忠犬', tags: ['罪刑法定的冷面卫道士', '法条原教旨主义者', '克制の复仇者'],
     judgment: '你极其尊重立法者原意，认为法条没写的恶，再可恶也不能判。但一旦法条白纸黑字写明了主观恶意，你便会毫不留情地施以最重的报应刑。你是「罪刑法定」的终极守门人。',
     quote: '法无明文规定不为罪？对。法有明文规定必为罪？也对。我的工作是后者。',
     friends: ['O-F-R-Re', 'S-E-R-Re', 'O-E-R-Re'], enemies: ['S-E-P-Ex', 'O-F-P-Ex', 'S-E-P-Re'],
-    judge: ['😠 愤怒', '😩 绝望', '😶 认命']
+    judge: ['😠 愤怒', '😩 绝望', '😶 认命'],
+    career: { job: '刑事法官', reason: '你对法条怀有一种近乎本能的情感，写了就是写了，没写就是没写，中间没有灰色地带。坐上法官席的那一刻你会发现，世间竟有一份工作允许你如此彻底地践行这个信念。你看行为人的主观恶性但从不越法条半步，定罪时一个多余的字都不加，量刑时却不心软。你守护的是法律文本的边界，不是你个人的好恶。' }
   },
   'S-F-P-Ex': {
     nickname: '预防性洁癖', tags: ['净化社会的铁扫帚', '主观恶性+扩张解释双buff', '教育刑の狂信者'],
     judgment: '你眼里容不得沙子，认为刑法的目的是「扫除一切潜在的破坏分子」。你严格按条文字眼定罪，但为了「预防犯罪」这个大目标，你会毫不犹豫地扩大打击面。最好的社会是「没人敢犯罪」的社会。',
     quote: '今天不办他，明天他就敢办别人。预防刑不是温柔，是提前温柔地消灭危险。',
     friends: ['O-F-P-Ex', 'S-E-P-Ex', 'O-E-P-Ex'], enemies: ['O-E-P-Re', 'O-E-R-Re', 'S-E-R-Re'],
-    judge: ['🤞 侥幸', '😧 震惊', '😱 崩溃']
+    judge: ['🤞 侥幸', '😧 震惊', '😱 崩溃'],
+    career: { job: '刑事政策研究者', reason: '你一直想弄明白一件事，人为什么会犯罪，以及制度能不能在犯罪发生之前就拦住那只手。法庭上控辩对抗的节奏太快了，快到来不及追问这些根子上的问题。学术机构或政策研究室才是你的主场，你在那里安静地设计一套让人不想犯罪也不敢犯罪的机制。你相信刑法的触角应当伸得更远一些，不是为了惩罚，是为了让惩罚永远不必发生。' }
   },
   'S-F-P-Re': {
     nickname: '依法从宽の神', tags: ['依法教化的仁厚长者', '教育刑+形式解释の缝合怪', '体制内宽严相济实操派'],
     judgment: '你主张「惩前毖后，治病救人」。你看重主观悔过态度，但严守法条边界，绝不乱解释。只要法律写了，就按规矩来教育改造；法律没写的，哪怕对方再像坏人，你也坚持放回去感化。',
     quote: '法律写了，我按规矩办你；法律没写，我按规矩放你。规矩是我的信仰，也是你的保护伞。',
     friends: ['O-F-P-Re', 'S-E-P-Re', 'O-E-P-Re'], enemies: ['S-E-R-Ex', 'O-F-R-Ex', 'S-E-P-Ex'],
-    judge: ['😰 紧张', '😊 释然', '🙏 感恩']
+    judge: ['😰 紧张', '😊 释然', '🙏 感恩'],
+    career: { job: '辩护律师', reason: '你天生会去看一个人怎么走到这一步的，而不是只盯着他走到了哪一步。在法庭里你选择坐在被告人一侧，不是因为你认同他的行为，而是因为法条没写明白的事情不能拿来毁掉一个人。你严格守着罪刑法定的那条线，又在线的这边替每一个具体的人争取一个比惩罚更有意义的结果。你相信人能变，法律只是路上的一座桥而不是一堵墙。' }
   },
   'S-E-R-Ex': {
     nickname: '穿透法条的复仇之眼', tags: ['实质正义狂徒', '主观恶性猎手', '立法精神的刺客'],
     judgment: '你蔑视僵化的文字游戏，坚信「法律精神就是严惩恶意」。你擅长透过现象看本质，只要认定对方心术不正，就算法条有歧义，你也能用各种解释将其入罪。你是激进派中的战斗机。',
     quote: '法条是死的，恶意是活的。如果法条挡住了正义，那是法条的问题，不是我的。',
     friends: ['S-F-R-Ex', 'O-E-R-Ex', 'S-F-P-Ex'], enemies: ['O-F-R-Re', 'O-F-P-Re', 'O-E-P-Re'],
-    judge: ['😏 轻视', '😨 惊恐', '😱 崩溃']
+    judge: ['😏 轻视', '😨 惊恐', '😱 崩溃'],
+    career: { job: '重案公诉人', reason: '你读法条时总忍不住在想，它到底想保护什么，而那些绕开字面却在实质上造成同等伤害的行为凭什么可以逃掉。你不满足于机械对照，你要穿透纸背找出那个实质的恶然后让它付出代价。疑难复杂案件和新型犯罪的追诉总是落到你这种人手里，因为只有你敢在可能语义的边界上迈出那一步。社会需要有人干这件让人不安的事，而你恰好不介意承受那份不安。' }
   },
   'S-E-R-Re': {
     nickname: '持刀哲学家', tags: ['洞察恶意但持刀谨慎', '审慎的正义', '刑法界的哈姆雷特'],
     judgment: '你看人极准，总能捕捉到行为背后的主观恶性。但你是一位哲学家，深知刑法双刃剑的厉害。你坚持「恶意再深，也要有实害才报应」。你是刑法界最迷人的矛盾体——眼睛是复仇的，手是克制的。',
     quote: '我看见了你心中的恶，但我更看见了刑法中的刀。刀出鞘容易，回鞘难。',
     friends: ['S-E-P-Re', 'O-E-R-Re', 'S-F-R-Re'], enemies: ['O-F-R-Ex', 'S-E-R-Ex', 'O-E-P-Ex'],
-    judge: ['😰 紧张', '🤔 思考', '😶 沉默']
+    judge: ['😰 紧张', '🤔 思考', '😶 沉默'],
+    career: { job: '学者', reason: '你对刑法的兴趣从来不在判决书的具体措辞上，而在更抽象的地方，什么是恶，为什么要惩罚，惩罚的边界应该画在哪里。你手里握着一把锋利的概念之刃，但你知道真正的功力不在砍而在收。你把大多数时间花在思考和写作上，追一个问题可以从一个判决追到一部法典再追到一套哲学体系里去。别人只能引用法条，你可以追问法条为什么是这个样子。' }
   },
   'S-E-P-Ex': {
     nickname: '刑法工具人', tags: ['激进社会工程师', '预防乌托邦建筑师', '改造人性の理想主义者'],
     judgment: '你视刑法为「社会改造工程」的利器。你研究犯罪心理，坚信预防比惩罚重要。为了预防未来犯罪，你会用最开放的实质解释扩张法网。你是「积极刑法观」的终极形态。',
     quote: '刑法不是手术刀，是疫苗。疫苗要打在没病的人身上，才能预防疾病。',
     friends: ['O-E-P-Ex', 'S-F-P-Ex', 'O-F-P-Ex'], enemies: ['O-E-R-Re', 'S-E-R-Re', 'S-F-R-Re'],
-    judge: ['🤞 侥幸', '😵 不知所措', '🤯 困惑']
+    judge: ['🤞 侥幸', '😵 不知所措', '🤯 困惑'],
+    career: { job: '立法者', reason: '你在看待刑法的时候脑海里浮现的不是法庭，是一张社会治理的总蓝图。什么行为应该被纳入犯罪圈，罪名怎么设计才能既好用又不被滥用，入罪之后要怎么矫正才不是白关。这些不是你深夜失眠时的胡思乱想，是你觉得这辈子应该去做的事情。立法机关或法工委的办公桌比任何法庭都更适合你，因为你在那里设计规则而不是被规则指挥。' }
   },
   'S-E-P-Re': {
     nickname: '被告人的天使', tags: ['人道拯救牧师', '救赎派刑法人', '主观恶意の疗愈师'],
     judgment: '你拥有一颗神父般悲悯的心，重视犯罪人的主观恶源。你主张通过实质解释探究犯罪成因来「拯救」，却坚决反对扩张刑法。你是刑格世界里最温柔的存在——相信每个罪人都有故事。',
     quote: '我看见了你的罪，也看见了你为什么成为罪人。刑法要惩罚行为，但不该消灭灵魂。',
     friends: ['O-E-P-Re', 'S-E-R-Re', 'O-F-P-Re'], enemies: ['S-F-R-Ex', 'O-F-R-Ex', 'S-F-P-Ex'],
-    judge: ['😰 紧张', '😭 痛哭流涕', '🙏 感恩']
+    judge: ['😰 紧张', '😭 痛哭流涕', '🙏 感恩'],
+    career: { job: '法律援助律师', reason: '你能看到每一个犯罪者身上那个被生活碾过的普通人，也深知刑法一旦发动就很难停下来。你在法律援助中心或公益律所里找到了一个位置，让你可以用柔软的方式做坚硬的事。你不是在和法条为敌，你是在替那些被法条吓住的人请求一次认真的倾听。你相信刑法的力量应当用来扶人而不是压人，每次从宽处理背后都有你悄悄铺好的台阶。' }
   },
   'O-F-R-Ex': {
     nickname: '结果导向暴君', tags: ['实证威权法官', '客观归罪推土机', '证据链の独裁者'],
     judgment: '你是典型的「结果导向」裁判者。不管动机多可怜，只要客观行为触碰了法条字眼，就是犯罪。你为了震慑犯罪，乐于在形式解释边缘适度扩张。你不在乎被告人的眼泪，只在乎证据是否形成了闭环。',
     quote: '动机？那是小说家关心的事。我只关心：行为有没有发生？法条有没有写？证据够不够？',
     friends: ['O-E-R-Ex', 'S-F-R-Ex', 'O-F-P-Ex'], enemies: ['S-E-P-Re', 'S-E-R-Re', 'O-E-P-Re'],
-    judge: ['🙏 求情', '😠 愤怒', '🙄 翻白眼']
+    judge: ['🙏 求情', '😠 愤怒', '🙄 翻白眼'],
+    career: { job: '公诉人', reason: '你认为一个人做了什么、造成了什么后果才是刑法应当盯着的东西，内心的东西太飘忽了靠不住。你在检察院的公诉岗位上有一种如鱼得水的感觉，这里的一切都围绕着客观证据和成文规则运转。你严格依法起诉，不放过每一个客观上触犯了法律的人，法条没写的你主张补上而不是放过。' }
   },
   'O-F-R-Re': {
     nickname: '法条打印机', tags: ['精密天平法官', '无罪推定の守护者', '司法界の冷面AI'],
     judgment: '你是司法界最冷静的「天秤」。你只看客观行为和法条文字的严丝合缝，证据不足坚决无罪，证据确凿也坚决不搞「酌情轻判」。你的判决书逻辑严密到无法反驳。',
     quote: '我是一台法条打印机，输入证据，输出判决。情感是bug，我从不运行。',
     friends: ['S-F-R-Re', 'O-E-R-Re', 'S-F-P-Re'], enemies: ['S-E-R-Ex', 'S-E-P-Ex', 'O-E-P-Ex'],
-    judge: ['😠 愤怒', '😐 冷漠', '🙄 翻白眼']
+    judge: ['😠 愤怒', '😐 冷漠', '🙄 翻白眼'],
+    career: { job: '刑事审判庭法官', reason: '你是一个在规则里才能睡得安稳的人。客观事实加法律明文，没有第三条路。法条写了就照着判，没写就依法宣告无罪，你觉得这套逻辑天经地义。在刑事审判庭的法官席上你是一个高度可预测的存在，控辩双方都知道在你面前玩花活没有用，你只看两样东西，证据和法条。' }
   },
   'O-F-P-Ex': {
     nickname: '杀鸡儆猴推广大使', tags: ['威慑主义教头', '一般预防の狂信者', '客观危害+形式解释+扩张の缝合怪'],
     judgment: '你坚信「刑罚的意义在于警示旁人」。你以客观危害为定罪准绳，死扣法条字眼，但只要法律没有明确禁止扩张，你一定会把案例往重了判，用来吓阻潜在的效仿者。',
     quote: '判他不是为了他，是为了看新闻的你。你不敢犯罪，我的判决就有价值。',
     friends: ['S-F-P-Ex', 'O-E-P-Ex', 'S-E-P-Ex'], enemies: ['O-E-R-Re', 'O-E-P-Re', 'S-F-R-Re'],
-    judge: ['🤞 侥幸', '😱 绝望', '🤮 崩溃']
+    judge: ['🤞 侥幸', '😱 绝望', '🤮 崩溃'],
+    career: { job: '刑事立法工作者', reason: '你相信刑法的威慑力不是嘴上说说的，它需要一部写清楚的法典和一批看得见的判决作为支撑。客观行为入罪，法条写得明明白白，惩罚量到足够让人害怕，这三件事是你最关心的。立法机关或司法部的法条起草岗位给不了你高薪，但能给你一张可以把这些想法变成现实的桌子。' }
   },
   'O-F-P-Re': {
     nickname: '教育刑の循吏', tags: ['法条主义导师', '依法施教の践行者', '客观主义の温柔刀'],
     judgment: '你温和而坚定，强调「有客观危害才罚，没写的绝对不罚」。你像一位大学导师，耐心给嫌疑人讲法条，教育为主、惩罚为辅，坚信「好的司法是克制出来的」。',
     quote: '我罚你，是因为你确实做错了；我教你，是因为我不想你下次再做错。法条是我的教案。',
     friends: ['S-F-P-Re', 'O-E-P-Re', 'S-E-P-Re'], enemies: ['O-E-R-Ex', 'S-F-R-Ex', 'O-F-P-Ex'],
-    judge: ['😰 紧张', '📝 记笔记', '😊 释然']
+    judge: ['😰 紧张', '📝 记笔记', '😊 释然'],
+    career: { job: '监狱 / 社区矫正管理', reason: '你不是那种喜欢站在聚光灯下的人，但你在高墙后面做的事比很多人在法庭上做的事更能改变一个人的命运。你看客观表现不看空洞的表态，按照制度办事但内心相信人是可以矫正的。你在监狱管理局或社区矫正机构里日复一日地做那些不起眼的工作，表现好了减一点刑期，违规了就按规矩来，这种节奏让你觉得踏实。' }
   },
   'O-E-R-Ex': {
     nickname: '结果归责复仇者', tags: ['功能报应论者', '实质解释+客观主义+报应+扩张の四重奏', '实用主义重判派'],
     judgment: '你不在乎罪犯想什么，只在乎实际造成了多大法益侵害。为了惩罚这种「客观恶果」，你不惜动用实质解释来扩张罪名。在你这里，「罪刑法定」不是枷锁，是橡皮筋。',
     quote: '结果这么严重，法条不解释到位，是对受害人的第二次伤害。',
     friends: ['S-E-R-Ex', 'O-F-R-Ex', 'S-F-R-Ex'], enemies: ['O-F-P-Re', 'O-E-R-Re', 'O-E-P-Re'],
-    judge: ['😲 震惊', '😨 恐惧', '😱 崩溃']
+    judge: ['😲 震惊', '😨 恐惧', '😱 崩溃'],
+    career: { job: '高级检察官', reason: '你的职业逻辑是从客观结果往回推导，造成了什么危害就要付出什么代价，至于行为人的内心活动你愿意尊重但不会让它成为脱罪的借口。你擅长在现行法条的框架内通过实质解释来拓宽追诉空间，疑难案件的指导意见和典型案例研究落到你头上你不会觉得累，因为你在搭建一个让结果说话的系统。' }
   },
   'O-E-R-Re': {
     nickname: '自由原教旨', tags: ['古典自由主义祭司', '无实质危害则无罪', '客观主义+实质解释+报应+限缩の终极缝合'],
     judgment: '你是刑法的「原教旨自由主义者」。你深究行为对社会的实际损害，但只要没损害，哪怕行为再危险、法条再模糊，你都坚持限缩出罪。可一旦确认有实质损害，你便会祭出最严肃的报应刑。',
     quote: '没危害？那请回，刑法不管。有危害？那请坐，我们好好算算账。',
     friends: ['O-E-P-Re', 'S-E-R-Re', 'O-F-R-Re'], enemies: ['O-F-P-Ex', 'S-E-P-Ex', 'S-F-P-Ex'],
-    judge: ['😰 紧张', '😌 释然', '😨 或恐惧']
+    judge: ['😰 紧张', '😌 释然', '😨 或恐惧'],
+    career: { job: '学者', reason: '行为刑法是你的信仰，一个人做了什么比他是谁重要得多。同时你坚信罪刑法定是一道不能被任何理由撬开的门。这些立场让你在当代中国刑法学者中显得有点纯粹也有点古典，但这正是你学术生命力的来源。你在法学院的研究里日复一日地打磨教义学的精细程度，不追求热点，只追求准确地说明一个罪名为什么成立或者为什么不成立。' }
   },
   'O-E-P-Ex': {
     nickname: '安全乌托邦织网者', tags: ['积极预防大家', '积极刑法观代言人', '客观风险の猎手'],
     judgment: '你是「目的论」的狂热追求者。你看重客观危害的消除，为了社会整体安全，你主张用实质解释的方式积极主动地扩张刑法边界。你是典型的积极刑法观代言人。',
     quote: '法律不是灭火器，是烟雾报警器。等起火就晚了，我要在冒烟的时候就拉响警报。',
     friends: ['S-E-P-Ex', 'O-F-P-Ex', 'S-F-P-Ex'], enemies: ['O-F-R-Re', 'O-E-R-Re', 'S-E-R-Re'],
-    judge: ['🤞 侥幸', '😵 困惑', '🤯 不知所措']
+    judge: ['🤞 侥幸', '😵 困惑', '🤯 不知所措'],
+    career: { job: '政府法律顾问', reason: '在你的想象里刑法应该是一张足够密实的网，漏掉一个值得处罚的行为比错罚一个更让你不安。你关注的是整体安全和制度预防，不是个案里的具体正义。政府法制办的日常跟你的思维方式有天然的亲近感，你在那里推敲法条的目的是让危险在进入司法程序之前就被挡住。' }
   },
   'O-E-P-Re': {
     nickname: '谦抑性玫瑰', tags: ['慈悲人权卫士', '被告人の大宪章守护者', '刑法界最温柔的存在'],
     judgment: '你是刑格世界里最温柔的「守护神」。你坚守「无客观行为则无犯罪」，用实质解释严格限缩法条。你坚信：「如果刑法不能给人以尊严，它就不配叫正义。」',
     quote: '刑法是善良人的大宪章，也是被告人的保护伞。如果它变成了所有人的恐惧，那它就已经背叛了自己。',
     friends: ['S-E-P-Re', 'O-E-R-Re', 'O-F-P-Re'], enemies: ['S-F-R-Ex', 'O-F-R-Ex', 'O-E-P-Ex'],
-    judge: ['😰 紧张', '😊 感动', '🙏 感恩']
+    judge: ['😰 紧张', '😊 感动', '🙏 感恩'],
+    career: { job: '学者', reason: '你打心底认为刑法能不用就不用，但你不是那种只会喊口号的反对者。你能用实质解释说清楚为什么某件事不该入罪，也承认预防犯罪是正当的公共目标，只是在刑法的门槛前你永远是那个举手说再等一下的人。你在刑事政策研究中找到了一个安放这些信念的位置，用最少的条文和最轻的手段去实现公共安全，而不是反过来。' }
   }
 };
 
@@ -823,19 +852,46 @@ function calculateScores() {
   return { total: [scores.so, scores.fe, scores.rp, scores.exre], detail: detail };
 }
 
-// v3 破平规则：维度总分=0 时判定
-// 返回该维度的字母：'S'/'O' 等；若维持中间型返回 null
+// v4 破平规则：维度总分=0 时判定
+// 返回该维度的倾向：'pro'(偏 O/E/P/Ex) / 'con'(偏 S/F/R/Re) / null(本维度无法判定)
 function breakTie(detailArr) {
   // detailArr: 该维度4题的原始选择分值数组
   var zeroCount = detailArr.filter(function(v) { return v === 0; }).length;
-  if (zeroCount >= 2) return null;      // ≥2 个"0" → 中间型
-  if (zeroCount === 0) return null;     // 0 个"0"（2赞同2反对）→ 中间型
+  if (zeroCount >= 2) return null;      // ≥2 个"0" → 真摇摆，本维度无法判定
+  if (zeroCount === 0) return null;     // 0 个"0"（2赞同2反对）→ 真平分，本维度无法判定
   // =1 个"0"，剩3题看赞同/反对各几道
   var proCount = detailArr.filter(function(v) { return v > 0; }).length;
   var conCount = detailArr.filter(function(v) { return v < 0; }).length;
-  if (proCount > conCount) return 'pro';   // 赞同多 → >0 侧
-  if (conCount > proCount) return 'con';   // 反对多 → <0 侧
+  if (proCount > conCount) return 'pro';   // 赞同多 → >0 侧（O/E/P/Ex）
+  if (conCount > proCount) return 'con';   // 反对多 → <0 侧（S/F/R/Re）
   return null;                          // 理论上 1 个 0 + 3 题不会出现 pro=con
+}
+
+// 跨维度推断：当某维度本维度无法判定（2赞2反真平分 或 ≥2中立）时，
+// 根据刑法学理论的"阵营一致性"用其他三维倾向推断该维度倾向。
+// 阵营 A（法益保护/积极派）：O 客观主义 + E 实质解释 + P 预防刑 + Ex 扩张解释
+// 阵营 B（罪刑法定/克制派）：S 主观主义 + F 形式解释 + R 报应刑 + Re 限缩解释
+// 注意：原系统 sign 设计中 exre 维度的 neg/pos 与其他三维阵营归属相反
+// （Ex 是 neg 但属阵营 A，Re 是 pos 但属阵营 B），所以不能简单用 pos/neg 映射
+// letters: 已判定的字母数组，dimIdx: 待推断维度索引
+// 返回推断出的字母（O/E/P/Ex 或 S/F/R/Re），无法推断返回 null
+function inferFromOtherDims(letters, dimIdx) {
+  var inferenceScore = 0;
+  // 阵营 A：O/E/P/Ex（法益保护/积极派）；阵营 B：S/F/R/Re（罪刑法定/克制派）
+  var campA = ['O', 'E', 'P', 'Ex'];
+  var campB = ['S', 'F', 'R', 'Re'];
+  // 各维度的阵营 A 字母（推断结果偏阵营 A 时使用）
+  var campALetter = ['O', 'E', 'P', 'Ex'];
+  var campBLetter = ['S', 'F', 'R', 'Re'];
+  for (var k = 0; k < 4; k++) {
+    if (k === dimIdx) continue;          // 跳过当前平分维度
+    if (letters[k] === null) continue;   // 跳过未判定维度
+    if (campA.indexOf(letters[k]) >= 0) inferenceScore++;      // 偏阵营 A
+    else if (campB.indexOf(letters[k]) >= 0) inferenceScore--; // 偏阵营 B
+  }
+  if (inferenceScore > 0) return campALetter[dimIdx];  // 偏阵营 A
+  if (inferenceScore < 0) return campBLetter[dimIdx];  // 偏阵营 B
+  return null; // 其他三维也势均力敌（奇数个 ±1 求和不会为 0，理论不发生）
 }
 
 function getTypeKey(scoresObj) {
@@ -847,19 +903,40 @@ function getTypeKey(scoresObj) {
     { name: 'rp',   neg: 'R',  pos: 'P'  },
     { name: 'exre', neg: 'Ex', pos: 'Re' }
   ];
-  var letters = [];
+
+  // 第一轮：先用本维度题面分析判定每个维度
+  var letters = [null, null, null, null];
   for (var i = 0; i < 4; i++) {
     var d = dims[i];
-    if (scores[i] < 0) letters.push(d.neg);
-    else if (scores[i] > 0) letters.push(d.pos);
+    if (scores[i] < 0) letters[i] = d.neg;
+    else if (scores[i] > 0) letters[i] = d.pos;
     else {
-      // 总分=0，启用破平规则
+      // 总分=0，启用本维度破平规则
       var tie = breakTie(detail[d.name]);
-      if (tie === 'pro') letters.push(d.pos);
-      else if (tie === 'con') letters.push(d.neg);
-      else letters.push(null); // 维持中间型
+      if (tie === 'pro') letters[i] = d.pos;
+      else if (tie === 'con') letters[i] = d.neg;
+      else letters[i] = null; // 本维度无法判定，待跨维度推断
     }
   }
+
+  // 统计本维度无法判定的平分维度数
+  var unresolved = [];
+  for (var j = 0; j < 4; j++) {
+    if (letters[j] === null) unresolved.push(j);
+  }
+
+  // ≥2 个维度无法判定 → 缝合怪（跨维度推断也无法解决）
+  if (unresolved.length >= 2) return 'HYBRID';
+
+  // 1 个维度无法判定 → 启用跨维度推断
+  if (unresolved.length === 1) {
+    var idx = unresolved[0];
+    var inferred = inferFromOtherDims(letters, idx);
+    if (inferred) letters[idx] = inferred; // 直接赋值推断出的字母
+    // inferred === null 时维持 null（其他三维也势均力敌，理论不发生）
+  }
+
+  // 最终检查：仍有未判定维度 → 缝合怪
   if (letters.indexOf(null) >= 0) return 'HYBRID';
   return letters.join('-');
 }
@@ -903,7 +980,8 @@ function buildHybridResult(scores) {
     judgment: '你在某个（或某几个）维度上完美平衡，左和右的拉力在你体内达成了奇妙的均势。你不是没有立场，你是「所有立场都有道理」。在刑法界，你是一个让人又敬又怕的存在——因为你无法被预测。你可能在同一个案子里同时给出入罪和出罪的完美论证。',
     quote: '我两种观点都认同——这不叫摇摆，这叫辩证法。',
     friends: ['O-F-P-Re', 'S-E-R-Re', 'O-E-R-Re'], enemies: ['S-F-R-Ex', 'O-E-P-Ex'],
-    judge: ['😵 困惑', '🤯 更困惑', '📚 写论文']
+    judge: ['😵 困惑', '🤯 更困惑', '📚 写论文'],
+    career: { job: '有待观察', reason: '四个维度都没有明确的倾向，未必是测试出了问题。如果你在很多题上选了中立，说明你还处于刑法学立场的勘探期，你对报应还是预防、形式还是实质这些对立还没有切身的感知。这不是缺陷，大部分法学生在接触教义学之前都是这个状态。不妨先去法学院课堂里坐一年，去律所或法院轮转一圈，等你亲手碰过几个真实的案子，被法条和现实夹在中间碾过一次之后，再回头来测。到那时候你填出来的答案会跟今天很不一样。如果你每题都有明确态度却被编码抵消了，那你是另一种情况，并合主义在骨子里渗透得太深。你看得到报应刑的道理也看得到预防刑的逻辑，你尊重法条字面的力量也敬重规范目的的温度。你不是摇摆，你是两边都理解透了所以拒绝把一个简化过的标签贴给自己。法学教育、立法起草、企业法务或合规，这些需要综合视角的位置比任何一方的擂台都更让你自在。现在测出缝合怪，不是终点。过一两年再测一次，看看地图画到哪里了。' }
   };
 }
 
@@ -919,7 +997,10 @@ function renderResult(typeKey, p, scores) {
   document.getElementById('result-tags').innerHTML = tagsHtml;
 
   var axisHtml = '';
-  var dimNames = [['S', '立场', 'O'], ['F', '解释', 'E'], ['R', '目的', 'P'], ['Ex', '边界', 'Re']];
+  var dimNames = [['S', 'O'], ['F', 'E'], ['R', 'P'], ['Ex', 'Re']];
+  // 维度左右含义对照（2字精简版，S/O=主观/客观，F/E=形式/实质，R/P=报应/预防，Ex/Re=扩张/限缩）
+  var dimMeanings = [['主观', '客观'], ['形式', '实质'], ['报应', '预防'], ['扩张', '限缩']];
+  var monoFont = 'ui-monospace, "SF Mono", Consolas, monospace';
   for (var i = 0; i < 4; i++) {
     var score = scores[i];
     var c = axisColors[i];
@@ -930,24 +1011,52 @@ function renderResult(typeKey, p, scores) {
     var rightBarClass = score > 0 ? c.barActive : c.barInactive;
     var leftBarW = score < 0 ? (Math.abs(score) / maxAbs * 50) : 8;
     var rightBarW = score > 0 ? (score / maxAbs * 50) : 8;
+    // 分数偏向决定哪侧高亮：偏向侧字母+含义用维度色，另一侧弱化 muted
+    var leftActive = score < 0;
+    var rightActive = score > 0;
+    // 复合标签样式：字母 mono 维度色 + 分隔符 / + 含义 sans 弱化
+    var leftChipClass = leftActive
+      ? c.leftText + ' font-semibold'
+      : 'text-muted-foreground/60';
+    var rightChipClass = rightActive
+      ? c.leftText + ' font-semibold'
+      : 'text-muted-foreground/60';
 
-    axisHtml += '<div class="flex items-center gap-1 sm:gap-3">';
-    axisHtml += '<span class="w-8 sm:w-10 text-right text-xs font-semibold ' + c.leftText + ' shrink-0">' + dimNames[i][0] + '</span>';
-    axisHtml += '<span class="hidden sm:inline w-10 text-right text-xs text-muted-foreground shrink-0">' + dimNames[i][1] + '</span>';
+    // 坐标条主行：左复合标签 + 坐标条 + 分数 + 右复合标签
+    axisHtml += '<div class="flex items-center gap-2 sm:gap-3">';
+    // 左复合标签：S / 主观（mono 字母 + 斜杠 + sans 含义），偏向侧维度色加粗
+    axisHtml += '<span class="shrink-0 whitespace-nowrap text-[13px] flex items-baseline gap-1 ' + leftChipClass + '" style="min-width: 64px; justify-content: flex-end;">';
+    axisHtml += '<span style="font-family: ' + monoFont + '; font-weight: 700; letter-spacing: 0.02em;">' + dimNames[i][0] + '</span>';
+    axisHtml += '<span class="text-muted-foreground/40 text-[10px]">/</span>';
+    axisHtml += '<span class="text-[11px]">' + dimMeanings[i][0] + '</span>';
+    axisHtml += '</span>';
+    // 坐标条
     axisHtml += '<div class="flex-1 relative h-6 sm:h-7 flex items-center min-w-0">';
     axisHtml += '<div class="absolute right-1/2 top-1/2 -translate-y-1/2 h-4 sm:h-5 ' + leftBarClass + ' rounded-l-full" style="width:' + leftBarW + '%"></div>';
     axisHtml += '<div class="absolute left-1/2 top-1/2 -translate-y-1/2 h-4 sm:h-5 ' + rightBarClass + ' rounded-r-full" style="width:' + rightBarW + '%"></div>';
     axisHtml += '<div class="absolute left-1/2 top-0 bottom-0 w-px bg-border -translate-x-1/2"></div>';
     axisHtml += '<div class="absolute top-1/2 -translate-y-1/2 w-3 h-3 rounded-full ' + c.dot + ' border-2 border-white shadow-sm" style="left:' + indicatorLeft + '"></div>';
     axisHtml += '</div>';
-    axisHtml += '<span class="text-xs sm:text-sm font-bold ' + c.scoreText + ' w-8 text-center shrink-0">' + (score > 0 ? '+' : '') + score + '</span>';
-    axisHtml += '<span class="w-7 sm:w-10 text-left text-xs text-muted-foreground shrink-0">' + dimNames[i][2] + '</span>';
+    // 分数
+    axisHtml += '<span class="text-xs sm:text-sm font-bold ' + c.scoreText + ' w-7 text-center shrink-0" style="font-family: ' + monoFont + ';">' + (score > 0 ? '+' : '') + score + '</span>';
+    // 右复合标签：Re / 限缩
+    axisHtml += '<span class="shrink-0 whitespace-nowrap text-[13px] flex items-baseline gap-1 ' + rightChipClass + '" style="min-width: 64px;">';
+    axisHtml += '<span style="font-family: ' + monoFont + '; font-weight: 700; letter-spacing: 0.02em;">' + dimNames[i][1] + '</span>';
+    axisHtml += '<span class="text-muted-foreground/40 text-[10px]">/</span>';
+    axisHtml += '<span class="text-[11px]">' + dimMeanings[i][1] + '</span>';
+    axisHtml += '</span>';
     axisHtml += '</div>';
   }
   document.getElementById('axis-container').innerHTML = axisHtml;
 
   document.getElementById('result-judgment').textContent = p.judgment;
   document.getElementById('result-quote').textContent = '「' + p.quote + '」';
+
+  // 职业适配：job 用 semibold 主色突出，reason 用正文色 leading-relaxed
+  if (p.career) {
+    document.getElementById('result-career-job').textContent = p.career.job;
+    document.getElementById('result-career-reason').textContent = p.career.reason;
+  }
 
   var friendsHtml = '';
   p.friends.forEach(function(f) {
@@ -1022,7 +1131,9 @@ function saveAsImage() {
   // 用原生 Canvas 2D 绘制，严格还原页面结果页设计（仅判词及之前区块）
   try {
     var W = 420, PAD = 24, CW = W - PAD * 2, SCALE = 2;
-    var dimNames = [['S','立场','O'],['F','解释','E'],['R','目的','P'],['Ex','边界','Re']];
+    var dimNames = [['S','O'],['F','E'],['R','P'],['Ex','Re']];
+    // 维度左右含义对照（2字精简版，与 renderResult 内保持一致）
+    var dimMeanings = [['主观','客观'],['形式','实质'],['报应','预防'],['扩张','限缩']];
     // 与页面 axisColors 一致：indigo/amber/emerald/rose
     var axisColors = [
       { active: '#6366f1', inactive: '#e0e7ff', dot: '#4f46e5', leftText: '#4338ca', scoreText: '#4f46e5' },
@@ -1069,7 +1180,17 @@ function saveAsImage() {
         else cur = test;
       }
       if (cur) lines.push(cur);
-      return lines;
+      // 闭合标点禁则：若某行仅为孤立闭合标点（如「）」），合并回上一行，避免括号单独成行
+      var closing = '）)”’》」』〕〉';
+      var merged = [];
+      for (var j = 0; j < lines.length; j++) {
+        if (j > 0 && lines[j].length === 1 && closing.indexOf(lines[j]) >= 0) {
+          merged[merged.length - 1] += lines[j];
+        } else {
+          merged.push(lines[j]);
+        }
+      }
+      return merged;
     }
 
     // 预计算判词换行（页面 result-judgment 无内边距限制，按卡片内容宽度）
@@ -1084,13 +1205,44 @@ function saveAsImage() {
       tagX += w + 8;
     });
 
-    // 各区块高度（严格对应页面 section 间距）
-    var hHdr = 16 + 20 + 16 + 48 + 8 + 28 + 16 + tagRows * 28 + 32; // mb-10 = 40px → 32px 间距
-    var hAxis = 24 + 20 + 20 + 4 * 28 + 24; // p-6=24, 标题+mb-5=20+20, 4行*28, p-6=24
+    // 预计算 typeKeySize（自适应缩放，与绘制逻辑一致）
+    var typeKeySize = 48;
+    _m.font = '700 ' + typeKeySize + 'px "Inter",' + F;
+    while (_m.measureText(r.typeKey).width > CW && typeKeySize > 20) {
+      typeKeySize -= 2;
+      _m.font = '700 ' + typeKeySize + 'px "Inter",' + F;
+    }
+
+    // 各区块高度（严格对应绘制流程）
+    // hHdr = 16(起点) + 24(标签) + 16(间距) + typeKeySize + 8(间距) + 24(昵称) + 16(间距) + tagRows*32-8(tags，每行24+8间距，末行减8) + 32(到坐标轴间距)
+    //      = 128 + typeKeySize + tagRows * 32
+    var hHdr = 128 + typeKeySize + tagRows * 32;
+    var hAxis = 24 + 20 + 20 + 4 * 28 + 24; // p-6=24, 标题+mb-5=20+20, 4行*28(复合标签单行)+ p-6=24
     var hJudg = 24 + 24 + 12 + jLines.length * 22 + 24; // p-6=24, 标题+mb-3=24+12, 正文行高22, p-6=24
+    // 互粉互怼卡片：动态高度，每条 list 可能换行（typeKey+nickname 字符数不定）
+    var peersW = (W - PAD * 2 - 16) / 2; // 两列各占一半，中间 gap 16
+    var peersContentW = peersW - 40; // 卡片内可用文字宽（p-5=20 两侧）
+    // 预计算每条 list 的换行行数，取 friends 和 enemies 中最大行数作为卡片高度依据
+    var friendsLines = r.p.friends.map(function(fk) {
+      var nick = personalities[fk] ? personalities[fk].nickname : fk;
+      return wrap(fk + '（' + nick + '）', peersContentW, '13px ' + F);
+    });
+    var enemiesLines = r.p.enemies.map(function(ek) {
+      var nick = personalities[ek] ? personalities[ek].nickname : ek;
+      return wrap(ek + '（' + nick + '）', peersContentW, '13px ' + F);
+    });
+    var maxLines = Math.max(
+      friendsLines.reduce(function(s, ls) { return s + ls.length; }, 0),
+      enemiesLines.reduce(function(s, ls) { return s + ls.length; }, 0)
+    );
+    // 卡片高度：p-5(20) + 标题行(20) + mb-3(12) + 13px baseline 偏移 + list(18px 行高 × 总行数 + 8px 条间距 × 条数，含末条) + 3px 字体下沿 + p-5(20)
+    // 注意：textBaseline='alphabetic'，baseline 偏移 13px + 字体下沿 3px = 16px 额外高度
+    var hPeers = 20 + 20 + 12 + 13 + 18 * maxLines + 8 * Math.max(r.p.friends.length, r.p.enemies.length) + 3 + 20;
+    // 法官表情卡片：p-6=24 + 标题 24 + mb-4=16 + emoji 区 60 + p-6=24 = 148
+    var hJudge = 148;
     // 品牌性收尾 footer：分隔线上间距 16 + 分隔线 1 + footer 区 106
     var hFooter = 16 + 1 + 106;
-    var totalH = hHdr + hAxis + 32 + hJudg + hFooter; // 卡片间 mb-8=32
+    var totalH = hHdr + hAxis + 32 + hJudg + 32 + hPeers + 40 + hJudge + hFooter;
 
     var canvas = document.createElement('canvas');
     canvas.width = W * SCALE;
@@ -1116,11 +1268,11 @@ function saveAsImage() {
     ctx.fillText('你的刑格类型', cx, y + 5);
     y += 24 + 16;
 
-    // 类型码（页面：text-5xl font-bold）
-    ctx.font = '700 48px "Inter",' + F;
+    // 类型码（页面：text-5xl font-bold）—— typeKeySize 已在预计算区确定（自适应缩放）
+    ctx.font = '700 ' + typeKeySize + 'px "Inter",' + F;
     ctx.fillStyle = '#0f172a';
     ctx.fillText(r.typeKey, cx, y);
-    y += 48 + 8;
+    y += typeKeySize + 8;
 
     // 昵称（页面：text-2xl font-semibold text-primary）
     ctx.font = '600 24px ' + F;
@@ -1170,28 +1322,48 @@ function saveAsImage() {
     ctx.fillText('四维人格坐标', PAD + 24, iy);
     iy += 20 + 20;
 
+    // 复合标签 mono 字体（呼应主站 GJ 标识风格，轻度赛博朋克）
+    var monoF = '"SF Mono", Consolas, ui-monospace, monospace';
+    // 复合标签宽度：字母(约 14px) + 间距 + / + 间距 + 含义(2字约 22px) ≈ 64px
+    var chipW = 64, gap = 12, scoreW = 28;
     for (var i = 0; i < 4; i++) {
       var score = r.scores[i];
       var c = axisColors[i];
-      // 页面布局：左字母 w-10 + 中文 w-10 + 坐标条 flex-1 + 分数 w-8 + 右字母 w-10
-      var letterLX = PAD + 24;
-      var dimNameX = letterLX + 40;
-      var barL = dimNameX + 40 + 4;
-      var barR = PAD + CW - 24 - 40 - 32 - 4;
+      // 新布局：左复合标签(chipW) + gap + 坐标条(flex-1) + gap + 分数(scoreW) + gap + 右复合标签(chipW)
+      var chipLX = PAD + 24;
+      var barL = chipLX + chipW + gap;
+      var barR = PAD + CW - 24 - chipW - gap - scoreW - gap;
       var barW = barR - barL;
       var midX = barL + barW / 2;
+      var scoreCX = barR + gap + scoreW / 2;
+      var chipRX = scoreCX + scoreW / 2 + gap;
       var rowY = iy;
 
-      // 左字母（页面：text-xs font-semibold leftText）
-      ctx.font = '600 12px "Inter",sans-serif';
-      ctx.fillStyle = c.leftText;
-      ctx.textAlign = 'right';
-      ctx.fillText(dimNames[i][0], letterLX + 32, rowY + 5);
-      // 中文维度名（页面：hidden sm:inline text-xs text-muted-foreground）
-      ctx.font = '12px ' + F;
-      ctx.fillStyle = MUTED;
-      ctx.textAlign = 'right';
-      ctx.fillText(dimNames[i][1], dimNameX + 32, rowY + 5);
+      // 左复合标签：字母 mono 维度色 + / 弱化 + 含义 sans（偏向侧加粗着色）
+      // 字母右对齐到 chipLX+chipW-含义宽度-gap-斜杠宽度，简化为：字母靠右、含义紧随其后
+      // 布局：[字母 mono][ / ][含义 sans]，整体右对齐到 chipLX+chipW
+      var leftActive = score < 0;
+      var leftColor = leftActive ? c.leftText : '#94a3b8';
+      var leftWeight = leftActive ? '700 ' : '400 ';
+      // 测量含义宽度以定位字母
+      ctx.font = (leftActive ? '600 ' : '400 ') + '11px ' + F;
+      var leftMeaningW = _m.measureText(dimMeanings[i][0]).width;
+      ctx.font = '10px ' + F;
+      var slashW = _m.measureText(' / ').width;
+      // 字母右对齐位置 = chipLX+chipW - 含义宽 - 斜杠宽
+      var leftLetterX = chipLX + chipW - leftMeaningW - slashW;
+      ctx.font = leftWeight + '14px ' + monoF;
+      ctx.fillStyle = leftColor;
+      ctx.textAlign = 'left';
+      ctx.fillText(dimNames[i][0], leftLetterX, rowY + 5);
+      // 斜杠分隔符（弱化）
+      ctx.font = '10px ' + F;
+      ctx.fillStyle = '#cbd5e1';
+      ctx.fillText('/', leftLetterX + _m.measureText(dimNames[i][0]).width + 4, rowY + 5);
+      // 含义
+      ctx.font = (leftActive ? '600 ' : '400 ') + '11px ' + F;
+      ctx.fillStyle = leftColor;
+      ctx.fillText(dimMeanings[i][0], chipLX + chipW - leftMeaningW, rowY + 5);
 
       // 坐标条背景（页面：inactive 侧 8% 宽度细线）
       ctx.fillStyle = c.inactive;
@@ -1217,18 +1389,32 @@ function saveAsImage() {
       ctx.strokeStyle = '#ffffff'; ctx.lineWidth = 2;
       ctx.stroke();
 
-      // 分数（页面：text-sm font-bold scoreText w-8 text-center）
-      ctx.font = '700 14px "Inter",sans-serif';
+      // 分数（页面：mono 字体维度色，赛博风）
+      ctx.font = '700 14px ' + monoF;
       ctx.fillStyle = c.scoreText;
       ctx.textAlign = 'center';
-      ctx.fillText((score > 0 ? '+' : '') + score, barR + 16, rowY + 4);
-      // 右字母（页面：text-xs text-muted-foreground w-10）
-      ctx.font = '12px "Inter",sans-serif';
-      ctx.fillStyle = MUTED;
-      ctx.textAlign = 'left';
-      ctx.fillText(dimNames[i][2], barR + 36, rowY + 5);
+      ctx.fillText((score > 0 ? '+' : '') + score, scoreCX, rowY + 5);
 
-      iy += 28;
+      // 右复合标签：字母 mono + / + 含义 sans（左对齐到 chipRX）
+      var rightActive = score > 0;
+      var rightColor = rightActive ? c.leftText : '#94a3b8';
+      var rightWeight = rightActive ? '700 ' : '400 ';
+      // 字母左对齐到 chipRX
+      ctx.font = rightWeight + '14px ' + monoF;
+      ctx.fillStyle = rightColor;
+      ctx.textAlign = 'left';
+      ctx.fillText(dimNames[i][1], chipRX, rowY + 5);
+      // 斜杠
+      var rightLetterW = _m.measureText(dimNames[i][1]).width;
+      ctx.font = '10px ' + F;
+      ctx.fillStyle = '#cbd5e1';
+      ctx.fillText('/', chipRX + rightLetterW + 4, rowY + 5);
+      // 含义
+      ctx.font = (rightActive ? '600 ' : '400 ') + '11px ' + F;
+      ctx.fillStyle = rightColor;
+      ctx.fillText(dimMeanings[i][1], chipRX + rightLetterW + slashW, rowY + 5);
+
+      iy += 28; // 单行布局，行高 28px
     }
     y += hAxis + 32;
 
@@ -1257,6 +1443,99 @@ function saveAsImage() {
       iy += 22;
     });
 
+    /* ============ 互粉 / 互怼 section（判词卡片下方 32px，两列并排） ============ */
+    var peersY = y + hJudg + 32;
+    var peersH = hPeers;
+
+    // 左卡：互粉（emerald 浅底）
+    rr(ctx, PAD, peersY, peersW, peersH, 8);
+    ctx.fillStyle = '#ecfdf5'; // emerald-50
+    ctx.fill();
+    ctx.strokeStyle = '#a7f3d0'; // emerald-200
+    ctx.lineWidth = 1;
+    ctx.stroke();
+    // 左卡标题：互粉
+    ctx.font = '600 14px ' + F;
+    ctx.fillStyle = '#047857'; // emerald-700
+    ctx.textAlign = 'left';
+    ctx.textBaseline = 'alphabetic';
+    ctx.fillText('互粉', PAD + 20, peersY + 20 + 14);
+    // 左卡 list（friends）—— 每条按预计算行数多行绘制，避免文字溢出卡片
+    ctx.font = '400 13px ' + F;
+    ctx.fillStyle = '#1e293b';
+    var listY = peersY + 20 + 20 + 12 + 13; // 第一条 baseline
+    friendsLines.forEach(function(lines, idx) {
+      lines.forEach(function(ln) {
+        ctx.fillText(ln, PAD + 20, listY);
+        listY += 18;
+      });
+      listY += 8; // 条间距
+    });
+
+    // 右卡：互怼（rose 浅底）
+    var rightX = PAD + peersW + 16;
+    rr(ctx, rightX, peersY, peersW, peersH, 8);
+    ctx.fillStyle = '#fff1f2'; // rose-50
+    ctx.fill();
+    ctx.strokeStyle = '#fecdd3'; // rose-200
+    ctx.stroke();
+    // 右卡标题：互怼
+    ctx.font = '600 14px ' + F;
+    ctx.fillStyle = '#be123c'; // rose-700
+    ctx.fillText('互怼', rightX + 20, peersY + 20 + 14);
+    // 右卡 list（enemies）—— 同 friends 多行绘制
+    ctx.font = '400 13px ' + F;
+    ctx.fillStyle = '#1e293b';
+    listY = peersY + 20 + 20 + 12 + 13;
+    enemiesLines.forEach(function(lines, idx) {
+      lines.forEach(function(ln) {
+        ctx.fillText(ln, rightX + 20, listY);
+        listY += 18;
+      });
+      listY += 8; // 条间距
+    });
+
+    /* ============ 法官表情 section（互粉互怼下方 40px，单卡片） ============ */
+    var judgeY = peersY + peersH + 40;
+    var judgeH = hJudge;
+    // 卡片背景
+    rr(ctx, PAD, judgeY, W - PAD * 2, judgeH, 12);
+    ctx.fillStyle = '#ffffff';
+    ctx.fill();
+    ctx.strokeStyle = BORDER;
+    ctx.lineWidth = 1;
+    ctx.stroke();
+    // 标题：如果当法官，被告人的表情
+    ctx.font = '600 18px ' + F;
+    ctx.fillStyle = '#0f172a';
+    ctx.textAlign = 'left';
+    ctx.fillText('如果当法官，被告人的表情', PAD + 24, judgeY + 24 + 18);
+    // emoji + label + chevron 横向排列，居中
+    var emojiY = judgeY + 24 + 24 + 16 + 36; // emoji baseline
+    var itemW = 90; // 每个 emoji+label 单元宽度
+    var totalItemsW = r.p.judge.length * itemW + (r.p.judge.length - 1) * 24; // chevron 24px
+    var startX = PAD + (W - PAD * 2 - totalItemsW) / 2;
+    r.p.judge.forEach(function(j, idx) {
+      var parts = j.split(' ');
+      var emoji = parts[0];
+      var label = parts.slice(1).join(' ');
+      var cx = startX + idx * (itemW + 24);
+      // emoji（text-4xl ≈ 36px）
+      ctx.font = '36px ' + F;
+      ctx.textAlign = 'center';
+      ctx.fillText(emoji, cx + itemW / 2, emojiY);
+      // label（text-xs muted）
+      ctx.font = '400 12px ' + F;
+      ctx.fillStyle = '#64748b';
+      ctx.fillText(label, cx + itemW / 2, emojiY + 18);
+      // chevron（除最后一个外）
+      if (idx < r.p.judge.length - 1) {
+        ctx.font = '400 16px ' + F;
+        ctx.fillStyle = '#94a3b8';
+        ctx.fillText('›', cx + itemW + 12, emojiY - 4);
+      }
+    });
+
     /* ============ 品牌性收尾 footer：融合色带 + 横贯分隔线 + 左 QR 右文案 ============
        构图：判词卡片下方 16px 处画 1px 横贯分隔线（#e2e8f0），
              下方 106px footer 区：左侧 70×70 圆点化 QR（indigo 主色 #3730a3），
@@ -1265,7 +1544,7 @@ function saveAsImage() {
     */
     try {
       // 分隔线（横贯整宽，PAD 左到 PAD 右）
-      var sepY = y + hJudg + 16;
+      var sepY = judgeY + hJudge + 16;
       ctx.strokeStyle = BORDER; // #e2e8f0
       ctx.lineWidth = 1;
       ctx.beginPath();
