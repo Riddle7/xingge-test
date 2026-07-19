@@ -1,6 +1,7 @@
 // CPTI 统计 Worker - 单文件后端
+// 后端存储：Cloudflare D1（SQL 数据库，原子 UPDATE，免费 100k writes/day）
+// 缓存层：  Cloudflare Cache API（边缘节点共享 L2，5 分钟 TTL）
 // 部署：wrangler deploy
-// KV 绑定：CPTI_STATS（在 wrangler.toml 中配置）
 
 // 16 种合法人格代码（白名单） + 第 17 类 HYBRID（终极缝合怪）
 const TYPES = [
@@ -62,20 +63,20 @@ async function getStatsCached(env, ctx) {
     return { total: data.total, stats: data.stats, source: 'L2' };
   }
 
-  // 未命中：读 KV
-  const pairs = await Promise.all(TYPES.map(async (t) => {
-    const v = await env.CPTI_STATS.get('count_' + t);
-    return [t, v ? parseInt(v, 10) : 0];
-  }));
+  // 未命中：读 D1（一次 SELECT 拿全部 17 行）
+  const { results } = await env.CPTI_DB.prepare(
+    'SELECT type, count FROM counts'
+  ).all();
+
   const counts = {};
   let total = 0;
-  for (const [t, c] of pairs) {
-    counts[t] = c;
-    total += c;
+  for (const row of results) {
+    counts[row.type] = row.count;
+    total += row.count;
   }
   const stats = {};
   for (const t of TYPES) {
-    const c = counts[t];
+    const c = counts[t] || 0;
     const percent = total > 0 ? ((c / total) * 100).toFixed(1) : '0.0';
     stats[t] = { count: c, percent: percent };
   }
@@ -89,7 +90,7 @@ async function getStatsCached(env, ctx) {
   });
   ctx.waitUntil(cache.put(cacheReq, respToCache.clone()));
 
-  return { total, stats, source: 'KV' };
+  return { total, stats, source: 'D1' };
 }
 
 // 写入后立即失效 L2：保证刚提交的用户能看到自己那一票
@@ -107,14 +108,105 @@ async function handleRecord(request, env, ctx) {
   const type = normalizeType(rawType);
   if (!type) return json({ success: false, error: 'invalid type' }, 400);
 
-  const key = 'count_' + type;
-  // KV 读-改-写：高并发下可能少许丢失，统计场景可接受
-  const cur = parseInt(await env.CPTI_STATS.get(key) || '0', 10);
-  const next = cur + 1;
-  await env.CPTI_STATS.put(key, String(next));
-  // 失效 L1 + L2：让下一次 GET /api/stats 重新读 KV
+  // D1 原子 UPDATE：高并发下不会丢数据（相比 KV 读-改-写）
+  // RETURNING 让我们直接拿到最新 count，无需二次查询
+  const stmt = env.CPTI_DB.prepare(
+    'UPDATE counts SET count = count + 1 WHERE type = ? RETURNING count'
+  ).bind(type);
+  const result = await stmt.first();
+  const newCount = result ? result.count : 0;
+
+  // 失效 L2：让下一次 GET /api/stats 重新读 D1
   invalidateStatsCache(ctx);
-  return json({ success: true, count: next, type: type });
+  return json({ success: true, count: newCount, type: type });
+}
+
+// ============ 访客计数（总访问量 + 今日访问量） ============
+// 数据模型：visits 表，单行 per key
+//   'total'                 -> 累计总访问量
+//   'today_<YYYY-MM-DD>'    -> 当日访问量（UTC 日期；每天一个新行，历史行保留不删）
+// 缓存策略：与 stats 不同，访客数容忍短时不一致，使用 60 秒 L2 缓存
+
+const VISITS_CACHE_TTL = 60 * 1000; // 60 秒
+const VISITS_CACHE_URL = 'https://cpti-stats.local/api/visits-cache';
+
+function getTodayUtcKey() {
+  // UTC 日期作为 today key：UTC 00:00 切换（北京 08:00）
+  return 'today_' + new Date().toISOString().slice(0, 10);
+}
+
+async function getVisitsCached(env, ctx) {
+  const cache = caches.default;
+  const cacheReq = new Request(VISITS_CACHE_URL);
+  const cachedResp = await cache.match(cacheReq);
+  if (cachedResp) {
+    const data = await cachedResp.json();
+    return { total: data.total, today: data.today, source: 'L2' };
+  }
+
+  const todayKey = getTodayUtcKey();
+  // 并发查 total + today
+  const [totalRow, todayRow] = await Promise.all([
+    env.CPTI_DB.prepare("SELECT count FROM visits WHERE key = 'total'").first(),
+    env.CPTI_DB.prepare('SELECT count FROM visits WHERE key = ?').bind(todayKey).first()
+  ]);
+  const total = totalRow ? totalRow.count : 0;
+  const today = todayRow ? todayRow.count : 0;
+
+  // 写入 L2（60s TTL）
+  const respToCache = new Response(JSON.stringify({ total, today }), {
+    headers: {
+      'Content-Type': 'application/json; charset=utf-8',
+      'Cache-Control': 'max-age=60'
+    }
+  });
+  ctx.waitUntil(cache.put(cacheReq, respToCache.clone()));
+
+  return { total, today, source: 'D1' };
+}
+
+function invalidateVisitsCache(ctx) {
+  if (ctx && ctx.waitUntil) {
+    const cache = caches.default;
+    ctx.waitUntil(cache.delete(new Request(VISITS_CACHE_URL)));
+  }
+}
+
+// POST /api/visit  -> 计一次访问（total +1, today +1，原子 UPSERT）
+async function handleVisit(env, ctx) {
+  const todayKey = getTodayUtcKey();
+  const now = new Date().toISOString();
+
+  // 批量原子 UPSERT：D1 batch 保证两个语句在同一事务里
+  // total 行：已存在则 +1，不存在则插入 1
+  // today 行：当天第一次访问时插入，之后 +1
+  const stmts = [
+    env.CPTI_DB.prepare(
+      "INSERT INTO visits (key, count, updated_at) VALUES ('total', 1, ?) ON CONFLICT(key) DO UPDATE SET count = count + 1, updated_at = ?"
+    ).bind(now, now),
+    env.CPTI_DB.prepare(
+      'INSERT INTO visits (key, count, updated_at) VALUES (?, 1, ?) ON CONFLICT(key) DO UPDATE SET count = count + 1, updated_at = ?'
+    ).bind(todayKey, now, now)
+  ];
+  await env.CPTI_DB.batch(stmts);
+
+  // 失效 L2 缓存
+  invalidateVisitsCache(ctx);
+  return json({ success: true });
+}
+
+// GET /api/visits  -> { total, today }
+async function handleVisits(env, ctx) {
+  const result = await getVisitsCached(env, ctx);
+  const body = JSON.stringify({ total: result.total, today: result.today });
+  return new Response(body, {
+    status: 200,
+    headers: {
+      'Content-Type': 'application/json; charset=utf-8',
+      'X-Cache-Source': result.source, // L2 / D1
+      ...CORS_HEADERS
+    }
+  });
 }
 
 // GET /api/stats
@@ -125,7 +217,7 @@ async function handleStats(env, ctx) {
     status: 200,
     headers: {
       'Content-Type': 'application/json; charset=utf-8',
-      'X-Cache-Source': result.source, // L2 / KV
+      'X-Cache-Source': result.source, // L2 / D1
       ...CORS_HEADERS
     }
   });
@@ -147,13 +239,20 @@ export default {
     if (url.pathname === '/api/stats' && request.method === 'GET') {
       return handleStats(env, ctx);
     }
+    if (url.pathname === '/api/visit' && request.method === 'POST') {
+      return handleVisit(env, ctx);
+    }
+    if (url.pathname === '/api/visits' && request.method === 'GET') {
+      return handleVisits(env, ctx);
+    }
 
     // 根路径返回简单状态信息
     if (url.pathname === '/' || url.pathname === '') {
       return json({
         name: 'cpti-stats',
-        endpoints: ['/api/record', '/api/stats'],
-        version: '1.0.0'
+        endpoints: ['/api/record', '/api/stats', '/api/visit', '/api/visits'],
+        version: '2.1.0',
+        storage: 'D1'
       });
     }
 

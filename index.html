@@ -260,6 +260,132 @@
     }
     .mobile-menu.is-open { max-height: 320px; }
 
+    /* ============ 访客计数器（轻度赛博朋克） ============
+       设计原则：
+       - 继承主站 Apple-clean 调性（JetBrains Mono + 中性灰阶）
+       - 赛博朋克点缀仅限数据语义层：cyan-400 数字微光 + emerald 状态点 + 扫描线纹理
+       - 不与品牌蓝 (#007aff) 竞争，cyan 仅作为"实时数据"语义色
+       - 深色模式下数字微光更明显（黑底更出片），但仍保持克制
+    */
+    .visit-counter {
+      position: relative;
+      overflow: hidden;
+    }
+    /* 扫描线纹理：极淡，仅作背景层语义提示 */
+    .visit-counter::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      background-image: repeating-linear-gradient(
+        0deg,
+        transparent 0,
+        transparent 3px,
+        rgba(34, 211, 238, 0.025) 3px,
+        rgba(34, 211, 238, 0.025) 4px
+      );
+      opacity: 0.6;
+      transition: opacity 0.4s ease;
+    }
+    .visit-counter:hover::before { opacity: 1; }
+    [data-theme="dark"] .visit-counter::before {
+      background-image: repeating-linear-gradient(
+        0deg,
+        transparent 0,
+        transparent 3px,
+        rgba(34, 211, 238, 0.06) 3px,
+        rgba(34, 211, 238, 0.06) 4px
+      );
+    }
+
+    /* 状态点：emerald-400 呼吸（实时在线语义） */
+    .visit-status-dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 999px;
+      background: #10b981;
+      box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.6);
+      animation: visit-pulse 2.4s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+      display: inline-block;
+      flex-shrink: 0;
+    }
+    @keyframes visit-pulse {
+      0%, 100% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.6); }
+      50% { box-shadow: 0 0 0 5px rgba(16, 185, 129, 0); }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      .visit-status-dot { animation: none; box-shadow: 0 0 6px rgba(16, 185, 129, 0.4); }
+    }
+
+    /* LIVE 标签：mono uppercase，弱化权重 */
+    .visit-live-label {
+      font-family: var(--font-mono);
+      font-size: 10px;
+      letter-spacing: 0.18em;
+      color: var(--color-text-400);
+      font-weight: 600;
+    }
+
+    /* 数据标签（TOTAL / TODAY）：极淡 mono */
+    .visit-label {
+      font-family: var(--font-mono);
+      font-size: 10px;
+      letter-spacing: 0.16em;
+      color: var(--color-text-300);
+      font-weight: 500;
+    }
+
+    /* 数据值：cyan-400 微光，等宽对齐 */
+    .visit-value {
+      font-family: var(--font-mono);
+      font-size: 13px;
+      font-weight: 600;
+      color: #0891b2; /* cyan-600，浅色主题下保持对比度 */
+      font-variant-numeric: tabular-nums;
+      letter-spacing: 0.02em;
+      text-shadow: 0 0 12px rgba(34, 211, 238, 0.25);
+      transition: color 0.3s ease, text-shadow 0.3s ease;
+      min-width: 3ch;
+      text-align: right;
+    }
+    [data-theme="dark"] .visit-value {
+      color: #22d3ee; /* cyan-400，深色主题下更亮 */
+      text-shadow: 0 0 14px rgba(34, 211, 238, 0.5);
+    }
+    /* 数字加载完成时的微闪烁（强化"实时"语义） */
+    .visit-value.flash {
+      animation: visit-flash 0.6s ease-out;
+    }
+    @keyframes visit-flash {
+      0% { color: #22d3ee; text-shadow: 0 0 18px rgba(34, 211, 238, 0.8); }
+      100% { color: inherit; text-shadow: 0 0 12px rgba(34, 211, 238, 0.25); }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      .visit-value.flash { animation: none; }
+    }
+
+    /* 分隔符：极淡竖线 */
+    .visit-sep {
+      display: inline-block;
+      width: 1px;
+      height: 10px;
+      background: var(--color-background-300);
+      flex-shrink: 0;
+    }
+
+    /* 容器布局：响应式 */
+    .visit-row {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 14px;
+      font-family: var(--font-mono);
+    }
+    @media (max-width: 480px) {
+      .visit-row { gap: 10px; font-size: 10px; }
+      .visit-value { font-size: 12px; }
+    }
+
     /* 主题切换按钮图标淡入淡出 */
     .theme-toggle .sun,
     .theme-toggle .moon {
@@ -918,6 +1044,26 @@
           CC BY-NC 4.0
         </a>
       </div>
+
+      <!-- 访客计数器（轻度赛博朋克）：实时数据指示器 -->
+      <div class="visit-counter scroll-reveal mt-8 pt-6 border-t border-dashed border-[var(--color-background-300)]">
+        <div class="visit-row">
+          <div class="flex items-center gap-2">
+            <span class="visit-status-dot" aria-hidden="true"></span>
+            <span class="visit-live-label">LIVE</span>
+          </div>
+          <span class="visit-sep" aria-hidden="true"></span>
+          <div class="flex items-center gap-2">
+            <span class="visit-label">TOTAL</span>
+            <span class="visit-value" id="visit-total" aria-label="总访问量">——</span>
+          </div>
+          <span class="visit-sep" aria-hidden="true"></span>
+          <div class="flex items-center gap-2">
+            <span class="visit-label">TODAY</span>
+            <span class="visit-value" id="visit-today" aria-label="今日访问量">——</span>
+          </div>
+        </div>
+      </div>
     </div>
   </footer>
 
@@ -1423,6 +1569,88 @@
     document.getElementById('voteYes').addEventListener('click', () => handleChoice('yes'));
     document.getElementById('voteNo').addEventListener('click', () => handleChoice('no'));
     resetBtn.addEventListener('click', resetCollision);
+
+    /* ============ 访客计数器（轻度赛博朋克） ============
+       - 后端：Cloudflare Worker + D1（stats.generative-jurisprudence.top）
+       - 防刷：localStorage 'gj_visited_v2' 记录上次访问日期（UTC）
+       - 同一浏览器当日多次访问只计 1 次 total + 1 次 today
+       - 跨日（UTC 00:00 切换）会再计 1 次
+       - GET /api/visits 始终拿最新数（L2 缓存 60s）
+    */
+    (function initVisitCounter() {
+      var API_BASE = 'https://stats.generative-jurisprudence.top';
+      var STORAGE_KEY = 'gj_visited_v2';
+      var totalEl = document.getElementById('visit-total');
+      var todayEl = document.getElementById('visit-today');
+      if (!totalEl || !todayEl) return;
+
+      function getTodayUtc() {
+        return new Date().toISOString().slice(0, 10);
+      }
+
+      function formatNumber(n) {
+        // 千分位逗号分隔，等宽字体下数字对齐
+        return String(n).replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+      }
+
+      function flashValue(el, value) {
+        el.textContent = formatNumber(value);
+        // 触发微闪烁动画
+        el.classList.remove('flash');
+        // 强制 reflow 让 animation 重新触发
+        void el.offsetWidth;
+        el.classList.add('flash');
+      }
+
+      function renderVisits(data) {
+        if (typeof data.total === 'number') flashValue(totalEl, data.total);
+        if (typeof data.today === 'number') flashValue(todayEl, data.today);
+      }
+
+      function fetchVisits() {
+        return fetch(API_BASE + '/api/visits', { method: 'GET' })
+          .then(function (r) { return r.ok ? r.json() : null; })
+          .catch(function () { return null; });
+      }
+
+      function recordVisit() {
+        return fetch(API_BASE + '/api/visit', { method: 'POST' })
+          .then(function (r) { return r.ok; })
+          .catch(function () { return false; });
+      }
+
+      // 主流程：先 GET 拿当前数立即渲染，再按需 POST 计数并刷新
+      function run() {
+        // 步骤 1：立即 GET 拿当前数（不等 POST，避免首屏空白）
+        fetchVisits().then(function (data) {
+          if (data) renderVisits(data);
+        });
+
+        // 步骤 2：检查 localStorage 防刷
+        var today = getTodayUtc();
+        var lastVisited = '';
+        try { lastVisited = localStorage.getItem(STORAGE_KEY) || ''; } catch (e) {}
+        if (lastVisited === today) {
+          // 今天已计过，不再 POST
+          return;
+        }
+
+        // 步骤 3：POST 计数（异步，不阻塞渲染）
+        recordVisit().then(function (ok) {
+          if (!ok) return;
+          try { localStorage.setItem(STORAGE_KEY, today); } catch (e) {}
+          // 计数成功后，等 800ms 再 GET 拿最新数（让 L2 缓存失效传播）
+          setTimeout(function () {
+            fetchVisits().then(function (data) {
+              if (data) renderVisits(data);
+            });
+          }, 800);
+        });
+      }
+
+      // 延迟 300ms 启动，避免与首屏渲染争抢资源
+      setTimeout(run, 300);
+    })();
   </script>
 </body>
 </html>

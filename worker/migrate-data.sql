@@ -1,0 +1,20 @@
+﻿-- 浠?KV 杩佺Щ鐜版湁璁℃暟鍒?D1
+UPDATE counts SET count = 28 WHERE type = 'S-F-R-Re';
+UPDATE counts SET count = 62 WHERE type = 'S-F-R-E';
+UPDATE counts SET count = 21 WHERE type = 'S-F-P-Re';
+UPDATE counts SET count = 9 WHERE type = 'S-F-P-E';
+UPDATE counts SET count = 98 WHERE type = 'S-M-R-Re';
+UPDATE counts SET count = 178 WHERE type = 'S-M-R-E';
+UPDATE counts SET count = 49 WHERE type = 'S-M-P-Re';
+UPDATE counts SET count = 224 WHERE type = 'S-M-P-E';
+UPDATE counts SET count = 23 WHERE type = 'O-F-R-Re';
+UPDATE counts SET count = 15 WHERE type = 'O-F-R-E';
+UPDATE counts SET count = 3 WHERE type = 'O-F-P-Re';
+UPDATE counts SET count = 6 WHERE type = 'O-F-P-E';
+UPDATE counts SET count = 23 WHERE type = 'O-M-R-Re';
+UPDATE counts SET count = 116 WHERE type = 'O-M-R-E';
+UPDATE counts SET count = 40 WHERE type = 'O-M-P-Re';
+UPDATE counts SET count = 73 WHERE type = 'O-M-P-E';
+UPDATE counts SET count = 99 WHERE type = 'HYBRID';
+INSERT OR REPLACE INTO meta (key, value) VALUES ('migrated_total', '1067');
+INSERT OR REPLACE INTO meta (key, value) VALUES ('migrated_at', datetime('now'));

@@ -2,9 +2,14 @@ name = "cpti-stats"
 main = "stats.js"
 compatibility_date = "2025-01-01"
 
-# KV 命名空间绑定（id 在创建 KV 后由 wrangler kv namespace create 返回）
-# 首次部署前，请用 `npx wrangler kv namespace create CPTI_STATS` 创建
-# 然后把返回的 id 填到下方 id 字段
+# D1 数据库绑定（主存储：原子 UPDATE，免费 100k writes/day）
+[[d1_databases]]
+binding = "CPTI_DB"
+database_name = "cpti-stats-db"
+database_id = "1251f43d-3289-4dbc-b433-1da047a4829e"
+
+# KV 命名空间绑定（已迁移到 D1，保留为只读历史备份）
+# 新数据不再写入 KV；如需彻底清理可删除此绑定
 [[kv_namespaces]]
 binding = "CPTI_STATS"
 id = "a545507099364a4b8671efa89988afd0"
