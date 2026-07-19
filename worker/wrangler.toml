@@ -1,0 +1,10 @@
+name = "cpti-stats"
+main = "stats.js"
+compatibility_date = "2025-01-01"
+
+# KV 命名空间绑定（id 在创建 KV 后由 wrangler kv namespace create 返回）
+# 首次部署前，请用 `npx wrangler kv namespace create CPTI_STATS` 创建
+# 然后把返回的 id 填到下方 id 字段
+[[kv_namespaces]]
+binding = "CPTI_STATS"
+id = "a545507099364a4b8671efa89988afd0"
