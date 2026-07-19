@@ -2,12 +2,13 @@
 // 部署：wrangler deploy
 // KV 绑定：CPTI_STATS（在 wrangler.toml 中配置）
 
-// 16 种合法人格代码（白名单）
+// 16 种合法人格代码（白名单） + 第 17 类 HYBRID（终极缝合怪）
 const TYPES = [
   'S-F-R-Re','S-F-R-E','S-F-P-Re','S-F-P-E',
   'S-M-R-Re','S-M-R-E','S-M-P-Re','S-M-P-E',
   'O-F-R-Re','O-F-R-E','O-F-P-Re','O-F-P-E',
-  'O-M-R-Re','O-M-R-E','O-M-P-Re','O-M-P-E'
+  'O-M-R-Re','O-M-R-E','O-M-P-Re','O-M-P-E',
+  'HYBRID'
 ];
 
 // 兼容无分隔符写法（SOFE 等）
@@ -39,6 +40,8 @@ function normalizeType(raw) {
   const t = raw.trim();
   if (TYPES.includes(t)) return t;
   if (COMPACT_MAP[t]) return COMPACT_MAP[t];
+  // 带斜杠的复合代号（如 S/O-F/M-R/P-E/Re）归一化为 HYBRID
+  if (t.includes('/')) return 'HYBRID';
   return null;
 }
 

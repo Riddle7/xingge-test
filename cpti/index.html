@@ -566,7 +566,7 @@
       </div>
       <!-- 弹窗底部 -->
       <div class="px-6 py-3 border-t border-border bg-muted/30 flex items-center justify-between text-[11px] text-muted-foreground">
-        <span class="font-mono">CPTI · 16 Types</span>
+        <span class="font-mono">CPTI · 16 Types + HYBRID</span>
         <span>当前类型以主色高亮</span>
       </div>
     </div>
@@ -1174,17 +1174,23 @@ function renderResult(typeKey, p, scores) {
 
 /* ===== 全局统计相关函数 ===== */
 
+// 把 typeKey 转为统计用的代号：复合代号（带 /）归一化为 HYBRID
+function toStatsTypeKey(typeKey) {
+  return typeKey && typeKey.includes('/') ? 'HYBRID' : typeKey;
+}
+
 // 提交当前结果并渲染"你是第 X 个"
 function submitAndRenderStats(typeKey) {
+  var statsKey = toStatsTypeKey(typeKey);
   var submitted = localStorage.getItem(STATS_SUBMIT_KEY);
   var recordPromise;
 
-  if (submitted === typeKey) {
+  if (submitted === statsKey) {
     // 已提交过同一类型，只读取统计
     recordPromise = Promise.resolve(null);
   } else {
     // 未提交 或 提交过其他类型（用户重测换了结果），都允许提交新结果
-    recordPromise = fetchRecord(typeKey);
+    recordPromise = fetchRecord(statsKey);
   }
 
   Promise.all([recordPromise, fetchStats()])
@@ -1192,7 +1198,7 @@ function submitAndRenderStats(typeKey) {
       var rec = results[0];
       var stats = results[1];
       if (rec && rec.success) {
-        localStorage.setItem(STATS_SUBMIT_KEY, typeKey);
+        localStorage.setItem(STATS_SUBMIT_KEY, statsKey);
       }
       renderMyTypeStat(typeKey, stats);
     })
@@ -1202,8 +1208,8 @@ function submitAndRenderStats(typeKey) {
     });
 }
 
-function fetchRecord(typeKey) {
-  return fetch(STATS_API_BASE + '/api/record?type=' + encodeURIComponent(typeKey), {
+function fetchRecord(statsKey) {
+  return fetch(STATS_API_BASE + '/api/record?type=' + encodeURIComponent(statsKey), {
     method: 'POST'
   }).then(function (r) { return r.json(); });
 }
@@ -1214,12 +1220,19 @@ function fetchStats() {
 }
 
 // 渲染"你是第 X 个 XX 型人格，占比约 X%"
+// 缝合怪（HYBRID）特殊处理：显示中文昵称"终极缝合怪"而非代码
 function renderMyTypeStat(typeKey, statsResp) {
   var node = document.getElementById('result-my-stat');
-  if (!node || !statsResp || !statsResp.stats || !statsResp.stats[typeKey]) return;
-  var s = statsResp.stats[typeKey];
+  if (!node || !statsResp || !statsResp.stats) return;
+  var statsKey = toStatsTypeKey(typeKey);
+  var s = statsResp.stats[statsKey];
+  if (!s) return;
+  // 缝合怪显示中文昵称，其他显示代码
+  var label = statsKey === 'HYBRID'
+    ? '<span class="font-semibold text-foreground">终极缝合怪</span>'
+    : '<span class="font-mono font-semibold text-foreground">' + typeKey + '</span>';
   node.innerHTML =
-    '你是第 <strong class="text-primary">' + s.count + '</strong> 个 <span class="font-mono font-semibold text-foreground">' + typeKey + '</span> 型人格' +
+    '你是第 <strong class="text-primary">' + s.count + '</strong> 个 ' + label +
     '，占比约 <strong class="text-primary">' + s.percent + '%</strong>' +
     '<span class="text-muted-foreground/70 ml-2">（共 ' + statsResp.total + ' 人参与）</span>';
   document.getElementById('result-my-stat-section').style.display = '';
@@ -1255,7 +1268,8 @@ function renderStatsChart(statsResp) {
   document.getElementById('stats-total').innerHTML =
     '总测试人数 <span class="font-mono font-bold text-foreground">' + total + '</span> 人';
 
-  var myType = state.lastResult ? state.lastResult.typeKey : null;
+  // 当前用户的统计代号（缝合怪归一化为 HYBRID 用于匹配）
+  var myStatsType = state.lastResult ? toStatsTypeKey(state.lastResult.typeKey) : null;
   var arr = Object.keys(statsResp.stats).map(function (k) {
     return { type: k, count: statsResp.stats[k].count, percent: parseFloat(statsResp.stats[k].percent) };
   }).sort(function (a, b) { return b.percent - a.percent; });
@@ -1263,20 +1277,27 @@ function renderStatsChart(statsResp) {
   var max = arr[0] ? arr[0].percent : 1;
   var html = arr.map(function (item, idx) {
     var widthPct = max > 0 ? (item.percent / max * 100) : 0;
-    var isMe = item.type === myType;
+    var isMe = item.type === myStatsType;
     var rankCls = idx === 0 ? 'text-amber-500' : (idx === 1 ? 'text-slate-400' : (idx === 2 ? 'text-amber-700' : 'text-muted-foreground/60'));
     var typeCls = isMe ? 'text-primary font-bold' : 'text-foreground font-medium';
     var nickCls = isMe ? 'text-primary/75' : 'text-muted-foreground';
     var barCls = isMe ? 'bg-primary' : 'bg-primary/25';
     var pctCls = isMe ? 'text-primary font-semibold' : 'text-foreground';
     var rowBg = isMe ? 'bg-primary-50/50 rounded-lg' : '';
-    // 中文名：直接从 personalities 全局对象取，不另建映射
-    var nick = personalities[item.type] ? personalities[item.type].nickname : '';
+    // 中文名：16 类从 personalities 取，HYBRID 单独兜底
+    var nick = '';
+    if (item.type === 'HYBRID') {
+      nick = '终极缝合怪';
+    } else if (personalities[item.type]) {
+      nick = personalities[item.type].nickname;
+    }
+    // HYBRID 代号用 sans 字体显示更柔和（不是 mono 标准代码）
+    var typeFontCls = item.type === 'HYBRID' ? 'font-sans text-[11px] tracking-wide' : 'font-mono text-xs';
     return ''
       + '<div class="flex items-center gap-3 py-1.5 px-2 ' + rowBg + ' transition-colors hover:bg-muted/40 rounded-lg">'
       +   '<div class="w-6 text-right text-[10px] font-mono ' + rankCls + '">' + (idx + 1) + '</div>'
       +   '<div class="w-28 flex flex-col leading-tight">'
-      +     '<div class="font-mono text-xs ' + typeCls + '">' + item.type + '</div>'
+      +     '<div class="' + typeFontCls + ' ' + typeCls + '">' + item.type + '</div>'
       +     '<div class="text-[10px] truncate ' + nickCls + '">' + nick + '</div>'
       +   '</div>'
       +   '<div class="flex-1 h-2 bg-muted/50 rounded-full overflow-hidden">'
