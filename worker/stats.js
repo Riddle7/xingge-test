@@ -45,6 +45,43 @@ function normalizeType(raw) {
   return null;
 }
 
+// ============ 内存缓存：5 分钟 TTL，避免每次请求都读 KV ============
+// 注意：Worker 实例可能在短时间内被回收重建，缓存是 best-effort 的，
+// 即便失效也只是多读一次 KV，不影响正确性。
+let statsCache = null;       // { total, stats, ts }
+const STATS_CACHE_TTL = 5 * 60 * 1000; // 5 分钟
+
+async function getStatsCached(env) {
+  const now = Date.now();
+  if (statsCache && (now - statsCache.ts) < STATS_CACHE_TTL) {
+    return statsCache;
+  }
+  // 重新读取 KV（并发）
+  const counts = {};
+  let total = 0;
+  const pairs = await Promise.all(TYPES.map(async (t) => {
+    const v = await env.CPTI_STATS.get('count_' + t);
+    return [t, v ? parseInt(v, 10) : 0];
+  }));
+  for (const [t, c] of pairs) {
+    counts[t] = c;
+    total += c;
+  }
+  const stats = {};
+  for (const t of TYPES) {
+    const c = counts[t];
+    const percent = total > 0 ? ((c / total) * 100).toFixed(1) : '0.0';
+    stats[t] = { count: c, percent: percent };
+  }
+  statsCache = { total: total, stats: stats, ts: now };
+  return statsCache;
+}
+
+// 写入后立即失效缓存：保证刚提交的用户 GET /api/stats 能看到自己那一票
+function invalidateStatsCache() {
+  statsCache = null;
+}
+
 // POST /api/record?type=XXX
 async function handleRecord(request, env) {
   const url = new URL(request.url);
@@ -57,30 +94,15 @@ async function handleRecord(request, env) {
   const cur = parseInt(await env.CPTI_STATS.get(key) || '0', 10);
   const next = cur + 1;
   await env.CPTI_STATS.put(key, String(next));
+  // 失效缓存：让下一次 GET /api/stats 重新读 KV
+  invalidateStatsCache();
   return json({ success: true, count: next, type: type });
 }
 
 // GET /api/stats
 async function handleStats(env) {
-  const stats = {};
-  let total = 0;
-  // 并行读取 16 个键
-  const promises = TYPES.map(async (t) => {
-    const v = await env.CPTI_STATS.get('count_' + t);
-    const count = v ? parseInt(v, 10) : 0;
-    stats[t] = count;
-    total += count;
-  });
-  await Promise.all(promises);
-
-  // 组装返回结构，百分比保留 1 位小数
-  const result = {};
-  for (const t of TYPES) {
-    const c = stats[t];
-    const percent = total > 0 ? ((c / total) * 100).toFixed(1) : '0.0';
-    result[t] = { count: c, percent: percent };
-  }
-  return json({ total: total, stats: result });
+  const cached = await getStatsCached(env);
+  return json({ total: cached.total, stats: cached.stats });
 }
 
 export default {
