@@ -557,7 +557,7 @@
         <!-- 列表表头 -->
         <div class="flex items-center gap-3 px-2 pb-2 mb-2 border-b border-border/60 text-[10px] font-mono uppercase tracking-wider text-muted-foreground/70">
           <div class="w-6 text-right">#</div>
-          <div class="w-24">类型</div>
+          <div class="w-28">类型 / 代号</div>
           <div class="flex-1">分布</div>
           <div class="w-14 text-right">占比</div>
           <div class="w-12 text-right">人数</div>
@@ -1266,13 +1266,19 @@ function renderStatsChart(statsResp) {
     var isMe = item.type === myType;
     var rankCls = idx === 0 ? 'text-amber-500' : (idx === 1 ? 'text-slate-400' : (idx === 2 ? 'text-amber-700' : 'text-muted-foreground/60'));
     var typeCls = isMe ? 'text-primary font-bold' : 'text-foreground font-medium';
+    var nickCls = isMe ? 'text-primary/75' : 'text-muted-foreground';
     var barCls = isMe ? 'bg-primary' : 'bg-primary/25';
     var pctCls = isMe ? 'text-primary font-semibold' : 'text-foreground';
     var rowBg = isMe ? 'bg-primary-50/50 rounded-lg' : '';
+    // 中文名：直接从 personalities 全局对象取，不另建映射
+    var nick = personalities[item.type] ? personalities[item.type].nickname : '';
     return ''
       + '<div class="flex items-center gap-3 py-1.5 px-2 ' + rowBg + ' transition-colors hover:bg-muted/40 rounded-lg">'
       +   '<div class="w-6 text-right text-[10px] font-mono ' + rankCls + '">' + (idx + 1) + '</div>'
-      +   '<div class="w-24 font-mono text-xs ' + typeCls + '">' + item.type + '</div>'
+      +   '<div class="w-28 flex flex-col leading-tight">'
+      +     '<div class="font-mono text-xs ' + typeCls + '">' + item.type + '</div>'
+      +     '<div class="text-[10px] truncate ' + nickCls + '">' + nick + '</div>'
+      +   '</div>'
       +   '<div class="flex-1 h-2 bg-muted/50 rounded-full overflow-hidden">'
       +     '<div class="h-full ' + barCls + ' rounded-full transition-all duration-700 ease-out" style="width:' + widthPct + '%"></div>'
       +   '</div>'
