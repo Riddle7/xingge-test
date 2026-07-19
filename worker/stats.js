@@ -45,24 +45,30 @@ function normalizeType(raw) {
   return null;
 }
 
-// ============ 内存缓存：5 分钟 TTL，避免每次请求都读 KV ============
-// 注意：Worker 实例可能在短时间内被回收重建，缓存是 best-effort 的，
-// 即便失效也只是多读一次 KV，不影响正确性。
-let statsCache = null;       // { total, stats, ts }
+// ============ 单层缓存：L2 Cache API（边缘节点共享） ============
+// Worker 免费版实例频繁回收，模块级内存缓存（L1）跨请求不稳定，
+// 且 POST 后无法跨实例失效，会导致用户测完看不到自己的票。
+// 因此只用 L2 Cache API：边缘节点共享，ctx.waitUntil(cache.delete) 可跨实例失效。
 const STATS_CACHE_TTL = 5 * 60 * 1000; // 5 分钟
+const CACHE_KEY_URL = 'https://cpti-stats.local/api/stats-cache';
 
-async function getStatsCached(env) {
-  const now = Date.now();
-  if (statsCache && (now - statsCache.ts) < STATS_CACHE_TTL) {
-    return statsCache;
+async function getStatsCached(env, ctx) {
+  // L2: Cache API（边缘节点共享）
+  const cache = caches.default;
+  const cacheReq = new Request(CACHE_KEY_URL);
+  const cachedResp = await cache.match(cacheReq);
+  if (cachedResp) {
+    const data = await cachedResp.json();
+    return { total: data.total, stats: data.stats, source: 'L2' };
   }
-  // 重新读取 KV（并发）
-  const counts = {};
-  let total = 0;
+
+  // 未命中：读 KV
   const pairs = await Promise.all(TYPES.map(async (t) => {
     const v = await env.CPTI_STATS.get('count_' + t);
     return [t, v ? parseInt(v, 10) : 0];
   }));
+  const counts = {};
+  let total = 0;
   for (const [t, c] of pairs) {
     counts[t] = c;
     total += c;
@@ -73,17 +79,29 @@ async function getStatsCached(env) {
     const percent = total > 0 ? ((c / total) * 100).toFixed(1) : '0.0';
     stats[t] = { count: c, percent: percent };
   }
-  statsCache = { total: total, stats: stats, ts: now };
-  return statsCache;
+
+  // 写入 L2
+  const respToCache = new Response(JSON.stringify({ total, stats }), {
+    headers: {
+      'Content-Type': 'application/json; charset=utf-8',
+      'Cache-Control': 'max-age=300'
+    }
+  });
+  ctx.waitUntil(cache.put(cacheReq, respToCache.clone()));
+
+  return { total, stats, source: 'KV' };
 }
 
-// 写入后立即失效缓存：保证刚提交的用户 GET /api/stats 能看到自己那一票
-function invalidateStatsCache() {
-  statsCache = null;
+// 写入后立即失效 L2：保证刚提交的用户能看到自己那一票
+function invalidateStatsCache(ctx) {
+  if (ctx && ctx.waitUntil) {
+    const cache = caches.default;
+    ctx.waitUntil(cache.delete(new Request(CACHE_KEY_URL)));
+  }
 }
 
 // POST /api/record?type=XXX
-async function handleRecord(request, env) {
+async function handleRecord(request, env, ctx) {
   const url = new URL(request.url);
   const rawType = url.searchParams.get('type');
   const type = normalizeType(rawType);
@@ -94,15 +112,23 @@ async function handleRecord(request, env) {
   const cur = parseInt(await env.CPTI_STATS.get(key) || '0', 10);
   const next = cur + 1;
   await env.CPTI_STATS.put(key, String(next));
-  // 失效缓存：让下一次 GET /api/stats 重新读 KV
-  invalidateStatsCache();
+  // 失效 L1 + L2：让下一次 GET /api/stats 重新读 KV
+  invalidateStatsCache(ctx);
   return json({ success: true, count: next, type: type });
 }
 
 // GET /api/stats
-async function handleStats(env) {
-  const cached = await getStatsCached(env);
-  return json({ total: cached.total, stats: cached.stats });
+async function handleStats(env, ctx) {
+  const result = await getStatsCached(env, ctx);
+  const body = JSON.stringify({ total: result.total, stats: result.stats });
+  return new Response(body, {
+    status: 200,
+    headers: {
+      'Content-Type': 'application/json; charset=utf-8',
+      'X-Cache-Source': result.source, // L2 / KV
+      ...CORS_HEADERS
+    }
+  });
 }
 
 export default {
@@ -116,10 +142,10 @@ export default {
 
     // 路由
     if (url.pathname === '/api/record' && request.method === 'POST') {
-      return handleRecord(request, env);
+      return handleRecord(request, env, ctx);
     }
     if (url.pathname === '/api/stats' && request.method === 'GET') {
-      return handleStats(env);
+      return handleStats(env, ctx);
     }
 
     // 根路径返回简单状态信息
