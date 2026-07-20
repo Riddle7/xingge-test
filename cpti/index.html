@@ -475,6 +475,27 @@
         <div id="result-judge" class="flex items-center justify-center gap-4 sm:gap-6 py-4 flex-wrap"></div>
       </section>
 
+      <!-- 邀请扫码：测试入口 QR（与 saveAsImage 底部 footer 同款圆点化规格） -->
+      <section class="bg-card border border-border rounded-lg p-6 mb-10 shadow-sm">
+        <div class="flex flex-col sm:flex-row items-center gap-5 sm:gap-6">
+          <div class="flex-shrink-0">
+            <canvas id="invite-qr-canvas" width="240" height="240" class="w-[120px] h-[120px] sm:w-[128px] sm:h-[128px] block" aria-label="刑格 CPTI 测试入口二维码"></canvas>
+          </div>
+          <div class="flex-1 text-center sm:text-left min-w-0">
+            <div class="flex items-center justify-center sm:justify-start gap-2 mb-2">
+              <i data-lucide="scan-line" class="w-3.5 h-3.5 text-primary"></i>
+              <span class="text-[10px] font-mono uppercase tracking-[0.22em] text-primary/70">Invite</span>
+            </div>
+            <h3 class="font-display text-base font-semibold text-foreground mb-1.5">扫码测刑格</h3>
+            <p class="text-sm text-muted-foreground leading-relaxed mb-3">在浏览器打开测试，找到你自己的刑法人格。</p>
+            <div class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-primary/5 border border-primary/15">
+              <i data-lucide="link" class="w-3 h-3 text-primary"></i>
+              <span class="text-xs font-mono text-primary/80 truncate">generative-jurisprudence.top/cpti/</span>
+            </div>
+          </div>
+        </div>
+      </section>
+
      </div>
 
       <section class="flex flex-col sm:flex-row items-center justify-center gap-4 pb-10">
@@ -485,7 +506,7 @@
           <i data-lucide="download" class="w-4 h-4"></i>保存图片
         </button>
         <button onclick="shareResult()" class="inline-flex items-center gap-2 px-6 py-3 text-sm font-semibold text-primary border-2 border-primary rounded-lg hover:bg-primary-50 transition-colors duration-150 cursor-pointer bg-transparent">
-          <i data-lucide="share-2" class="w-4 h-4"></i>分享结果
+          <i data-lucide="share-2" class="w-4 h-4"></i>分享测试
         </button>
       </section>
 
@@ -1168,8 +1189,65 @@ function renderResult(typeKey, p, scores) {
   document.getElementById('result-judge').innerHTML = judgeHtml;
   if (typeof lucide !== 'undefined') lucide.createIcons();
 
+  // 渲染测试入口邀请二维码
+  renderInviteQR();
+
   // 触发全局统计：记录 + 渲染当前用户位置
   submitAndRenderStats(typeKey);
+}
+
+/* ===== 邀请二维码：在结果页内联渲染测试入口 QR =====
+   与 saveAsImage 底部 footer 同款圆点化规格（finder 方块 + 数据圆点 + #3730a3 主色），
+   保证页面内 QR 视觉与导出图片中的 QR 完全一致。 */
+function renderInviteQR() {
+  var canvas = document.getElementById('invite-qr-canvas');
+  if (!canvas) return;
+  var ctx = canvas.getContext('2d');
+  if (!ctx || typeof qrcode !== 'function') return;
+  var W = canvas.width, H = canvas.height;
+  var QR_URL = 'https://generative-jurisprudence.top/cpti/';
+  var QR_MODULE = 4.5;
+  var QR_RADIUS_RATIO = 0.42;
+  var QR_QUIET = 10;
+  var QR_COLOR = '#3730a3';
+  ctx.fillStyle = '#ffffff';
+  ctx.fillRect(0, 0, W, H);
+  try {
+    var qr = qrcode(0, 'M');
+    qr.addData(QR_URL);
+    qr.make();
+    var mc = qr.getModuleCount();
+    var qrSize = mc * QR_MODULE;
+    var qrBoxSize = qrSize + QR_QUIET * 2;
+    var ox = (W - qrBoxSize) / 2 + QR_QUIET;
+    var oy = (H - qrBoxSize) / 2 + QR_QUIET;
+    function isFinder(ri, ci) {
+      var inTL = ri < 7 && ci < 7;
+      var inTR = ri < 7 && ci >= mc - 7;
+      var inBL = ri >= mc - 7 && ci < 7;
+      return inTL || inTR || inBL;
+    }
+    ctx.fillStyle = QR_COLOR;
+    for (var ri = 0; ri < mc; ri++) {
+      for (var ci = 0; ci < mc; ci++) {
+        if (!qr.isDark(ri, ci)) continue;
+        var px = ox + ci * QR_MODULE;
+        var py = oy + ri * QR_MODULE;
+        if (isFinder(ri, ci)) {
+          // finder 模块画方块（扫码器硬要求）
+          ctx.fillRect(px, py, QR_MODULE, QR_MODULE);
+        } else {
+          // 数据模块画圆点（与 saveAsImage footer 一致）
+          ctx.beginPath();
+          ctx.arc(px + QR_MODULE / 2, py + QR_MODULE / 2, QR_MODULE * QR_RADIUS_RATIO, 0, Math.PI * 2);
+          ctx.fill();
+        }
+      }
+    }
+  } catch (e) {
+    // 静默降级：QR 渲染失败仅控制台告警，不影响结果页其它功能
+    console.warn('Invite QR 渲染失败：', e);
+  }
 }
 
 /* ===== 全局统计相关函数 ===== */
