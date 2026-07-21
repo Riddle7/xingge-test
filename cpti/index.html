@@ -126,7 +126,6 @@
       }
       .likert-btn[data-level="2"]  .likert-bar { background: #059669; }
       .likert-btn[data-level="1"]  .likert-bar { background: #10b981; }
-      .likert-btn[data-level="0"]  .likert-bar { background: #94a3b8; }
       .likert-btn[data-level="-1"] .likert-bar { background: #f43f5e; }
       .likert-btn[data-level="-2"] .likert-bar { background: #dc2626; }
       /* hover 时色条加亮 */
@@ -135,7 +134,6 @@
       /* 各选项的hover背景梯度 */
       .likert-btn[data-level="2"]::before  { background: linear-gradient(180deg, #10b98115, #05966920); }
       .likert-btn[data-level="1"]::before  { background: linear-gradient(180deg, #34d39910, #10b98115); }
-      .likert-btn[data-level="0"]::before  { background: linear-gradient(180deg, #94a3b810, #64748b15); }
       .likert-btn[data-level="-1"]::before { background: linear-gradient(180deg, #fb718510, #f43f5e15); }
       .likert-btn[data-level="-2"]::before { background: linear-gradient(180deg, #ef444415, #dc262620); }
       .likert-btn:hover::before { opacity: 1; }
@@ -147,7 +145,6 @@
       /* 选中态：用对应强度的纯色填充 */
       .likert-btn.selected[data-level="2"]  { border-color: #059669; background: #059669; color: #fff; box-shadow: 0 8px 28px rgba(5,150,105,0.35); transform: translateY(-2px); }
       .likert-btn.selected[data-level="1"]  { border-color: #10b981; background: #10b981; color: #fff; box-shadow: 0 8px 28px rgba(16,185,129,0.35); transform: translateY(-2px); }
-      .likert-btn.selected[data-level="0"]  { border-color: #64748b; background: #64748b; color: #fff; box-shadow: 0 8px 28px rgba(100,116,139,0.35); transform: translateY(-2px); }
       .likert-btn.selected[data-level="-1"] { border-color: #f43f5e; background: #f43f5e; color: #fff; box-shadow: 0 8px 28px rgba(244,63,94,0.35); transform: translateY(-2px); }
       .likert-btn.selected[data-level="-2"] { border-color: #dc2626; background: #dc2626; color: #fff; box-shadow: 0 8px 28px rgba(220,38,38,0.35); transform: translateY(-2px); }
       .likert-btn.selected::before { opacity: 0 !important; }
@@ -275,14 +272,14 @@
     </nav>
 
     <section class="flex flex-col items-center text-center px-6 pt-12 pb-16 max-w-2xl mx-auto">
-      <span class="inline-block px-3 py-1 rounded-full bg-primary-50 text-primary text-xs font-medium tracking-wide mb-6">CPTI 2.0</span>
+      <span class="inline-block px-3 py-1 rounded-full bg-primary-50 text-primary text-xs font-medium tracking-wide mb-6">CPTI 3.0</span>
       <h1 class="font-display text-4xl md:text-5xl font-bold tracking-tight text-foreground leading-tight mb-6">你的「刑法人格」鉴定书</h1>
       <p class="text-muted-foreground text-base md:text-lg leading-relaxed max-w-lg mb-10">本测试可能暴露你的学术立场、你的导师类型、甚至你为什么在刑法研讨课上跟人吵架。请根据真实直觉作答。</p>
       <button onclick="goToPage('quiz-1')" class="inline-flex items-center gap-2 px-8 py-3.5 rounded-lg bg-primary text-primary-foreground font-medium text-base hover:bg-primary-600 active:bg-primary-700 transition-colors shadow-sm cursor-pointer">
         <i data-lucide="play" class="w-4 h-4"></i>
         开始测试
       </button>
-      <p class="text-xs text-muted-foreground mt-3">16 题 · 约 5 分钟 · 无对错之分</p>
+      <p class="text-xs text-muted-foreground mt-3">16 题 · 约 5 分钟 · 没有标准答案，请凭直觉而非教科书作答</p>
     </section>
 
     <section class="px-6 pb-16 max-w-2xl mx-auto">
@@ -303,7 +300,7 @@
             <div class="flex-shrink-0 w-8 h-8 rounded-full bg-primary-50 text-primary text-sm font-semibold flex items-center justify-center">2</div>
             <div>
               <p class="text-foreground font-medium text-sm mb-1">五级量表</p>
-              <p class="text-muted-foreground text-sm leading-relaxed">非常赞同 / 赞同 / 中立 / 反对 / 非常反对。</p>
+              <p class="text-muted-foreground text-sm leading-relaxed">非常赞同 / 赞同 / 反对 / 非常反对——没有中立选项，请凭直觉选边站。</p>
             </div>
           </div>
           <div class="flex gap-4">
@@ -426,6 +423,7 @@
         <h1 id="result-type" class="font-display text-5xl font-bold text-foreground tracking-tight mb-2">S-M-R-Re</h1>
         <p id="result-nickname" class="text-2xl font-semibold text-primary mb-4">持刀哲学家</p>
         <div id="result-tags" class="flex flex-wrap justify-center gap-2"></div>
+        <p id="result-borderline" class="text-xs text-muted-foreground mt-3" style="display:none"></p>
       </section>
 
       <section class="bg-card border border-border rounded-lg p-6 mb-8 shadow-sm">
@@ -529,7 +527,7 @@
         </a>
       </div>
 
-      <footer class="text-center text-xs text-muted-foreground pb-8">刑格 CPTI 2.0 &middot; 仅供娱乐，不构成任何学术或法律建议</footer>
+      <footer class="text-center text-xs text-muted-foreground pb-8">刑格 CPTI 3.0 &middot; 仅供娱乐，不构成任何学术或法律建议</footer>
     </div>
   </div>
 
@@ -596,30 +594,37 @@
 </main>
 
 <script>
-/* ===== 16道Likert题目 =====
+/* ===== 16道Likert题目（v6 重平衡+去标答版）=====
    每题包含：statement（题干）和 dimMap（各维度计分方向）
    方向规则：与md一致
    - S/F/R/E：最终得分为选择分值的相反数（负向）
    - O/M/P/Re：最终得分为选择分值的直接数（正向）
    选择分值：++=+2, +=+1, 0=0, -=-1, --=-2
+   v6 题目设计原则：
+   - 每个维度 4 题，两极各 2 题（键向平衡）
+   - 两极题干的修辞强度对齐：不稻草人化任何一极，不附加令人反感或向往的后果暗示
+   - 避开三大陷阱：①法考/司法解释有标准答案的考点（法学生会背答案而非暴露立场）
+     ②惩罚直觉灌水的场景（行为明显可恶导致人人赞同）③身份政治议题（性别/言论立场盖过学术立场）
+   - 选用真实争议：人身危险性量刑、偶然防卫、组织卖淫罪语义、公开数据爬取入罪等
+   - 每题目标赞同率 30%-70%，上线后应做项目分析校准
 */
 const quizData = [
-  { id: 1,  statement: "同样是偷两千块钱，一个拿去买毒品，一个给孩子买饭吃。对他们的量刑应当不一样。", dimMap: { so: 'S', fe: null, rp: null, exre: null } },
-  { id: 2,  statement: "法官就该照着法条的字面意思判。就算按字面判会得出荒谬的结论，也是立法机关去改法条，轮不到法官操心。", dimMap: { so: null, fe: 'F', rp: null, exre: null } },
-  { id: 3,  statement: "刑罚的目的就是让罪犯得到跟罪行匹配的惩罚。至于这个判决以后能不能吓住别人、能不能防止再犯——这些事情不应影响判多久。", dimMap: { so: null, fe: null, rp: 'R', exre: null } },
-  { id: 4,  statement: "法条里那些模糊用语——\u201c等\u201d、\u201c其他\u201d、\u201c情节严重\u201d——解释时必须从严。宁可漏掉一些值得罚的，也不能让这些弹性条款变成入罪的口袋。", dimMap: { so: null, fe: null, rp: null, exre: 'Re' } },
-  { id: 5,  statement: "有人因为家人生病急需钱去骗保，有人纯粹想多赚钱去骗保。骗的金额一样，判的刑期就应该一样。动机好坏，不影响刑法怎么判。", dimMap: { so: 'O', fe: null, rp: null, exre: null } },
-  { id: 6,  statement: "一个罪犯已经真心悔改，再犯的可能也排除了。这种情况下还让他把漫长的刑期坐完，这刑罚已经没什么意义了。", dimMap: { so: null, fe: null, rp: 'P', exre: null } },
-  { id: 7,  statement: "如果法条的字面意思和它在当下社会应当实现的目的对不上，法官应该优先考虑这个规范目的，而不是机械地套字眼。", dimMap: { so: null, fe: 'M', rp: null, exre: null } },
-  { id: 8,  statement: "对于法律没写明确但社会危害性很明显的新型行为，法官应当在现有法条的可能语义范围内，通过解释来覆盖它，而不是等着修法。", dimMap: { so: null, fe: null, rp: null, exre: 'E' } },
-  { id: 9,  statement: "\u201c借东西没还\u201d和\u201c偷东西\u201d，法条上是两个不同的词。就算借了不还的人跟小偷一样可恶，也不能把\u201c借后侵吞\u201d硬塞进\u201c盗窃\u201d的条文里。", dimMap: { so: null, fe: 'F', rp: null, exre: null } },
-  { id: 10, statement: "被害人有权利看到犯罪人得到和罪行相称的惩罚。这是司法对被害人的交代，跟犯罪人以后还会不会再犯没关系。", dimMap: { so: null, fe: null, rp: 'R', exre: null } },
-  { id: 11, statement: "甲喝到断片后驾车撞死了人。评价他的刑事责任，关键是看行为那一刻的实际状态——意识、控制能力——而不是追究他当初选择喝酒这件事。行为时怎样，就按怎样来定罪。", dimMap: { so: 'O', fe: null, rp: null, exre: null } },
-  { id: 12, statement: "刑事司法系统对待罪犯，应该像医生对待病人——弄清楚犯罪的原因，给出矫正的办法，而不是仅仅基于罪责来施加刑罚。", dimMap: { so: null, fe: null, rp: 'P', exre: null } },
-  { id: 13, statement: "一把改装玩具枪，动能鉴定达到了枪支认定标准，但实际威力连纸都打不穿。这种情况下，不宜仅凭鉴定数据就认定为枪支来定罪。", dimMap: { so: null, fe: 'M', rp: null, exre: null } },
-  { id: 14, statement: "新型毒品化学结构跟列管毒品高度相似，只是还没写进附表。这种情况就该按现有毒品犯罪的条文来认定。化学分子式改一下就能绕开管制，刑法不能留这种空子。", dimMap: { so: null, fe: null, rp: null, exre: 'E' } },
-  { id: 15, statement: "在网上发煽动性言论，就算阅读量极小、没一个人真的被煽动起来，也该入罪。恶意已经通过发帖这个行为表现出来了——这才是刑法应当关注的核心，而不是干等危害结果发生。", dimMap: { so: 'S', fe: null, rp: null, exre: null } },
-  { id: 16, statement: "法条的文字存在多种解读都能说得通的时候，应当选择最有利于被告的那种。哪怕这么选会让一些值得处罚的人脱罪。", dimMap: { so: null, fe: null, rp: null, exre: 'Re' } }
+  { id: 1,  statement: "一个人服刑期满十年后再次犯罪，哪怕新罪本身不重，也应当因为他\u201c屡教不改\u201d、人身危险性高而明显加重处罚。", dimMap: { so: 'S', fe: null, rp: null, exre: null } },
+  { id: 2,  statement: "法官的职责是把立法者写下的文字适用于案件，而不是替立法者修改法律。解释条文时应以其通常的字面含义为准，立法上的疏漏应当留给立法机关去解决。", dimMap: { so: null, fe: 'F', rp: null, exre: null } },
+  { id: 3,  statement: "刑罚的正当性在于让犯罪人付出与其罪责相称的代价。至于判决能不能吓住潜在的模仿者、能不能防止再犯，不应成为加减刑期的理由。", dimMap: { so: null, fe: null, rp: 'R', exre: null } },
+  { id: 4,  statement: "法条里的模糊用语——\u201c等\u201d、\u201c其他\u201d、\u201c情节严重\u201d——应当作严格解释。适用这些弹性条款时拿不准的，应当作不利于入罪的处理。", dimMap: { so: null, fe: null, rp: null, exre: 'Re' } },
+  { id: 5,  statement: "同样是骗保五十万，一个为给家人治病，一个为挥霍享乐。只要行为和数额相同，判刑就应当基本相同——动机的善恶不是刑法评价的重点。", dimMap: { so: 'O', fe: null, rp: null, exre: null } },
+  { id: 6,  statement: "一个罪犯已经真心悔改，再犯的可能也排除了。这种情况下还要求他把漫长的刑期坐满，这样的刑罚已经失去了意义。", dimMap: { so: null, fe: null, rp: 'P', exre: null } },
+  { id: 7,  statement: "解释法条不能只盯着字面。当条文的字面含义与它所保护的法益对不上时，法官应当依照规范目的来解释，即使得出的结论超出了字面的通常含义。", dimMap: { so: null, fe: 'M', rp: null, exre: null } },
+  { id: 8,  statement: "对于法律没有写明确、但社会危害性明显的新型行为，法官应当在现有条文可能的语义范围内通过解释加以覆盖，而不是等待立法机关修法。", dimMap: { so: null, fe: null, rp: null, exre: 'E' } },
+  { id: 9,  statement: "\u201c借了不还\u201d和\u201c偷\u201d在法条上是两种不同的行为。即使借后侵吞的人跟小偷一样可恶，也不能把侵占行为解释进盗窃罪的条文里。", dimMap: { so: null, fe: 'F', rp: null, exre: null } },
+  { id: 10, statement: "被害人有权看到犯罪人受到与罪行相称的惩罚——这是司法必须给出的交代，与犯罪人今后会不会再犯无关。", dimMap: { so: null, fe: null, rp: 'R', exre: null } },
+  { id: 11, statement: "甲开枪杀乙，子弹打中乙的同时，碰巧阻止了乙正在实施的杀人。评价甲时应当考虑这一枪客观上保护了无辜者，不能仅凭他内心的杀机就按杀人罪处罚。", dimMap: { so: 'O', fe: null, rp: null, exre: null } },
+  { id: 12, statement: "刑事司法的任务是弄清楚犯罪产生的原因并消除它——通过矫治和社会干预降低再犯，而不只是按照罪责施加等量的痛苦。", dimMap: { so: null, fe: null, rp: 'P', exre: null } },
+  { id: 13, statement: "组织男性向其他男性有偿提供性服务，虽然法条中\u201c卖淫\u201d一词通常指异性之间，但应当看重行为的实质，认定组织卖淫罪。", dimMap: { so: null, fe: 'M', rp: null, exre: null } },
+  { id: 14, statement: "从公开网页批量抓取他人简历信息用于商业用途，虽然信息本来就是公开的，也应当按侵犯公民个人信息罪论处。", dimMap: { so: null, fe: null, rp: null, exre: 'E' } },
+  { id: 15, statement: "在网上发布煽动性言论，即使阅读量极小、也没有人真的被煽动，仍应当定罪处罚。行为所表现出的主观恶性本身就是刑法关注的对象，不必等到危害结果实际发生。", dimMap: { so: 'S', fe: null, rp: null, exre: null } },
+  { id: 16, statement: "法条的文字存在多种都讲得通的解读时，应当选择对被告人最有利的那一种，即使这意味着处罚范围会相应收窄。", dimMap: { so: null, fe: null, rp: null, exre: 'Re' } }
 ];
 
 /* ===== 16种人格结果数据 ===== */
@@ -770,7 +775,6 @@ const state = {
 const choiceLabels = [
   { value: 2,  label: '非常赞同' },
   { value: 1,  label: '赞同' },
-  { value: 0,  label: '中立' },
   { value: -1, label: '反对' },
   { value: -2, label: '非常反对' }
 ];
@@ -942,7 +946,8 @@ function submitQuiz() {
 */
 function calculateScores() {
   var scores = { so: 0, fe: 0, rp: 0, exre: 0 };
-  // 同时记录每个维度的题目级原始选择分值（破平规则用）
+  // 同时记录每个维度题目级的 {c, raw}：c=键向贡献值（已乘方向），raw=原始选择分值
+  // c 用于加权裁决，raw 用于识别"反对"类作答（默认赞同偏差校正，见 weightedVote）
   var detail = { so: [], fe: [], rp: [], exre: [] };
   quizData.forEach(function(q, idx) {
     var raw = state.answers[idx];
@@ -952,52 +957,74 @@ function calculateScores() {
       if (!dir) return;
       var sign = (dir === 'S' || dir === 'F' || dir === 'R' || dir === 'E') ? -1 : 1;
       scores[k] += raw * sign;
-      detail[k].push(raw); // 原始选择分值（未取反）
+      detail[k].push({ c: raw * sign, raw: raw });
     });
   });
   return { total: [scores.so, scores.fe, scores.rp, scores.exre], detail: detail };
 }
 
-// v4 破平规则：维度总分=0 时判定
-// 返回该维度的倾向：'pro'(偏 O/M/P/E) / 'con'(偏 S/F/R/Re) / null(本维度无法判定)
-function breakTie(detailArr) {
-  // detailArr: 该维度4题的原始选择分值数组
-  var zeroCount = detailArr.filter(function(v) { return v === 0; }).length;
-  if (zeroCount >= 2) return null;      // ≥2 个"0" → 真摇摆，本维度无法判定
-  if (zeroCount === 0) return null;     // 0 个"0"（2赞同2反对）→ 真平分，本维度无法判定
-  // =1 个"0"，剩3题看赞同/反对各几道
-  var proCount = detailArr.filter(function(v) { return v > 0; }).length;
-  var conCount = detailArr.filter(function(v) { return v < 0; }).length;
-  if (proCount > conCount) return 'pro';   // 赞同多 → >0 侧（O/M/P/E）
-  if (conCount > proCount) return 'con';   // 反对多 → <0 侧（S/F/R/Re）
-  return null;                          // 理论上 1 个 0 + 3 题不会出现 pro=con
+/* ===== v7 平局裁决链 =====
+   规则红线：平局维度 ≤2 个才裁决，≥3 个直接 HYBRID（绝不做"插补的插补"）。
+   三级裁决（证据每弱一级，置信度标记降一级，结果页据此披露边界）：
+     1. weightedVote      本维度残余信息：默认赞同偏差校正的加权计票
+     2. inferFromMeasured 并行跨维度推断：只用"实测维度"（总分≠0），推断结果互不作证据
+     3. priorVote         基础率先验：无数据时 50/50 随机（随机不偏斜分布，且会被披露）
+   输出字母严格落在 16 型 + HYBRID 命名空间，下游显示逻辑无需改动。
+*/
+
+// 默认赞同偏差校正系数：心理测量中"反对"一个陈述比"赞同"需要更强的真实立场，
+// 平局时对"反对"类作答（raw<0）的键向贡献加权。上线后可按数据校准（建议区间 1.2-1.5）
+var ACQ_WEIGHT = 1.3;
+
+// 维度间推断权重矩阵（4x4，行=待推断维度 so/fe/rp/exre，列=实测维度 so/fe/rp/exre）
+// 当前为理论阵营均匀先验（实测字母属阵营 A(O/M/P/E) 计 +权重，属阵营 B(S/F/R/Re) 计 -权重）
+// 上线积累作答数据后，可用维度间经验相关系数（φ 系数）逐格替换，理论插补即升级为经验插补
+var DIM_INFER_WEIGHTS = [
+  [0, 1, 1, 1],
+  [1, 0, 1, 1],
+  [1, 1, 0, 1],
+  [1, 1, 1, 0]
+];
+
+// 各维度人群基础率先验（pos 侧 O/M/P/Re 的概率，0-1；null=暂无数据，僵局时 50/50 随机）
+// 上线后填入后台统计的真实边际分布，例如 so 填 0.33 表示约 33% 用户判 O
+var DIM_PRIORS = [null, null, null, null];
+
+// 第一级：本维度加权计票
+// detailArr: 该维度4题的 {c, raw} 数组；返回 'pro'(pos 侧) / 'con'(neg 侧) / null(加权后仍平衡)
+function weightedVote(detailArr) {
+  var w = 0;
+  for (var i = 0; i < detailArr.length; i++) {
+    var weight = detailArr[i].raw < 0 ? ACQ_WEIGHT : 1; // "反对"类作答含金量更高
+    w += detailArr[i].c * weight;
+  }
+  if (w > 0) return 'pro';
+  if (w < 0) return 'con';
+  return null;
 }
 
-// 跨维度推断：当某维度本维度无法判定（2赞2反真平分 或 ≥2中立）时，
-// 根据刑法学理论的"阵营一致性"用其他三维倾向推断该维度倾向。
-// 阵营 A（法益保护/积极派）：O 客观主义 + M 实质解释 + P 预防刑 + E 扩张解释
-// 阵营 B（罪刑法定/克制派）：S 主观主义 + F 形式解释 + R 报应刑 + Re 限缩解释
-// 注意：原系统 sign 设计中 exre 维度的 neg/pos 与其他三维阵营归属相反
-// （E 是 neg 但属阵营 A，Re 是 pos 但属阵营 B），所以不能简单用 pos/neg 映射
-// letters: 已判定的字母数组，dimIdx: 待推断维度索引
-// 返回推断出的字母（O/M/P/E 或 S/F/R/Re），无法推断返回 null
-function inferFromOtherDims(letters, dimIdx) {
-  var inferenceScore = 0;
-  // 阵营 A：O/M/P/E（法益保护/积极派）；阵营 B：S/F/R/Re（罪刑法定/克制派）
-  var campA = ['O', 'M', 'P', 'E'];
-  var campB = ['S', 'F', 'R', 'Re'];
-  // 各维度的阵营 A 字母（推断结果偏阵营 A 时使用）
-  var campALetter = ['O', 'M', 'P', 'E'];
-  var campBLetter = ['S', 'F', 'R', 'Re'];
+// 第二级：并行跨维度推断
+// letters: 字母数组（仅实测维度有值，平分维度为 null）；dimIdx: 待推断维度
+// 只读取实测维度，推断结果（含第一级裁出的字母）不会作为证据，杜绝误差链式叠加
+// 返回 'pro' / 'con' / null（实测维度阵营相互抵消）
+function inferFromMeasured(letters, dimIdx, measured) {
+  var campA = ['O', 'M', 'P', 'E']; // 阵营 A（法益保护/积极派）：O/M/P/E
+  var s = 0;
   for (var k = 0; k < 4; k++) {
-    if (k === dimIdx) continue;          // 跳过当前平分维度
-    if (letters[k] === null) continue;   // 跳过未判定维度
-    if (campA.indexOf(letters[k]) >= 0) inferenceScore++;      // 偏阵营 A
-    else if (campB.indexOf(letters[k]) >= 0) inferenceScore--; // 偏阵营 B
+    if (k === dimIdx || !measured[k]) continue; // 只用实测维度
+    var v = (campA.indexOf(letters[k]) >= 0) ? 1 : -1;
+    s += DIM_INFER_WEIGHTS[dimIdx][k] * v;
   }
-  if (inferenceScore > 0) return campALetter[dimIdx];  // 偏阵营 A
-  if (inferenceScore < 0) return campBLetter[dimIdx];  // 偏阵营 B
-  return null; // 其他三维也势均力敌（奇数个 ±1 求和不会为 0，理论不发生）
+  if (s > 0) return 'pro';
+  if (s < 0) return 'con';
+  return null;
+}
+
+// 第三级：基础率先验。无数据时 50/50 随机——带披露的随机优于无披露的武断，且不偏斜整体分布
+function priorVote(dimIdx) {
+  var p = DIM_PRIORS[dimIdx];
+  if (p === null) return Math.random() < 0.5 ? 'pro' : 'con';
+  return Math.random() < p ? 'pro' : 'con';
 }
 
 function getTypeKey(scoresObj) {
@@ -1010,41 +1037,52 @@ function getTypeKey(scoresObj) {
     { name: 'exre', neg: 'E', pos: 'Re' }
   ];
 
-  // 第一轮：先用本维度题面分析判定每个维度
+  // 第一轮：本维度直接判定（总分≠0 即"实测"）
   var letters = [null, null, null, null];
+  var measured = [false, false, false, false];
+  var confidence = [null, null, null, null];
+  var tied = [];
   for (var i = 0; i < 4; i++) {
-    var d = dims[i];
-    if (scores[i] < 0) letters[i] = d.neg;
-    else if (scores[i] > 0) letters[i] = d.pos;
-    else {
-      // 总分=0，启用本维度破平规则
-      var tie = breakTie(detail[d.name]);
-      if (tie === 'pro') letters[i] = d.pos;
-      else if (tie === 'con') letters[i] = d.neg;
-      else letters[i] = null; // 本维度无法判定，待跨维度推断
+    if (scores[i] < 0) { letters[i] = dims[i].neg; measured[i] = true; confidence[i] = 'measured'; }
+    else if (scores[i] > 0) { letters[i] = dims[i].pos; measured[i] = true; confidence[i] = 'measured'; }
+    else tied.push(i);
+  }
+
+  // 规则红线：≥3 个维度平分 → 不做任何插补，直接缝合怪
+  if (tied.length >= 3) return { key: 'HYBRID', confidence: confidence };
+
+  // ≤2 个平分维度：逐维走三级裁决链。
+  // 各级只读取本维度信息或实测维度，裁出的字母互不作证据（并行，不链式）
+  var remain1 = [];
+  for (var t = 0; t < tied.length; t++) {
+    var idx = tied[t];
+    var v1 = weightedVote(detail[dims[idx].name]);   // 第一级：本维度反对票加权
+    if (v1) {
+      letters[idx] = (v1 === 'pro') ? dims[idx].pos : dims[idx].neg;
+      confidence[idx] = 'vote';
+    } else {
+      remain1.push(idx);
     }
   }
-
-  // 统计本维度无法判定的平分维度数
-  var unresolved = [];
-  for (var j = 0; j < 4; j++) {
-    if (letters[j] === null) unresolved.push(j);
+  var remain2 = [];
+  for (var t2 = 0; t2 < remain1.length; t2++) {
+    var idx2 = remain1[t2];
+    var v2 = inferFromMeasured(letters, idx2, measured); // 第二级：仅实测维度并行推断
+    if (v2) {
+      letters[idx2] = (v2 === 'pro') ? dims[idx2].pos : dims[idx2].neg;
+      confidence[idx2] = 'inferred';
+    } else {
+      remain2.push(idx2);
+    }
+  }
+  for (var t3 = 0; t3 < remain2.length; t3++) {
+    var idx3 = remain2[t3];
+    var v3 = priorVote(idx3);                          // 第三级：基础率先验/随机
+    letters[idx3] = (v3 === 'pro') ? dims[idx3].pos : dims[idx3].neg;
+    confidence[idx3] = 'prior';
   }
 
-  // ≥2 个维度无法判定 → 缝合怪（跨维度推断也无法解决）
-  if (unresolved.length >= 2) return 'HYBRID';
-
-  // 1 个维度无法判定 → 启用跨维度推断
-  if (unresolved.length === 1) {
-    var idx = unresolved[0];
-    var inferred = inferFromOtherDims(letters, idx);
-    if (inferred) letters[idx] = inferred; // 直接赋值推断出的字母
-    // inferred === null 时维持 null（其他三维也势均力敌，理论不发生）
-  }
-
-  // 最终检查：仍有未判定维度 → 缝合怪
-  if (letters.indexOf(null) >= 0) return 'HYBRID';
-  return letters.join('-');
+  return { key: letters.join('-'), confidence: confidence };
 }
 
 function startScoring() {
@@ -1054,7 +1092,9 @@ function startScoring() {
 function showResult() {
   var scoreObj = calculateScores();
   var scores = scoreObj.total;   // 数组，下游统一用数组
-  var typeKey = getTypeKey(scoreObj);
+  var typeResult = getTypeKey(scoreObj);
+  var typeKey = typeResult.key;
+  var isHybrid = (typeKey === 'HYBRID');
   var p;
   if (typeKey === 'HYBRID') {
     p = buildHybridResult(scores);
@@ -1070,7 +1110,7 @@ function showResult() {
   } else {
     p = personalities[typeKey];
   }
-  renderResult(typeKey, p, scores);
+  renderResult(typeKey, p, scores, isHybrid ? null : typeResult.confidence);
   goToPage('result');
 }
 
@@ -1087,11 +1127,11 @@ function buildHybridResult(scores) {
     quote: '我两种观点都认同——这不叫摇摆，这叫辩证法。',
     friends: ['O-F-P-Re', 'S-M-R-Re', 'O-M-R-Re'], enemies: ['S-F-R-E', 'O-M-P-E'],
     judge: ['😵 困惑', '🤯 更困惑', '📚 写论文'],
-    career: { job: '有待观察', reason: '四个维度都没有明确的倾向，未必是测试出了问题。如果你在很多题上选了中立，说明你还处于刑法学立场的勘探期，你对报应还是预防、形式还是实质这些对立还没有切身的感知。这不是缺陷，大部分法学生在接触教义学之前都是这个状态。不妨先去法学院课堂里坐一年，去律所或法院轮转一圈，等你亲手碰过几个真实的案子，被法条和现实夹在中间碾过一次之后，再回头来测。到那时候你填出来的答案会跟今天很不一样。如果你每题都有明确态度却被编码抵消了，那你是另一种情况，并合主义在骨子里渗透得太深。你看得到报应刑的道理也看得到预防刑的逻辑，你尊重法条字面的力量也敬重规范目的的温度。你不是摇摆，你是两边都理解透了所以拒绝把一个简化过的标签贴给自己。法学教育、立法起草、企业法务或合规，这些需要综合视角的位置比任何一方的擂台都更让你自在。现在测出缝合怪，不是终点。过一两年再测一次，看看地图画到哪里了。' }
+    career: { job: '有待观察', reason: '四个维度都没有明确的倾向，未必是测试出了问题。如果你的作答在多个维度上正负恰好抵消，说明你还处于刑法学立场的勘探期，你对报应还是预防、形式还是实质这些对立还没有切身的感知。这不是缺陷，大部分法学生在接触教义学之前都是这个状态。不妨先去法学院课堂里坐一年，去律所或法院轮转一圈，等你亲手碰过几个真实的案子，被法条和现实夹在中间碾过一次之后，再回头来测。到那时候你填出来的答案会跟今天很不一样。如果你每题都有明确态度却被编码抵消了，那你是另一种情况，并合主义在骨子里渗透得太深。你看得到报应刑的道理也看得到预防刑的逻辑，你尊重法条字面的力量也敬重规范目的的温度。你不是摇摆，你是两边都理解透了所以拒绝把一个简化过的标签贴给自己。法学教育、立法起草、企业法务或合规，这些需要综合视角的位置比任何一方的擂台都更让你自在。现在测出缝合怪，不是终点。过一两年再测一次，看看地图画到哪里了。' }
   };
 }
 
-function renderResult(typeKey, p, scores) {
+function renderResult(typeKey, p, scores, confidence) {
   state.lastResult = { typeKey: typeKey, p: p, scores: scores };
   document.getElementById('result-type').textContent = typeKey;
   document.getElementById('result-nickname').textContent = p.nickname;
@@ -1101,6 +1141,28 @@ function renderResult(typeKey, p, scores) {
     tagsHtml += '<span class="text-xs bg-primary-50 text-primary-700 px-3 py-1 rounded-full">' + tag + '</span>';
   });
   document.getElementById('result-tags').innerHTML = tagsHtml;
+
+  // v7 边界披露：靠裁决链（非实测）定出的维度，展示"接近居中"提示与副型
+  var blEl = document.getElementById('result-borderline');
+  if (blEl) {
+    var blText = '';
+    if (confidence) {
+      var dimLabels = ['立场', '解释', '目的', '边界'];
+      var dimPoles = [['S', 'O'], ['F', 'M'], ['R', 'P'], ['E', 'Re']];
+      var cur = typeKey.split('-');
+      var notes = [];
+      for (var bi = 0; bi < 4; bi++) {
+        if (confidence[bi] === 'measured') continue;
+        var flipped = cur.slice();
+        flipped[bi] = (cur[bi] === dimPoles[bi][0]) ? dimPoles[bi][1] : dimPoles[bi][0];
+        var sub = personalities[flipped.join('-')];
+        if (sub) notes.push('「' + dimLabels[bi] + '」接近居中 · 副型：' + sub.nickname);
+      }
+      blText = notes.join('；');
+    }
+    blEl.textContent = blText;
+    blEl.style.display = blText ? '' : 'none';
+  }
 
   var axisHtml = '';
   var dimNames = [['S', 'O'], ['F', 'M'], ['R', 'P'], ['E', 'Re']];
@@ -1404,9 +1466,9 @@ function closeAbout() {
 }
 
 function shareResult() {
-  var text = '我在「刑格 CPTI 2.0」中测出了我的刑法人格！来测测你是哪种？';
+  var text = '我在「刑格 CPTI 3.0」中测出了我的刑法人格！来测测你是哪种？';
   if (navigator.share) {
-    navigator.share({ title: '刑格 CPTI 2.0', text: text, url: window.location.href }).catch(function(){});
+    navigator.share({ title: '刑格 CPTI 3.0', text: text, url: window.location.href }).catch(function(){});
   } else if (navigator.clipboard) {
     navigator.clipboard.writeText(window.location.href).then(function() {
       alert('链接已复制，快去分享给朋友吧！');
