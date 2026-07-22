@@ -1,0 +1,2018 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+<meta name="description" content="2026年6月·刑法学理论星云图与学术脉搏。AI 生成的本月刑法学核心期刊论文可视化：理论星云、学术脉搏、观点对撞。" />
+<meta name="theme-color" content="#fbfbfc" />
+<title>刑法学术雷达 · 2026年6月 · 理论星云图</title>
+
+<!-- Open Graph / 微信分享 -->
+<meta property="og:title" content="刑法学术雷达 · 2026年6月" />
+<meta property="og:description" content="Generative Jurisprudence · 生成式法理学：41 篇核心期刊论文的理论星云图与学术脉搏" />
+<meta property="og:type" content="article" />
+<meta name="weixin:title" content="刑法学术雷达 · 2026年6月" />
+<meta name="weixin:description" content="41 篇刑法学核心论文的理论星云图与学术脉搏" />
+
+<!-- 字体：Noto Serif SC（标题）+ DM Sans（正文）+ JetBrains Mono（数字标签） -->
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600&family=JetBrains+Mono:wght@400;500;600&family=Noto+Serif+SC:wght@500;600;700&display=swap" rel="stylesheet" />
+
+<!-- D3 + ECharts（jsdelivr CDN） -->
+<script src="https://cdn.jsdelivr.net/npm/d3@7.9.0/dist/d3.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/echarts@5.5.0/dist/echarts.min.js"></script>
+
+<style>
+/* ============================================================
+   Apple Light · 学术杂志风 —— 设计基调：
+   典雅高级感 = 米白象牙底 + 细发丝线 + 低饱和度古典金点缀 + 衬线标题
+   ============================================================ */
+:root {
+  /* 背景：Apple Light 米白象牙色阶 */
+  --bg-0: #fbfbfc;
+  --bg-1: #f5f5f7;
+  --bg-2: #efeff3;
+  --bg-3: #e8e8ed;
+  /* 文字：黑墨色阶（替代 ink） */
+  --ink: #1d1d1f;
+  --ink-2: #48484a;
+  --ink-3: #6e6e73;
+  --ink-4: #8e8e93;
+  /* 线条：极淡冷灰发丝线 */
+  --line: rgba(60, 60, 67, 0.12);
+  --line-soft: rgba(60, 60, 67, 0.06);
+  /* 强调色：从霓虹改为 Apple 系统蓝 + 古典金（克制点缀） */
+  --accent: #0071e3;            /* Apple 系统蓝（主站主色） */
+  --accent-dim: rgba(0, 113, 227, 0.32);
+  --accent-soft: rgba(0, 113, 227, 0.08);
+  --accent-warm: #b8860b;       /* 古典金（DarkGoldenrod，替代霓虹金） */
+  --accent-warm-dim: rgba(184, 134, 11, 0.55);
+  --gold: #b8860b;              /* 别名（保持兼容） */
+  --pink: #a2845e;              /* 古典棕褐（替代霓虹粉） */
+  --violet: #5a5a8e;            /* 雾紫（替代霓虹紫） */
+  --green: #5b7553;             /* 苔藓绿（替代霓虹绿） */
+  --danger: #8b3a3a;            /* 暗酒红（替代霓虹红） */
+  --cyan: var(--accent);        /* 别名指向 accent，保留兼容 */
+  --cyan-dim: var(--accent-dim);
+  /* 卡片与背景装饰（替换深色渐变） */
+  --card-bg: #ffffff;
+  --card-decor: linear-gradient(180deg, rgba(0, 113, 227, 0.012), transparent 70%);
+  --panel-bg: #ffffff;
+  --drawer-bg: #ffffff;
+  --sheet-bg: #ffffff;
+  --callout-bg: #fafaf7;        /* 淡米黄 callout 背景（学术杂志感） */
+  /* 中央 VS 分隔符（细线美学，去除霓虹辉光） */
+  --vs-bg: #ffffff;
+  --vs-border: rgba(60, 60, 67, 0.18);
+  --vs-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+  --vs-ring: rgba(60, 60, 67, 0.22);
+  --serif: 'Noto Serif SC', 'Songti SC', 'STSong', serif;
+  --sans: 'DM Sans', -apple-system, BlinkMacSystemFont, 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', sans-serif;
+  --mono: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, monospace;
+  --r-lg: 14px;
+  --r-md: 10px;
+  --r-sm: 6px;
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+html { scroll-behavior: smooth; }
+
+body {
+  background: var(--bg-0);
+  color: var(--ink);
+  font-family: var(--sans);
+  font-size: 15px;
+  line-height: 1.75;
+  letter-spacing: 0.01em;
+  overflow-x: hidden;
+  min-height: 100vh;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* ---------- 背景层（Canvas 淡星点 + 极淡冷调雾化，纯装饰） ---------- */
+#starfield {
+  position: fixed; inset: 0; z-index: -2;
+  width: 100%; height: 100%;
+  display: block;
+  opacity: 0.5;
+}
+.nebula-fog {
+  position: fixed; inset: 0; z-index: -1; pointer-events: none;
+  background:
+    radial-gradient(ellipse 90% 55% at 78% -8%, rgba(0, 113, 227, 0.035), transparent 62%),
+    radial-gradient(ellipse 70% 45% at 8% 30%, rgba(184, 134, 11, 0.025), transparent 60%),
+    radial-gradient(ellipse 65% 50% at 88% 72%, rgba(90, 90, 142, 0.022), transparent 62%),
+    radial-gradient(ellipse 120% 90% at 50% 110%, rgba(245, 245, 247, 0.55), transparent 70%);
+}
+
+::selection { background: rgba(0, 113, 227, 0.18); color: #1d1d1f; }
+
+a { color: inherit; text-decoration: none; }
+
+/* ---------- 布局骨架 ---------- */
+.wrap {
+  max-width: 1120px;
+  margin: 0 auto;
+  padding: 0 clamp(16px, 4.5vw, 40px);
+}
+
+.mono { font-family: var(--mono); }
+.serif { font-family: var(--serif); }
+
+/* AI 生成小字标注 */
+.ai-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-family: var(--mono);
+  font-size: 10px;
+  letter-spacing: 0.06em;
+  color: var(--ink-3);
+  border: 1px solid var(--line-soft);
+  border-radius: 999px;
+  padding: 3px 9px;
+  white-space: nowrap;
+  user-select: none;
+}
+.ai-tag::before {
+  content: '';
+  width: 5px; height: 5px;
+  border-radius: 50%;
+  background: var(--cyan);
+  opacity: 0.7;
+}
+
+/* ---------- 页头 ---------- */
+.site-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 18px 0 0;
+  font-family: var(--mono);
+  font-size: 11px;
+  letter-spacing: 0.14em;
+  color: var(--ink-3);
+}
+.site-top .home-link {
+  display: inline-flex; align-items: center; gap: 7px;
+  color: var(--ink-2);
+  transition: color 0.25s;
+}
+.site-top .home-link:hover { color: var(--cyan); }
+.site-top .home-link svg { width: 13px; height: 13px; }
+.site-top .issue-badge {
+  border: 1px solid var(--line);
+  padding: 4px 11px;
+  border-radius: 999px;
+  color: var(--ink-2);
+  background: var(--bg-2);
+}
+
+.hero {
+  position: relative;
+  padding: clamp(46px, 9vw, 96px) 0 clamp(30px, 5vw, 52px);
+  overflow: hidden;
+}
+.hero-eyebrow {
+  font-family: var(--mono);
+  font-size: 11px;
+  letter-spacing: 0.32em;
+  color: var(--cyan-dim);
+  text-transform: uppercase;
+  margin-bottom: 18px;
+  display: flex; align-items: center; gap: 12px;
+}
+.hero-eyebrow::before {
+  content: '';
+  width: 34px; height: 1px;
+  background: linear-gradient(90deg, var(--cyan), transparent);
+}
+.hero h1 {
+  font-family: var(--serif);
+  font-weight: 700;
+  font-size: clamp(34px, 8.4vw, 68px);
+  line-height: 1.14;
+  letter-spacing: 0.045em;
+  color: #1d1d1f;
+  background: linear-gradient(115deg, #1d1d1f 0%, #1d1d1f 70%, var(--accent-warm) 105%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+.hero .hero-sub {
+  margin-top: 14px;
+  font-family: var(--serif);
+  font-size: clamp(15px, 3.6vw, 20px);
+  color: var(--ink-2);
+  letter-spacing: 0.14em;
+}
+.hero .hero-desc {
+  margin-top: 18px;
+  max-width: 560px;
+  color: var(--ink-3);
+  font-size: 13.5px;
+  line-height: 1.9;
+}
+.hero .hero-tags { margin-top: 20px; display: flex; gap: 8px; flex-wrap: wrap; }
+
+/* 雷达盘装饰（右上角，纯 CSS 动画，已降级为古典金细线美学） */
+.radar {
+  position: absolute;
+  top: clamp(20px, 6vw, 60px);
+  right: clamp(-40px, -2vw, 10px);
+  width: clamp(150px, 26vw, 260px);
+  aspect-ratio: 1;
+  border-radius: 50%;
+  border: 1px solid var(--line);
+  pointer-events: none;
+  opacity: 0.6;
+}
+.radar::before, .radar::after {
+  content: '';
+  position: absolute; border-radius: 50%;
+  border: 1px solid var(--line-soft);
+}
+.radar::before { inset: 22%; }
+.radar::after { inset: 40%; }
+.radar .sweep {
+  position: absolute; inset: 0;
+  border-radius: 50%;
+  background: conic-gradient(from 0deg, rgba(184, 134, 11, 0.12), rgba(184, 134, 11, 0.02) 18%, transparent 26%);
+  animation: radarSweep 7s linear infinite;
+}
+.radar .blip {
+  position: absolute;
+  width: 4px; height: 4px; border-radius: 50%;
+  background: var(--accent-warm);
+  box-shadow: 0 0 6px rgba(184, 134, 11, 0.35);
+  animation: blipFade 3.6s ease-out infinite;
+}
+@keyframes radarSweep { to { transform: rotate(360deg); } }
+@keyframes blipFade { 0%, 62% { opacity: 0.9; } 100% { opacity: 0; } }
+
+/* ---------- 章节通用 ---------- */
+.section { padding: clamp(34px, 6vw, 64px) 0; }
+.section-head {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 14px;
+  flex-wrap: wrap;
+  margin-bottom: clamp(20px, 4vw, 34px);
+}
+.section-head .idx {
+  font-family: var(--mono);
+  font-size: 11px;
+  letter-spacing: 0.3em;
+  color: var(--cyan-dim);
+  display: block;
+  margin-bottom: 9px;
+}
+.section-head h2 {
+  font-family: var(--serif);
+  font-weight: 600;
+  font-size: clamp(23px, 5.4vw, 34px);
+  letter-spacing: 0.06em;
+}
+.section-head h2 .en {
+  font-family: var(--mono);
+  font-size: 0.42em;
+  letter-spacing: 0.26em;
+  color: var(--ink-3);
+  font-weight: 400;
+  margin-left: 12px;
+  vertical-align: 0.32em;
+  text-transform: uppercase;
+}
+.section-head .head-side { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+
+.hairline {
+  height: 1px;
+  background: linear-gradient(90deg, transparent, var(--line) 18%, var(--line) 82%, transparent);
+  margin: 0 auto;
+  max-width: 1120px;
+}
+
+/* 滚动入场 */
+.reveal { opacity: 0; transform: translateY(22px); transition: opacity 0.8s ease, transform 0.8s cubic-bezier(0.22, 0.8, 0.3, 1); }
+.reveal.in { opacity: 1; transform: none; }
+</style>
+<style>
+/* ============================================================
+   模块一 · 学术脉搏
+   ============================================================ */
+.pulse-grid {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 12px;
+}
+.vital-card {
+  position: relative;
+  background: var(--card-bg);
+  border: 1px solid var(--line-soft);
+  border-radius: var(--r-md);
+  padding: 16px 16px 14px;
+  overflow: hidden;
+  transition: border-color 0.3s, transform 0.3s, box-shadow 0.3s;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.03);
+}
+.vital-card:hover { border-color: var(--accent-dim); transform: translateY(-2px); box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05); }
+.vital-card::after {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, var(--accent-dim), transparent);
+  opacity: 0;
+  transition: opacity 0.3s;
+}
+.vital-card:hover::after { opacity: 1; }
+.vital-card .vc-label {
+  display: flex; align-items: center; gap: 7px;
+  font-family: var(--mono);
+  font-size: 10px;
+  letter-spacing: 0.18em;
+  color: var(--ink-3);
+  text-transform: uppercase;
+}
+.vital-card .vc-label .dot {
+  width: 6px; height: 6px; border-radius: 50%;
+  background: var(--accent);
+  box-shadow: 0 0 5px var(--accent-dim);
+  animation: vitalPulse 2.4s ease-in-out infinite;
+  flex: none;
+}
+@keyframes vitalPulse { 0%, 100% { opacity: 1; transform: scale(1); } 50% { opacity: 0.35; transform: scale(0.72); } }
+.vital-card .vc-value {
+  margin-top: 12px;
+  font-family: var(--mono);
+  font-weight: 600;
+  font-size: clamp(30px, 6vw, 42px);
+  line-height: 1;
+  color: var(--ink);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.02em;
+}
+.vital-card .vc-value .unit { font-size: 0.34em; color: var(--ink-3); font-weight: 400; margin-left: 5px; letter-spacing: 0.1em; }
+.vital-card .vc-name {
+  margin-top: 12px;
+  font-family: var(--serif);
+  font-weight: 600;
+  font-size: clamp(16px, 3.4vw, 20px);
+  line-height: 1.35;
+  color: var(--ink);
+  letter-spacing: 0.03em;
+}
+.vital-card .vc-sub {
+  margin-top: 7px;
+  font-size: 11.5px;
+  color: var(--ink-3);
+}
+.vital-card .vc-sub .mono { color: var(--accent); }
+.vital-card.is-btn { cursor: pointer; }
+.vital-card .vc-more {
+  margin-top: 9px;
+  font-family: var(--mono);
+  font-size: 10px;
+  letter-spacing: 0.12em;
+  color: var(--accent);
+  display: inline-flex; align-items: center; gap: 5px;
+}
+.vital-card .vc-more .chev { transition: transform 0.3s; display: inline-block; }
+.vital-card.expanded .vc-more .chev { transform: rotate(180deg); }
+
+/* 新概念抽屉 */
+.concepts-drawer {
+  max-height: 0;
+  overflow: hidden;
+  transition: max-height 0.55s cubic-bezier(0.22, 0.8, 0.3, 1), margin 0.4s;
+  margin-top: 0;
+}
+.concepts-drawer.open { max-height: 900px; margin-top: 12px; }
+.concepts-inner {
+  background: var(--bg-1);
+  border: 1px solid var(--line-soft);
+  border-radius: var(--r-md);
+  padding: 18px clamp(14px, 3vw, 24px);
+}
+.concepts-inner .cd-title {
+  font-family: var(--mono); font-size: 10px; letter-spacing: 0.22em;
+  color: var(--ink-3); margin-bottom: 12px; text-transform: uppercase;
+}
+.concepts-inner ol { list-style: none; display: grid; gap: 9px; }
+.concepts-inner li {
+  display: flex; gap: 12px; align-items: baseline;
+  font-size: 13px; color: var(--ink-2); line-height: 1.7;
+}
+.concepts-inner li .no {
+  font-family: var(--mono); font-size: 10px; color: var(--accent);
+  flex: none; letter-spacing: 0.05em;
+}
+
+/* 议题分布图 + 榜单 */
+.pulse-panels {
+  margin-top: 14px;
+  display: grid;
+  grid-template-columns: 1.35fr 1fr;
+  gap: 12px;
+}
+.panel {
+  background: var(--card-bg);
+  border: 1px solid var(--line-soft);
+  border-radius: var(--r-md);
+  padding: 18px clamp(14px, 2.6vw, 22px) 14px;
+  min-width: 0;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.03);
+}
+.panel .p-title {
+  font-family: var(--mono);
+  font-size: 10px;
+  letter-spacing: 0.22em;
+  color: var(--ink-3);
+  text-transform: uppercase;
+  margin-bottom: 6px;
+  display: flex; justify-content: space-between; align-items: center; gap: 8px;
+}
+.panel .p-title .zh {
+  font-family: var(--serif); font-size: 14px; letter-spacing: 0.1em;
+  color: var(--ink-2); text-transform: none;
+}
+#topicsChart { width: 100%; height: 320px; }
+
+.rank-list { display: grid; gap: 4px; margin-top: 8px; }
+.rank-row {
+  display: grid;
+  grid-template-columns: 22px 1fr auto;
+  gap: 10px;
+  align-items: center;
+  padding: 4.5px 6px;
+  border-radius: 7px;
+  font-size: 12.5px;
+}
+.rank-row:hover { background: var(--bg-1); }
+.rank-row .rk { font-family: var(--mono); font-size: 10px; color: var(--ink-4); }
+.rank-row:nth-child(1) .rk, .rank-row:nth-child(2) .rk, .rank-row:nth-child(3) .rk { color: var(--accent); }
+.rank-row .nm { color: var(--ink-2); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.rank-row .ct { font-family: var(--mono); font-size: 11px; color: var(--ink-3); }
+.rank-row .bar {
+  grid-column: 2 / 4;
+  height: 2px; border-radius: 2px;
+  background: var(--bg-2);
+  overflow: hidden; margin-top: -2px;
+}
+.rank-row .bar i { display: block; height: 100%; border-radius: 2px; background: linear-gradient(90deg, var(--accent), var(--accent-dim)); }
+.mini-cols { display: grid; grid-template-columns: 1fr 1fr; gap: 0 14px; }
+.mini-cols .mc-head {
+  font-family: var(--mono); font-size: 10px; letter-spacing: 0.16em;
+  color: var(--ink-3); padding: 8px 6px 5px; text-transform: uppercase;
+}
+
+/* ============================================================
+   模块二 · 理论星云图
+   ============================================================ */
+.nebula-shell {
+  position: relative;
+  border: 1px solid var(--line-soft);
+  border-radius: var(--r-lg);
+  background:
+    radial-gradient(ellipse 120% 90% at 50% 0%, rgba(0, 113, 227, 0.025), transparent 70%),
+    linear-gradient(180deg, #ffffff, #fafafb);
+  overflow: hidden;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.03);
+}
+.nebula-stage {
+  position: relative;
+  height: clamp(470px, 128vw, 600px);
+  cursor: grab;
+  touch-action: none;
+}
+.nebula-stage:active { cursor: grabbing; }
+@media (min-width: 900px) { .nebula-stage { height: 640px; } }
+#nebulaSvg { display: block; width: 100%; height: 100%; }
+
+/* 着色切换 */
+.mode-toggle {
+  display: inline-flex;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  padding: 3px;
+  background: var(--bg-1);
+  gap: 2px;
+}
+.mode-toggle button {
+  font-family: var(--mono);
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  color: var(--ink-3);
+  background: transparent;
+  border: none;
+  border-radius: 999px;
+  padding: 6px 14px;
+  cursor: pointer;
+  transition: color 0.25s, background 0.25s, box-shadow 0.25s;
+}
+.mode-toggle button.active {
+  color: #ffffff;
+  background: var(--accent);
+}
+.mode-toggle button:not(.active):hover { color: var(--ink); }
+
+/* 图例 */
+.nebula-legend {
+  position: absolute;
+  left: 12px; top: 12px;
+  display: flex; flex-wrap: wrap; gap: 5px 10px;
+  max-width: min(72%, 560px);
+  z-index: 3;
+  pointer-events: none;
+}
+.legend-chip {
+  display: inline-flex; align-items: center; gap: 6px;
+  font-family: var(--mono); font-size: 10px; letter-spacing: 0.04em;
+  color: var(--ink-2);
+  background: rgba(255, 255, 255, 0.85);
+  border: 1px solid var(--line-soft);
+  padding: 3px 9px;
+  border-radius: 999px;
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+}
+.legend-chip i { width: 7px; height: 7px; border-radius: 50%; flex: none; }
+
+.nebula-hint {
+  position: absolute;
+  right: 12px; bottom: 10px;
+  font-family: var(--mono); font-size: 10px; letter-spacing: 0.1em;
+  color: var(--ink-4);
+  z-index: 3;
+  pointer-events: none;
+  text-align: right;
+  line-height: 1.8;
+}
+
+/* SVG 内部元素 */
+.star { cursor: pointer; }
+.star .halo { transition: opacity 0.25s; }
+.star.dimmed { opacity: 0.22; transition: opacity 0.35s; }
+.star:not(.dimmed) { transition: opacity 0.35s; }
+.edge { pointer-events: none; }
+/* 理论共享边：古典金细线，体现理论流派归属 */
+.edge-theory {
+  stroke: #b8860b;
+  stroke-opacity: 0.22;
+  stroke-width: 0.7;
+  pointer-events: none;
+}
+/* 争议对边：暗酒红虚线，体现学术对立 */
+.edge-clash {
+  stroke: #8b3a3a;
+  stroke-opacity: 0.55;
+  stroke-width: 1.1;
+  stroke-dasharray: 3 3;
+  fill: none;
+  cursor: help;
+  transition: stroke-opacity 0.2s, stroke-width 0.2s;
+}
+.edge-clash:hover { stroke-opacity: 0.9; stroke-width: 1.6; }
+.cluster-label {
+  font-family: var(--mono);
+  font-size: 10.5px;
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  fill: #1d1d1f;
+  pointer-events: none;
+  text-anchor: middle;
+}
+.cluster-count {
+  font-family: var(--mono);
+  font-size: 8.5px;
+  font-weight: 400;
+  fill: #6e6e73;
+  pointer-events: none;
+  text-anchor: middle;
+  letter-spacing: 0.1em;
+}
+/* 标签背板：极淡白底胶囊，不挡节点又自带可读性 */
+.cluster-label-bg {
+  fill: rgba(255, 255, 255, 0.88);
+  stroke: rgba(60, 60, 67, 0.10);
+  stroke-width: 0.5;
+  rx: 4;
+  ry: 4;
+}
+/* 引线：极淡虚线，从云团重心连到外置标签 */
+.cluster-leader {
+  stroke: rgba(60, 60, 67, 0.28);
+  stroke-width: 0.6;
+  stroke-dasharray: 1.5 2.5;
+  fill: none;
+}
+@keyframes twinkle { 0%, 100% { opacity: var(--tw-lo, 0.14); } 50% { opacity: var(--tw-hi, 0.4); } }
+
+/* ---------- 详情侧滑卡（桌面右侧抽屉 / 移动底部上滑） ---------- */
+.sheet-backdrop {
+  position: fixed; inset: 0;
+  background: rgba(29, 29, 31, 0.45);
+  backdrop-filter: blur(3px);
+  -webkit-backdrop-filter: blur(3px);
+  opacity: 0; pointer-events: none;
+  transition: opacity 0.35s;
+  z-index: 60;
+}
+.sheet-backdrop.open { opacity: 1; pointer-events: auto; }
+.paper-sheet {
+  position: fixed;
+  z-index: 61;
+  background: var(--sheet-bg);
+  border: 1px solid var(--line);
+  box-shadow: 0 24px 80px rgba(0, 0, 0, 0.18);
+  transition: transform 0.45s cubic-bezier(0.22, 0.9, 0.28, 1);
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior: contain;
+}
+/* 移动端：底部上滑卡 */
+.paper-sheet {
+  left: 0; right: 0; bottom: 0;
+  max-height: 80vh;
+  max-height: 80dvh;
+  border-radius: 20px 20px 0 0;
+  border-bottom: none;
+  transform: translateY(106%);
+  padding: 10px 22px calc(26px + env(safe-area-inset-bottom, 0px));
+}
+.paper-sheet.open { transform: translateY(0); }
+.paper-sheet .grabber {
+  width: 42px; height: 4px; border-radius: 4px;
+  background: var(--line);
+  margin: 4px auto 16px;
+}
+/* 桌面端：右侧抽屉 */
+@media (min-width: 900px) {
+  .paper-sheet {
+    left: auto; right: 22px; top: 50%; bottom: auto;
+    width: 392px; max-height: 84vh;
+    border-radius: var(--r-lg);
+    border-bottom: 1px solid var(--line);
+    transform: translate(30px, -50%);
+    opacity: 0; pointer-events: none;
+    padding: 8px 26px 26px;
+    transition: transform 0.45s cubic-bezier(0.22, 0.9, 0.28, 1), opacity 0.4s;
+  }
+  .paper-sheet.open { transform: translate(0, -50%); opacity: 1; pointer-events: auto; }
+  .paper-sheet .grabber { display: none; }
+}
+.paper-sheet .ps-close {
+  position: sticky;
+  top: 0;
+  float: right;
+  margin: 8px -6px 0 0;
+  width: 34px; height: 34px;
+  border-radius: 50%;
+  border: 1px solid var(--line);
+  background: var(--bg-1);
+  color: var(--ink-2);
+  font-size: 15px;
+  cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  transition: color 0.25s, border-color 0.25s;
+  z-index: 2;
+}
+.paper-sheet .ps-close:hover { color: var(--accent); border-color: var(--accent-dim); }
+.ps-topic {
+  display: inline-flex; align-items: center; gap: 7px;
+  font-family: var(--mono); font-size: 10.5px; letter-spacing: 0.12em;
+  padding: 4px 11px; border-radius: 999px;
+  border: 1px solid var(--line);
+  margin: 10px 0 14px;
+}
+.ps-topic i { width: 7px; height: 7px; border-radius: 50%; }
+.ps-title {
+  font-family: var(--serif);
+  font-weight: 700;
+  font-size: 20px;
+  line-height: 1.5;
+  letter-spacing: 0.02em;
+  color: var(--ink);
+}
+.ps-meta {
+  margin-top: 10px;
+  font-size: 12px;
+  color: var(--ink-3);
+  display: flex; flex-wrap: wrap; gap: 4px 10px;
+}
+.ps-meta .mono { font-size: 11px; }
+.ps-stance {
+  margin-top: 16px;
+  padding: 12px 14px;
+  border-left: 2px solid var(--accent-warm);
+  background: rgba(184, 134, 11, 0.04);
+  border-radius: 0 var(--r-sm) var(--r-sm) 0;
+  font-size: 13.5px;
+  color: var(--ink);
+  line-height: 1.8;
+}
+.ps-stance .tag {
+  display: block;
+  font-family: var(--mono); font-size: 9.5px; letter-spacing: 0.2em;
+  color: var(--accent-warm); margin-bottom: 5px;
+}
+.ps-summary { margin-top: 15px; font-size: 13.5px; color: var(--ink-2); line-height: 1.9; }
+.ps-sec-label {
+  margin-top: 18px;
+  font-family: var(--mono); font-size: 9.5px; letter-spacing: 0.22em;
+  color: var(--ink-4); text-transform: uppercase;
+}
+.ps-chips { margin-top: 9px; display: flex; flex-wrap: wrap; gap: 6px; }
+.ps-chips .chip {
+  font-size: 11.5px;
+  padding: 4px 11px;
+  border-radius: 999px;
+  background: var(--accent-soft);
+  border: 1px solid var(--accent-dim);
+  color: var(--accent);
+}
+.ps-chips .chip.theory {
+  background: rgba(90, 90, 142, 0.06);
+  border-color: rgba(90, 90, 142, 0.25);
+  color: var(--violet);
+  font-family: var(--mono);
+  font-size: 10.5px;
+}
+.ps-novelty { margin-top: 16px; display: flex; align-items: center; gap: 10px; }
+.ps-novelty .nv-label { font-family: var(--mono); font-size: 10px; letter-spacing: 0.14em; color: var(--ink-3); }
+.ps-novelty .nv-bar { flex: 1; height: 3px; border-radius: 3px; background: var(--bg-2); overflow: hidden; }
+.ps-novelty .nv-bar i { display: block; height: 100%; background: linear-gradient(90deg, var(--accent), var(--accent-warm)); border-radius: 3px; }
+.ps-novelty .nv-num { font-family: var(--mono); font-size: 12px; color: var(--accent); }
+.ps-foot { margin-top: 20px; padding-top: 14px; border-top: 1px dashed var(--line-soft); }
+
+/* ============================================================
+   模块三 · 本月对撞
+   ============================================================ */
+.clash-list { display: grid; gap: 16px; }
+.clash-card {
+  position: relative;
+  border: 1px solid var(--line-soft);
+  border-radius: var(--r-lg);
+  background: var(--card-bg);
+  padding: clamp(18px, 4vw, 30px);
+  overflow: hidden;
+  transition: border-color 0.35s;
+}
+.clash-card:hover { border-color: var(--accent-dim); }
+.clash-card::before {
+  content: '';
+  position: absolute; inset: 0;
+  background: var(--card-decor);
+  pointer-events: none;
+}
+.clash-head {
+  display: flex; align-items: center; gap: 12px;
+  margin-bottom: 18px;
+}
+.clash-head .c-no {
+  font-family: var(--mono); font-size: 10px; letter-spacing: 0.24em;
+  color: var(--accent); opacity: 0.85;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+.clash-head .c-line { flex: 1; height: 1px; background: linear-gradient(90deg, var(--accent-dim), transparent); }
+.clash-head .c-topic { font-family: var(--mono); font-size: 10px; color: var(--ink-3); letter-spacing: 0.08em; }
+
+.clash-body {
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  gap: 18px;
+  align-items: stretch;
+  position: relative;
+}
+.clash-side { min-width: 0; display: flex; flex-direction: column; }
+.clash-side .cs-journal {
+  font-family: var(--mono); font-size: 10px; letter-spacing: 0.14em;
+  margin-bottom: 8px;
+}
+.clash-side.left .cs-journal { color: var(--accent-dim); }
+.clash-side.right .cs-journal { color: var(--accent-warm-dim); }
+.clash-side .cs-title {
+  font-family: var(--serif); font-weight: 600;
+  font-size: clamp(14.5px, 3.8vw, 17px);
+  line-height: 1.55;
+}
+.clash-side .cs-author { margin-top: 7px; font-size: 11.5px; color: var(--ink-3); }
+.clash-side .cs-stance {
+  margin-top: 11px;
+  font-size: 12.5px;
+  color: var(--ink-2);
+  line-height: 1.8;
+  padding-top: 10px;
+  border-top: 1px dashed var(--line-soft);
+}
+.clash-side.right { text-align: right; }
+.clash-side.right .cs-stance { border-top-style: dashed; }
+
+.vs-wrap {
+  display: flex; align-items: center; justify-content: center;
+  align-self: center;
+}
+.vs-orb {
+  position: relative;
+  width: 62px; height: 62px; flex: none;
+  border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-family: var(--mono); font-weight: 600; font-size: 14px;
+  letter-spacing: 0.06em;
+  color: var(--ink);
+  background: var(--vs-bg);
+  border: 1px solid var(--vs-border);
+  box-shadow: var(--vs-shadow);
+}
+.vs-orb::before {
+  content: '';
+  position: absolute; inset: -9px;
+  border-radius: 50%;
+  border: 1px dashed var(--vs-ring);
+}
+@keyframes vsPulse { 0%, 100% {} }
+.clash-point {
+  margin-top: 18px;
+  padding: 12px 15px;
+  border: 1px solid var(--line-soft);
+  border-left: 2px solid var(--accent-warm);
+  border-radius: var(--r-sm);
+  background: var(--callout-bg);
+  font-size: 12.5px;
+  color: var(--ink-2);
+  line-height: 1.85;
+  display: flex; gap: 11px; align-items: baseline;
+}
+.clash-point .cp-tag {
+  flex: none;
+  font-family: var(--mono); font-size: 9.5px; letter-spacing: 0.18em;
+  color: var(--accent-warm);
+}
+
+/* ---------- 页脚 ---------- */
+.site-footer {
+  margin-top: clamp(30px, 6vw, 60px);
+  padding: 34px 0 calc(40px + env(safe-area-inset-bottom, 0px));
+  border-top: 1px solid var(--line-soft);
+}
+.site-footer .notes { display: grid; gap: 8px; margin-bottom: 22px; }
+.site-footer .notes p {
+  font-size: 12px; color: var(--ink-3); line-height: 1.9;
+  display: flex; gap: 10px;
+}
+.site-footer .notes p::before { content: '※'; color: var(--cyan-dim); flex: none; }
+.site-footer .foot-row {
+  display: flex; justify-content: space-between; align-items: center; gap: 14px; flex-wrap: wrap;
+  font-family: var(--mono); font-size: 10.5px; letter-spacing: 0.12em; color: var(--ink-4);
+}
+.site-footer .foot-row a { color: var(--ink-3); transition: color 0.25s; }
+.site-footer .foot-row a:hover { color: var(--cyan); }
+
+/* ---------- 加载与错误 ---------- */
+.loader {
+  position: fixed; inset: 0; z-index: 100;
+  background: var(--bg-0);
+  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 22px;
+  transition: opacity 0.6s;
+}
+.loader.done { opacity: 0; pointer-events: none; }
+.loader .l-radar {
+  width: 74px; height: 74px; border-radius: 50%;
+  border: 1px solid var(--line);
+  position: relative;
+}
+.loader .l-radar::before {
+  content: ''; position: absolute; inset: 0; border-radius: 50%;
+  background: conic-gradient(from 0deg, rgba(184, 134, 11, 0.45), transparent 30%); /* 古典金扫描 */
+  animation: radarSweep 1.4s linear infinite;
+}
+.loader .l-radar::after {
+  content: ''; position: absolute; inset: 30%;
+  border-radius: 50%; border: 1px solid var(--line);
+}
+.loader .l-text { font-family: var(--mono); font-size: 11px; letter-spacing: 0.3em; color: var(--ink-3); }
+.fatal {
+  display: none;
+  margin: 60px auto;
+  max-width: 520px;
+  border: 1px solid rgba(139, 58, 58, 0.28);
+  background: rgba(139, 58, 58, 0.04);
+  border-radius: var(--r-md);
+  padding: 24px;
+  text-align: center;
+  color: var(--ink-2);
+  font-size: 13.5px;
+  line-height: 2;
+}
+.fatal.show { display: block; }
+.fatal .f-title { font-family: var(--serif); font-size: 17px; color: var(--danger); margin-bottom: 8px; }
+.fatal button {
+  margin-top: 14px;
+  font-family: var(--mono); font-size: 11px; letter-spacing: 0.14em;
+  color: var(--cyan); background: transparent;
+  border: 1px solid var(--cyan-dim); border-radius: 999px;
+  padding: 8px 22px; cursor: pointer;
+}
+
+/* ---------- 响应式 ---------- */
+@media (max-width: 899px) {
+  .pulse-grid { grid-template-columns: repeat(2, 1fr); }
+  .vital-card.wide { grid-column: span 2; }
+  .pulse-panels { grid-template-columns: 1fr; }
+  #topicsChart { height: 300px; }
+}
+@media (max-width: 640px) {
+  .clash-body { grid-template-columns: 1fr; gap: 14px; }
+  .clash-side.right { text-align: left; }
+  .vs-wrap { justify-content: flex-start; }
+  .vs-orb { width: 46px; height: 46px; font-size: 11.5px; }
+  .vs-orb::before { inset: -6px; }
+  .mini-cols { grid-template-columns: 1fr; }
+  .hero .radar { opacity: 0.5; }
+}
+
+/* 减少动态效果偏好 */
+@media (prefers-reduced-motion: reduce) {
+  .radar .sweep, .radar .blip, .vs-orb, .vs-orb::before, .vital-card .vc-label .dot { animation: none !important; }
+  .reveal { opacity: 1; transform: none; transition: none; }
+  html { scroll-behavior: auto; }
+}
+</style>
+</head>
+<body>
+
+<!-- 深空背景：Canvas 星空 + 星云色雾 -->
+<canvas id="starfield" aria-hidden="true"></canvas>
+<div class="nebula-fog" aria-hidden="true"></div>
+
+<!-- 数据加载 -->
+<div class="loader" id="loader">
+  <div class="l-radar"></div>
+  <div class="l-text">ACADEMIC RADAR · SCANNING</div>
+</div>
+
+<div class="wrap">
+
+  <!-- ══════════ 页头 ══════════ -->
+  <header>
+    <div class="site-top">
+      <a class="home-link" href="/">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 18l-6-6 6-6"/></svg>
+        GENERATIVE JURISPRUDENCE
+      </a>
+      <span class="issue-badge">2026.06 · VOL.01</span>
+    </div>
+
+    <div class="hero">
+      <div class="radar" aria-hidden="true">
+        <div class="sweep"></div>
+        <span class="blip" style="top:26%;left:60%"></span>
+        <span class="blip" style="top:58%;left:30%;animation-delay:1.4s"></span>
+        <span class="blip" style="top:44%;left:72%;animation-delay:2.5s"></span>
+      </div>
+      <p class="hero-eyebrow">生成式法理学 · 学术娱乐观测站</p>
+      <h1>刑法学术雷达</h1>
+      <p class="hero-sub">2026年6月 · 理论星云图 × 学术脉搏</p>
+      <p class="hero-desc">
+        本月扫描 41 篇刑法学核心期刊论文，将其映射为一片理论星空：
+        每篇论文是一颗星，同一议题聚成星座，理论之间以微光相连。
+      </p>
+      <div class="hero-tags">
+        <span class="ai-tag">AI生成，仅供娱乐与参考，以原文为准</span>
+      </div>
+    </div>
+  </header>
+
+  <!-- ══════════ 模块一 · 学术脉搏 ══════════ -->
+  <section class="section" id="pulse">
+    <div class="section-head reveal">
+      <div>
+        <span class="idx">01 / PULSE</span>
+        <h2>学术脉搏<span class="en">Vital Signs</span></h2>
+      </div>
+      <div class="head-side">
+        <span class="ai-tag">AI生成，仅供娱乐与参考，以原文为准</span>
+      </div>
+    </div>
+
+    <!-- 生命体征卡片 -->
+    <div class="pulse-grid reveal" id="vitalGrid">
+      <div class="vital-card">
+        <div class="vc-label"><span class="dot"></span>PAPERS · 论文总数</div>
+        <div class="vc-value"><span class="count" data-count id="vTotal">0</span><span class="unit">篇</span></div>
+        <div class="vc-sub">本月收录核心期刊论文</div>
+      </div>
+      <div class="vital-card">
+        <div class="vc-label"><span class="dot"></span>TOPICS · 活跃议题</div>
+        <div class="vc-value"><span class="count" data-count id="vTopics">0</span><span class="unit">个</span></div>
+        <div class="vc-sub">议题分布详见下方条形图</div>
+      </div>
+      <div class="vital-card is-btn" id="conceptCard" role="button" tabindex="0" aria-expanded="false">
+        <div class="vc-label"><span class="dot"></span>CONCEPTS · 新概念</div>
+        <div class="vc-value"><span class="count" data-count id="vConcepts">0</span><span class="unit">个</span></div>
+        <div class="vc-sub">本月新提出的概念/学说</div>
+        <span class="vc-more">展开清单 <span class="chev">▾</span></span>
+      </div>
+      <div class="vital-card">
+        <div class="vc-label"><span class="dot"></span>TOP THEORY · 最热理论</div>
+        <div class="vc-name" id="vTheoryName">—</div>
+        <div class="vc-sub">本月涉及 <span class="mono" id="vTheoryCount">—</span> 篇论文</div>
+      </div>
+      <div class="vital-card wide">
+        <div class="vc-label"><span class="dot"></span>HUB SCHOLAR · 枢纽学者</div>
+        <div class="vc-name" id="vScholarName">—</div>
+        <div class="vc-sub">参考文献中出现 <span class="mono" id="vScholarCount">—</span> 次</div>
+      </div>
+    </div>
+
+    <!-- 新概念抽屉 -->
+    <div class="concepts-drawer" id="conceptsDrawer">
+      <div class="concepts-inner">
+        <div class="cd-title">NEW CONCEPTS · 本月新概念清单</div>
+        <ol id="conceptsList"></ol>
+      </div>
+    </div>
+
+    <!-- 议题分布 + 双榜 -->
+    <div class="pulse-panels reveal">
+      <div class="panel">
+        <div class="p-title"><span class="zh">议题分布</span><span>TOPIC DISTRIBUTION</span></div>
+        <div id="topicsChart"></div>
+      </div>
+      <div class="panel">
+        <div class="p-title"><span class="zh">本月热榜</span><span>RANKINGS</span></div>
+        <div class="mini-cols">
+          <div>
+            <div class="mc-head">高频理论 TOP 10</div>
+            <div class="rank-list" id="theoryRankList"></div>
+          </div>
+          <div>
+            <div class="mc-head">学者被引 TOP 10</div>
+            <div class="rank-list" id="scholarRankList"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <div class="hairline"></div>
+
+  <!-- ══════════ 模块二 · 理论星云图 ══════════ -->
+  <section class="section" id="nebula">
+    <div class="section-head reveal">
+      <div>
+        <span class="idx">02 / NEBULA</span>
+        <h2>理论星云图<span class="en">Theory Nebula</span></h2>
+      </div>
+      <div class="head-side">
+        <div class="mode-toggle" role="group" aria-label="着色方式">
+          <button class="active" id="modeTopic" type="button">按议题着色</button>
+          <button id="modeNovelty" type="button">按新颖度着色</button>
+        </div>
+        <span class="ai-tag">AI生成，仅供娱乐与参考，以原文为准</span>
+      </div>
+    </div>
+
+    <div class="nebula-shell reveal">
+      <div class="nebula-stage" id="nebulaStage">
+        <svg id="nebulaSvg" role="img" aria-label="刑法学理论星云图"></svg>
+        <div class="nebula-legend" id="nebulaLegend"></div>
+        <div class="nebula-hint">
+          星体大小 = 理论数量 · 亮度 = 新颖度<br />
+          点击星体查看论文 · 可缩放拖动
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <div class="hairline"></div>
+
+  <!-- ══════════ 模块三 · 本月对撞 ══════════ -->
+  <section class="section" id="clash" style="display:none">
+    <div class="section-head reveal">
+      <div>
+        <span class="idx">03 / COLLISIONS</span>
+        <h2>本月对撞<span class="en">Collisions</span></h2>
+      </div>
+      <div class="head-side">
+        <span class="ai-tag">AI生成，仅供娱乐与参考，以原文为准</span>
+      </div>
+    </div>
+    <div class="clash-list reveal" id="clashList"></div>
+  </section>
+
+  <!-- ══════════ 页脚 ══════════ -->
+  <footer class="site-footer">
+    <div class="notes" id="footerNotes"></div>
+    <div class="foot-row">
+      <span>© 2026 GENERATIVE JURISPRUDENCE · 生成式法理学</span>
+      <span class="ai-tag">AI生成，仅供娱乐与参考，以原文为准</span>
+      <a href="#top" onclick="window.scrollTo({top:0,behavior:'smooth'});return false;">回到顶部 ↑</a>
+    </div>
+  </footer>
+</div>
+
+<!-- 数据加载失败 -->
+<div class="fatal" id="fatal">
+  <div class="f-title">信号丢失</div>
+  <div>未能加载 papers-2026-06.json。<br />请确认数据文件已部署在站点根目录，并通过服务器访问本页面。</div>
+  <button onclick="location.reload()">重新扫描 RETRY</button>
+</div>
+
+<!-- 论文详情侧滑卡 -->
+<div class="sheet-backdrop" id="sheetBackdrop"></div>
+<aside class="paper-sheet" id="paperSheet" aria-hidden="true">
+  <div class="grabber"></div>
+  <button class="ps-close" id="sheetClose" aria-label="关闭">✕</button>
+  <div id="sheetBody"></div>
+</aside>
+
+<script>
+/* ============================================================
+   刑法学术雷达 · 2026年6月 —— 主逻辑
+   数据：运行时 fetch papers-2026-06.json（站点根目录）
+   ============================================================ */
+(function () {
+'use strict';
+
+/* ---------- 常量 ---------- */
+var JSON_CANDIDATES = ['../papers-2026-06.json', '/papers-2026-06.json', 'papers-2026-06.json'];
+var REDUCED = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+/* 议题 → 短名 / 颜色（未知议题自动回退到调色板） */
+/* 话题色：低饱和度古典学术色阶（替代霓虹），保留区分度但去掉 cyberpunk 感 */
+var TOPIC_META = {
+  '罪刑各论（具体罪名教义学）': { short: '罪刑各论', color: '#8b3a3a' }, /* 暗酒红 */
+  '数字刑法与网络犯罪':         { short: '数字刑法', color: '#4a6b8a' }, /* 雾蓝 */
+  '归责理论':                   { short: '归责理论', color: '#a2845e' }, /* 古典棕褐 */
+  '刑罚论与刑事政策':           { short: '刑罚论',   color: '#b8860b' }, /* 古典金 */
+  '程序与实体交叉':             { short: '程序交叉', color: '#5a5a8e' }, /* 雾紫 */
+  '行刑衔接与轻罪治理':         { short: '行刑衔接', color: '#5b7553' }, /* 苔藓绿 */
+  '贿赂犯罪':                   { short: '贿赂犯罪', color: '#7a4a6b' }, /* 暗梅紫 */
+  '法益理论':                   { short: '法益理论', color: '#3d7060' }  /* 深松绿 */
+};
+var FALLBACK_PALETTE = ['#8b3a3a', '#4a6b8a', '#a2845e', '#b8860b', '#5a5a8e', '#5b7553', '#7a4a6b', '#3d7060', '#8e8e93'];
+
+function topicMeta(name) {
+  if (TOPIC_META[name]) return TOPIC_META[name];
+  /* 回退：按名称散列取色，短名截断 */
+  var h = 0;
+  for (var i = 0; i < name.length; i++) h = (h * 31 + name.charCodeAt(i)) >>> 0;
+  var short = name.split('（')[0];
+  if (short.length > 4) short = short.slice(0, 4);
+  return { short: short, color: FALLBACK_PALETTE[h % FALLBACK_PALETTE.length] };
+}
+
+function esc(s) {
+  return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) {
+    return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c];
+  });
+}
+
+/* ---------- 数字滚动 ---------- */
+function countUp(el, target, dur) {
+  dur = dur || 1500;
+  if (REDUCED) { el.textContent = target; return; }
+  /* 兜底：极端环境（省电模式/后台标签）rAF 停摆时仍保证终值 */
+  var guard = setTimeout(function () { el.textContent = target; }, dur + 600);
+  var start = null;
+  function frame(t) {
+    if (!start) start = t;
+    var p = Math.min(1, (t - start) / dur);
+    var e = 1 - Math.pow(2, -10 * p); /* easeOutExpo */
+    el.textContent = Math.round(target * e);
+    if (p < 1) requestAnimationFrame(frame);
+    else { el.textContent = target; clearTimeout(guard); }
+  }
+  requestAnimationFrame(frame);
+}
+
+/* ---------- 滚动入场 ---------- */
+var revealObserver = ('IntersectionObserver' in window)
+  ? new IntersectionObserver(function (entries) {
+      entries.forEach(function (en) {
+        if (en.isIntersecting) { en.target.classList.add('in'); revealObserver.unobserve(en.target); }
+      });
+    }, { threshold: 0.08 })
+  : null;
+document.querySelectorAll('.reveal').forEach(function (el) {
+  if (revealObserver) revealObserver.observe(el); else el.classList.add('in');
+});
+/* 兜底：IO 在部分内嵌/后台环境不触发时，4.5s 后强制显示全部内容 */
+setTimeout(function () {
+  document.querySelectorAll('.reveal:not(.in)').forEach(function (el) { el.classList.add('in'); });
+}, 4500);
+
+/* ---------- 深空星空背景（Canvas 2D，轻量） ---------- */
+(function starfield() {
+  var cv = document.getElementById('starfield');
+  var ctx = cv.getContext('2d');
+  var stars = [], W = 0, H = 0, dpr = Math.min(window.devicePixelRatio || 1, 2);
+
+  function resize() {
+    W = window.innerWidth; H = window.innerHeight;
+    cv.width = W * dpr; cv.height = H * dpr;
+    cv.style.width = W + 'px'; cv.style.height = H + 'px';
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    var n = Math.round(Math.min(200, (W * H) / 8500));
+    stars = [];
+    for (var i = 0; i < n; i++) {
+      stars.push({
+        x: Math.random() * W, y: Math.random() * H,
+        r: Math.random() * 1.1 + 0.25,
+        a: Math.random() * 0.55 + 0.12,
+        tw: Math.random() < 0.22,            /* 22% 的星会闪烁 */
+        ph: Math.random() * Math.PI * 2,
+        sp: 0.35 + Math.random() * 0.9
+      });
+    }
+  }
+  function draw(t) {
+    ctx.clearRect(0, 0, W, H);
+    for (var i = 0; i < stars.length; i++) {
+      var s = stars[i], a = s.a;
+      if (s.tw && !REDUCED) a = s.a * (0.55 + 0.45 * Math.sin(t / 1000 * s.sp + s.ph));
+      ctx.globalAlpha = a;
+      ctx.fillStyle = '#b8b3a8'; /* 暖灰星点，配 Apple Light 米白底 */
+      ctx.beginPath();
+      ctx.arc(s.x, s.y, s.r, 0, Math.PI * 2);
+      ctx.fill();
+    }
+    ctx.globalAlpha = 1;
+    if (!REDUCED) requestAnimationFrame(draw);
+  }
+  resize();
+  window.addEventListener('resize', function () { resize(); if (REDUCED) draw(0); });
+  requestAnimationFrame(draw);
+})();
+
+/* ---------- 数据加载 ---------- */
+function loadData() {
+  var attempt = 0;
+  function next() {
+    if (attempt >= JSON_CANDIDATES.length) return Promise.reject(new Error('all candidates failed'));
+    var url = JSON_CANDIDATES[attempt++];
+    return fetch(url, { cache: 'no-cache' }).then(function (res) {
+      if (!res.ok) throw new Error('HTTP ' + res.status);
+      return res.json();
+    }).catch(function () { return next(); });
+  }
+  return next();
+}
+
+/* ============================================================
+   模块一 · 学术脉搏
+   ============================================================ */
+function renderPulse(meta) {
+  /* 生命体征数字滚动 */
+  var io = ('IntersectionObserver' in window) ? new IntersectionObserver(function (entries) {
+    entries.forEach(function (en) {
+      if (!en.isIntersecting) return;
+      io.disconnect();
+      countUp(document.getElementById('vTotal'), meta.total || 0);
+      countUp(document.getElementById('vTopics'), Object.keys(meta.topics || {}).length);
+      countUp(document.getElementById('vConcepts'), (meta.newConcepts || []).length);
+    });
+  }, { threshold: 0.25 }) : null;
+  var grid = document.getElementById('vitalGrid');
+  if (io) io.observe(grid);
+  else {
+    document.getElementById('vTotal').textContent = meta.total || 0;
+    document.getElementById('vTopics').textContent = Object.keys(meta.topics || {}).length;
+    document.getElementById('vConcepts').textContent = (meta.newConcepts || []).length;
+  }
+  /* 兜底：IO 在极端环境不触发时，5.5s 后直接写入终值 */
+  setTimeout(function () {
+    var pairs = [
+      ['vTotal', meta.total || 0],
+      ['vTopics', Object.keys(meta.topics || {}).length],
+      ['vConcepts', (meta.newConcepts || []).length]
+    ];
+    pairs.forEach(function (kv) {
+      var el = document.getElementById(kv[0]);
+      if (el && kv[1] && el.textContent === '0') el.textContent = kv[1];
+    });
+  }, 5500);
+
+  /* 最热理论 / 枢纽学者 */
+  var t0 = (meta.theoryRank || [])[0], s0 = (meta.scholarRank || [])[0];
+  if (t0) {
+    document.getElementById('vTheoryName').textContent = t0.theory;
+    document.getElementById('vTheoryCount').textContent = t0.count;
+  }
+  if (s0) {
+    document.getElementById('vScholarName').textContent = s0.scholar;
+    document.getElementById('vScholarCount').textContent = s0.count;
+  }
+
+  /* 新概念抽屉 */
+  var list = document.getElementById('conceptsList');
+  list.innerHTML = (meta.newConcepts || []).map(function (c, i) {
+    return '<li><span class="no">' + String(i + 1).padStart(2, '0') + '</span><span>' + esc(c) + '</span></li>';
+  }).join('');
+  var card = document.getElementById('conceptCard');
+  var drawer = document.getElementById('conceptsDrawer');
+  function toggleConcepts() {
+    var open = drawer.classList.toggle('open');
+    card.classList.toggle('expanded', open);
+    card.setAttribute('aria-expanded', open ? 'true' : 'false');
+    card.querySelector('.vc-more').firstChild.textContent = open ? '收起清单 ' : '展开清单 ';
+  }
+  card.addEventListener('click', toggleConcepts);
+  card.addEventListener('keydown', function (e) {
+    if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); toggleConcepts(); }
+  });
+
+  /* 议题分布横向条形图（ECharts） */
+  var entries = Object.entries(meta.topics || {}).sort(function (a, b) { return b[1] - a[1]; });
+  var chart = echarts.init(document.getElementById('topicsChart'), null, { renderer: 'canvas' });
+  chart.setOption({
+    grid: { left: 4, right: 40, top: 10, bottom: 6, containLabel: true },
+    tooltip: {
+      trigger: 'item',
+      backgroundColor: 'rgba(255, 255, 255, 0.96)',
+      borderColor: 'rgba(60, 60, 67, 0.12)',
+      textStyle: { color: '#1d1d1f', fontSize: 12, fontFamily: 'DM Sans, sans-serif' },
+      extraCssText: 'box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);',
+      formatter: function (p) { return esc(entries[p.dataIndex][0]) + ' · ' + p.value + ' 篇'; }
+    },
+    xAxis: { type: 'value', show: false },
+    yAxis: {
+      type: 'category',
+      inverse: true,
+      data: entries.map(function (e) { return topicMeta(e[0]).short; }),
+      axisLine: { show: false },
+      axisTick: { show: false },
+      axisLabel: {
+        color: '#6e6e73', fontSize: 12, fontFamily: 'DM Sans, PingFang SC, sans-serif',
+        margin: 14
+      }
+    },
+    series: [{
+      type: 'bar',
+      data: entries.map(function (e) {
+        return { value: e[1], itemStyle: { color: topicMeta(e[0]).color, borderRadius: [0, 5, 5, 0], opacity: 0.88 } };
+      }),
+      barWidth: 11,
+      showBackground: true,
+      backgroundStyle: { color: 'rgba(60, 60, 67, 0.05)', borderRadius: [0, 5, 5, 0] },
+      label: {
+        show: true, position: 'right', distance: 7,
+        color: '#1d1d1f', fontFamily: 'JetBrains Mono, monospace', fontSize: 12
+      },
+      animationDuration: 1100,
+      animationEasing: 'cubicOut',
+      animationDelay: function (idx) { return idx * 70; }
+    }]
+  });
+  var rt;
+  window.addEventListener('resize', function () {
+    clearTimeout(rt); rt = setTimeout(function () { chart.resize(); }, 160);
+  });
+
+  /* 理论 / 学者双榜 */
+  function rankList(elId, rows, keyName) {
+    var el = document.getElementById(elId);
+    var max = rows.length ? rows[0].count : 1;
+    el.innerHTML = rows.map(function (r, i) {
+      return '<div class="rank-row">' +
+        '<span class="rk">' + String(i + 1).padStart(2, '0') + '</span>' +
+        '<span class="nm" title="' + esc(r[keyName]) + '">' + esc(r[keyName]) + '</span>' +
+        '<span class="ct">' + r.count + '</span>' +
+        '<span class="bar"><i style="width:' + Math.max(6, Math.round(r.count / max * 100)) + '%"></i></span>' +
+      '</div>';
+    }).join('');
+  }
+  rankList('theoryRankList', (meta.theoryRank || []).slice(0, 10), 'theory');
+  rankList('scholarRankList', (meta.scholarRank || []).slice(0, 10), 'scholar');
+}
+
+/* ============================================================
+   模块二 · 理论星云图（D3 力导向 · SVG）
+   ============================================================ */
+var nebula = {
+  simulation: null,
+  nodes: [],
+  edges: [],
+  clusters: [],
+  selectedId: null,
+  colorMode: 'topic',
+  rScale: null,
+  noveltyScale: null,
+  adjacency: {}
+};
+
+function renderNebula(papers, meta) {
+  var stage = document.getElementById('nebulaStage');
+  var svgEl = document.getElementById('nebulaSvg');
+  var W = stage.clientWidth, H = stage.clientHeight;
+
+  /* 比例尺 */
+  var tCounts = papers.map(function (p) { return (p.theories || []).length; });
+  var nValues = papers.map(function (p) { return +p.novelty || 5; });
+  var tMin = Math.min.apply(null, tCounts), tMax = Math.max.apply(null, tCounts);
+  var nMin = Math.min.apply(null, nValues), nMax = Math.max.apply(null, nValues);
+  nebula.rScale = d3.scaleLinear().domain([tMin, tMax]).range([4.6, Math.max(7.2, W / 68)]).clamp(true);
+  nebula.noveltyScale = d3.scaleLinear()
+    .domain([nMin, (nMin + nMax) / 2, nMax])
+    .range(['#6e6e73', '#0071e3', '#b8860b']) /* 灰墨 → Apple蓝 → 古典金（新颖度递增） */
+    .interpolate(d3.interpolateRgb)
+    .clamp(true);
+
+  /* 议题 → 集群 */
+  var topicNames = [];
+  papers.forEach(function (p) { if (topicNames.indexOf(p.topic) < 0) topicNames.push(p.topic); });
+  topicNames.sort(function (a, b) {
+    return papers.filter(function (p) { return p.topic === b; }).length -
+           papers.filter(function (p) { return p.topic === a; }).length;
+  });
+  var topicIndex = {};
+  topicNames.forEach(function (t, i) { topicIndex[t] = i; });
+
+  var centers = computeCenters(W, H, topicNames.length);
+
+  /* 节点：全部从中心出发（入场散开动画） */
+  nebula.nodes = papers.map(function (p, i) {
+    return {
+      data: p,
+      id: p.id,
+      cluster: topicIndex[p.topic],
+      r: nebula.rScale((p.theories || []).length),
+      x: W / 2 + (Math.random() - 0.5) * 10,
+      y: H / 2 + (Math.random() - 0.5) * 10
+    };
+  });
+
+  /* 理论共享边：共享 ≥2 个理论的论文对 */
+  nebula.edges = [];
+  nebula.adjacency = {};
+  for (var i = 0; i < papers.length; i++) {
+    for (var j = i + 1; j < papers.length; j++) {
+      var shared = intersectCount(papers[i].theories || [], papers[j].theories || []);
+      if (shared >= 2) {
+        nebula.edges.push({ s: i, t: j, shared: shared });
+        (nebula.adjacency[papers[i].id] = nebula.adjacency[papers[i].id] || new Set()).add(papers[j].id);
+        (nebula.adjacency[papers[j].id] = nebula.adjacency[papers[j].id] || new Set()).add(papers[i].id);
+      }
+    }
+  }
+
+  /* 争议对边：controversyPairs（学术对立关系，独立于理论共享） */
+  nebula.clashes = [];
+  var paperIdx = {};
+  papers.forEach(function (p, i) { paperIdx[p.id] = i; });
+  (meta.controversyPairs || []).forEach(function (cp) {
+    if (cp.pair && paperIdx[cp.pair[0]] != null && paperIdx[cp.pair[1]] != null) {
+      nebula.clashes.push({
+        s: paperIdx[cp.pair[0]],
+        t: paperIdx[cp.pair[1]],
+        point: cp.point || ''
+      });
+    }
+  });
+
+  /* SVG 骨架 */
+  var svg = d3.select(svgEl);
+  svg.selectAll('*').remove();
+  svg.attr('viewBox', null).attr('width', W).attr('height', H);
+
+  var gRoot = svg.append('g');
+  var gHulls = gRoot.append('g').attr('opacity', 0);
+  var gLeaders = gRoot.append('g').attr('opacity', 0); /* 引线层：云团重心 → 外置标签 */
+  var gEdges = gRoot.append('g').attr('opacity', 0); /* 理论共享边层 */
+  var gClashes = gRoot.append('g').attr('opacity', 0); /* 争议对边层：controversyPairs */
+  var gStars = gRoot.append('g');
+  var gLabels = gRoot.append('g').attr('opacity', 0); /* 标签层置顶：背板 + 名称 + 计数 */
+
+  /* 缩放 / 平移（移动端双指捏合） */
+  var zoom = d3.zoom()
+    .scaleExtent([0.55, 3.2])
+    .filter(function (e) {
+      if (e.type === 'wheel') return true;
+      var t = e.target;
+      return !(t && t.closest && t.closest('.star'));
+    })
+    .on('zoom', function (e) { gRoot.attr('transform', e.transform); });
+  svg.call(zoom);
+  svg.on('dblclick.zoom', null);
+
+  /* 点击空白 → 取消选中 */
+  svg.on('click', function (e) {
+    if (e.target === svgEl) clearSelection();
+  });
+
+  /* 集群结构 */
+  nebula.clusters = topicNames.map(function (name, i) {
+    return { name: name, meta: topicMeta(name), idx: i, nodes: [] };
+  });
+  nebula.nodes.forEach(function (n) { nebula.clusters[n.cluster].nodes.push(n); });
+
+  /* 星座晕区（凸包） */
+  var hullPath = d3.line().curve(d3.curveCatmullRomClosed.alpha(0.85));
+  var hullSel = gHulls.selectAll('path')
+    .data(nebula.clusters)
+    .enter().append('path')
+    .attr('fill', function (c) { return c.meta.color; })
+    .attr('fill-opacity', 0.045)
+    .attr('stroke', function (c) { return c.meta.color; })
+    .attr('stroke-opacity', 0.13)
+    .attr('stroke-width', 1)
+    .attr('stroke-dasharray', '2 5');
+
+  /* 引线：云团重心 → 外置标签（在标签背板之下绘制） */
+  var leaderSel = gLeaders.selectAll('line.cluster-leader')
+    .data(nebula.clusters)
+    .enter().append('line')
+    .attr('class', 'cluster-leader');
+
+  /* 标签背板：极淡白底胶囊，置于文字之下 */
+  var labelBgSel = gLabels.selectAll('rect.cluster-label-bg')
+    .data(nebula.clusters)
+    .enter().append('rect')
+    .attr('class', 'cluster-label-bg');
+
+  /* 星座标签 */
+  var labelNameSel = gLabels.selectAll('text.cluster-label')
+    .data(nebula.clusters)
+    .enter().append('text')
+    .attr('class', 'cluster-label')
+    .text(function (c) { return c.meta.short; });
+  var labelCountSel = gLabels.selectAll('text.cluster-count')
+    .data(nebula.clusters)
+    .enter().append('text')
+    .attr('class', 'cluster-count')
+    .text(function (c) { return c.nodes.length + ' 篇'; });
+
+  /* 理论共享边（古典金细线） */
+  var nodeById = {};
+  nebula.nodes.forEach(function (n) { nodeById[n.id] = n; });
+  var edgeSel = gEdges.selectAll('line.edge-theory')
+    .data(nebula.edges)
+    .enter().append('line')
+    .attr('class', 'edge-theory');
+
+  /* 争议对边（暗酒红虚线，悬停显示争议点） */
+  var clashEdgeSel = gClashes.selectAll('line.edge-clash')
+    .data(nebula.clashes)
+    .enter().append('line')
+    .attr('class', 'edge-clash')
+    .each(function (d) {
+      /* SVG 原生 title：浏览器 hover 显示争议点 */
+      d3.select(this).append('title').text(d.point);
+    });
+
+  /* 星体：光晕 + 星核 */
+  var starSel = gStars.selectAll('g.star')
+    .data(nebula.nodes)
+    .enter().append('g')
+    .attr('class', 'star');
+
+  starSel.append('circle')
+    .attr('class', 'halo')
+    .attr('r', function (n) { return n.r * 2.3; })
+    .attr('opacity', 0);
+
+  var coreSel = starSel.append('circle')
+    .attr('class', 'core')
+    .attr('r', 0)
+    .attr('stroke', 'rgba(255,255,255,0.35)')
+    .attr('stroke-width', 0.4);
+
+  /* 光晕轻微闪烁（纯 CSS 透明度，低开销） */
+  if (!REDUCED) {
+    starSel.select('.halo')
+      .style('animation', function (n, i) {
+        var lo = 0.10 + 0.014 * (+n.data.novelty || 5);
+        var hi = lo + 0.16;
+        return 'twinkle ' + (3.5 + (i % 7) * 0.7) + 's ease-in-out ' + ((i * 0.37) % 4) + 's infinite';
+      })
+      .style('--tw-lo', function (n) { return 0.10 + 0.014 * (+n.data.novelty || 5); })
+      .style('--tw-hi', function (n) { return 0.26 + 0.016 * (+n.data.novelty || 5); });
+  }
+
+  /* 着色 */
+  function haloOpacity(n) { return 0.10 + 0.022 * (+n.data.novelty || 5); }
+  function nodeColor(n) {
+    if (nebula.colorMode === 'novelty') return nebula.noveltyScale(+n.data.novelty || 5);
+    var base = nebula.clusters[n.cluster].meta.color;
+    var c = d3.color(base);
+    var delta = ((+n.data.novelty || 5) - 6.5) * 0.22; /* 新颖度 → 亮度偏移 */
+    try { c = delta >= 0 ? c.brighter(Math.abs(delta)) : c.darker(Math.abs(delta) * 1.4); } catch (e) { /* noop */ }
+    return c ? c.toString() : base;
+  }
+  function applyColors(animate) {
+    var t = animate && !REDUCED ? coreSel.transition().duration(550) : coreSel;
+    t.attr('fill', nodeColor);
+    var th = animate && !REDUCED ? starSel.select('.halo').transition().duration(550) : starSel.select('.halo');
+    th.attr('fill', nodeColor);
+  }
+  applyColors(false);
+
+  /* 入场：星核从 0 放大 + 力导向从中心散开 */
+  var rFinal = function (n) { return n.r; };
+  if (REDUCED) {
+    coreSel.attr('r', rFinal);
+    starSel.select('.halo').attr('opacity', haloOpacity);
+    gHulls.attr('opacity', 1); gLeaders.attr('opacity', 1); gEdges.attr('opacity', 1); gClashes.attr('opacity', 1); gLabels.attr('opacity', 1);
+  } else {
+    coreSel.transition()
+      .delay(function (n, i) { return 260 + i * 20; })
+      .duration(720)
+      .ease(d3.easeBackOut.overshoot(1.6))
+      .attr('r', rFinal);
+    starSel.select('.halo').transition()
+      .delay(function (n, i) { return 300 + i * 20; })
+      .duration(800)
+      .attr('opacity', haloOpacity);
+    gHulls.transition().delay(1100).duration(900).attr('opacity', 1);
+    gLeaders.transition().delay(1200).duration(900).attr('opacity', 1);
+    gEdges.transition().delay(1300).duration(900).attr('opacity', 1);
+    gClashes.transition().delay(1500).duration(900).attr('opacity', 1);
+    gLabels.transition().delay(1400).duration(900).attr('opacity', 1);
+  }
+
+  /* 悬停发光放大 */
+  starSel
+    .on('pointerenter', function (e, n) {
+      if (e.pointerType === 'touch') return;
+      var g = d3.select(this);
+      g.select('.halo').transition().duration(180).attr('opacity', Math.min(0.65, haloOpacity(n) + 0.3));
+      g.select('.core').transition().duration(180).attr('r', n.r * 1.35);
+      g.raise();
+    })
+    .on('pointerleave', function (e, n) {
+      if (e.pointerType === 'touch') return;
+      var g = d3.select(this);
+      g.select('.halo').transition().duration(240).attr('opacity', haloOpacity(n));
+      g.select('.core').transition().duration(240).attr('r', n.r);
+    });
+
+  /* 点击 → 选中 + 详情 */
+  starSel.on('click', function (e, n) {
+    e.stopPropagation();
+    selectStar(n);
+  });
+
+  /* 拖拽（桌面） */
+  var drag = d3.drag()
+    .clickDistance(6)
+    .on('start', function (e, n) {
+      if (!e.active) nebula.simulation.alphaTarget(0.22).restart();
+      n.fx = n.x; n.fy = n.y;
+    })
+    .on('drag', function (e, n) {
+      n.fx = e.x; n.fy = e.y;
+    })
+    .on('end', function (e, n) {
+      if (!e.active) nebula.simulation.alphaTarget(0);
+      n.fx = null; n.fy = null;
+    });
+  starSel.call(drag);
+
+  /* 力导向 */
+  nebula.simulation = d3.forceSimulation(nebula.nodes)
+    .force('charge', d3.forceManyBody().strength(-9))
+    .force('collide', d3.forceCollide().radius(function (n) { return n.r + 2.4; }).strength(0.85).iterations(2))
+    .force('x', d3.forceX(function (n) { return centers[n.cluster].x; }).strength(0.09))
+    .force('y', d3.forceY(function (n) { return centers[n.cluster].y; }).strength(0.09))
+    .alpha(1)
+    .alphaDecay(0.024)
+    .on('tick', ticked);
+
+  function ticked() {
+    edgeSel
+      .attr('x1', function (e) { return nebula.nodes[e.s].x; })
+      .attr('y1', function (e) { return nebula.nodes[e.s].y; })
+      .attr('x2', function (e) { return nebula.nodes[e.t].x; })
+      .attr('y2', function (e) { return nebula.nodes[e.t].y; });
+
+    /* 争议对边同步位置 */
+    clashEdgeSel
+      .attr('x1', function (e) { return nebula.nodes[e.s].x; })
+      .attr('y1', function (e) { return nebula.nodes[e.s].y; })
+      .attr('x2', function (e) { return nebula.nodes[e.t].x; })
+      .attr('y2', function (e) { return nebula.nodes[e.t].y; });
+
+    starSel.attr('transform', function (n) { return 'translate(' + n.x + ',' + n.y + ')'; });
+
+    /* 凸包 + 标签 */
+    nebula.clusters.forEach(function (c) {
+      var pts = c.nodes.map(function (n) { return [n.x, n.y]; });
+      var cx = d3.mean(pts, function (p) { return p[0]; });
+      var cy = d3.mean(pts, function (p) { return p[1]; });
+      var ring;
+      if (pts.length >= 3) {
+        var hull = d3.polygonHull(pts);
+        ring = hull.map(function (p) {
+          var dx = p[0] - cx, dy = p[1] - cy, d = Math.hypot(dx, dy) || 1;
+          var pad = 15;
+          return [p[0] + dx / d * pad, p[1] + dy / d * pad];
+        });
+      } else {
+        /* 1~2 个节点：以质心为圆心画圆近似 */
+        var rr = d3.max(pts, function (p) { return Math.hypot(p[0] - cx, p[1] - cy); }) || 0;
+        rr += 24;
+        ring = d3.range(10).map(function (k) {
+          var a = k / 10 * Math.PI * 2;
+          return [cx + Math.cos(a) * rr, cy + Math.sin(a) * rr];
+        });
+      }
+      c._cx = cx; c._cy = cy;
+      c._ring = ring;
+
+      /* 标签外推：沿「图中心 → cluster 重心」方向延伸到云团外缘外，避开节点密集区 */
+      var dxr = cx - W / 2, dyr = cy - H / 2, dr = Math.hypot(dxr, dyr) || 1;
+      /* 云团外缘半径估算：取凸包最远点距离，无凸包时用节点最大半径 */
+      var rMax = pts.length >= 3
+        ? d3.max(hull, function (p) { return Math.hypot(p[0] - cx, p[1] - cy); })
+        : (d3.max(pts, function (p) { return Math.hypot(p[0] - cx, p[1] - cy); }) || 0);
+      var offset = rMax + 26;
+      var lx = cx + dxr / dr * offset;
+      var ly = cy + dyr / dr * offset;
+      /* 边界约束：标签背板宽高的一半，防止飞出画布被裁切 */
+      var halfW = (c.meta.short.length * 8.5 + c.nodes.length.toString().length * 5 + 16) / 2 + 4;
+      var halfH = 16;
+      lx = Math.max(halfW, Math.min(W - halfW, lx));
+      ly = Math.max(halfH, Math.min(H - halfH, ly));
+      c._lx = lx;
+      c._ly = ly;
+    });
+    hullSel.attr('d', function (c) { return hullPath(c._ring); });
+    /* 引线：从云团重心连到标签位置 */
+    leaderSel
+      .attr('x1', function (c) { return c._cx; })
+      .attr('y1', function (c) { return c._cy; })
+      .attr('x2', function (c) { return c._lx; })
+      .attr('y2', function (c) { return c._ly; });
+    /* 标签背板：根据文字估算宽度，居中于标签位置 */
+    labelBgSel
+      .attr('x', function (c) {
+        var w = c.meta.short.length * 8.5 + c.nodes.length.toString().length * 5 + 16;
+        return c._lx - w / 2;
+      })
+      .attr('y', function (c) { return c._ly - 11; })
+      .attr('width', function (c) {
+        return c.meta.short.length * 8.5 + c.nodes.length.toString().length * 5 + 16;
+      })
+      .attr('height', 24);
+    labelNameSel.attr('x', function (c) { return c._lx; }).attr('y', function (c) { return c._ly; });
+    labelCountSel.attr('x', function (c) { return c._lx; }).attr('y', function (c) { return c._ly + 13; });
+  }
+
+  /* 选中 / 高亮 */
+  function selectStar(n) {
+    nebula.selectedId = n.id;
+    var neighbors = nebula.adjacency[n.id] || new Set();
+    starSel.classed('dimmed', function (m) { return m.id !== n.id && !neighbors.has(m.id); });
+    /* 选中节点的理论共享边高亮，其余淡化 */
+    edgeSel
+      .attr('stroke', function (e) {
+        var s = nebula.nodes[e.s], t = nebula.nodes[e.t];
+        return (s.id === n.id || t.id === n.id) ? nodeColor(n) : '#b8860b';
+      })
+      .attr('stroke-opacity', function (e) {
+        var s = nebula.nodes[e.s], t = nebula.nodes[e.t];
+        return (s.id === n.id || t.id === n.id) ? 0.75 : 0.08;
+      })
+      .attr('stroke-width', function (e) {
+        var s = nebula.nodes[e.s], t = nebula.nodes[e.t];
+        return (s.id === n.id || t.id === n.id) ? 1.2 : 0.7;
+      });
+    /* 争议边在选中时淡化，避免干扰 */
+    clashEdgeSel.attr('stroke-opacity', function (e) {
+      var s = nebula.nodes[e.s], t = nebula.nodes[e.t];
+      return (s.id === n.id || t.id === n.id) ? 0.85 : 0.18;
+    });
+    d3.select(starSel.nodes()[nebula.nodes.indexOf(n)]).raise();
+    openSheet(n.data, nebula.clusters[n.cluster].meta);
+  }
+  function clearSelection() {
+    nebula.selectedId = null;
+    starSel.classed('dimmed', false);
+    /* 恢复理论共享边默认古典金细线 */
+    edgeSel.attr('stroke', '#b8860b').attr('stroke-opacity', 0.22).attr('stroke-width', 0.7);
+    clashEdgeSel.attr('stroke-opacity', 0.55);
+  }
+  nebula.clearSelection = clearSelection;
+
+  /* 图例 */
+  function renderLegend() {
+    var el = document.getElementById('nebulaLegend');
+    var edgeLegend = '<span class="legend-chip"><i style="width:18px;height:0;border-top:1px solid #b8860b;opacity:0.6;background:none"></i>理论共享</span>' +
+      '<span class="legend-chip"><i style="width:18px;height:0;border-top:1.2px dashed #8b3a3a;opacity:0.7;background:none"></i>学术争议</span>';
+    if (nebula.colorMode === 'topic') {
+      el.innerHTML = nebula.clusters.map(function (c) {
+        return '<span class="legend-chip"><i style="background:' + c.meta.color + ';color:' + c.meta.color + '"></i>' +
+          esc(c.meta.short) + ' ' + c.nodes.length + '</span>';
+      }).join('') + edgeLegend;
+    } else {
+      el.innerHTML = '<span class="legend-chip">新颖度 ' + nMin + '</span>' +
+        '<span class="legend-chip" style="padding:0;overflow:hidden">' +
+        '<i style="width:74px;height:7px;border-radius:4px;box-shadow:none;background:linear-gradient(90deg,#6e6e73,#0071e3,#b8860b)"></i></span>' +
+        '<span class="legend-chip">' + nMax + '</span>' + edgeLegend;
+    }
+  }
+  renderLegend();
+
+  /* 着色切换 */
+  document.getElementById('modeTopic').addEventListener('click', function () {
+    if (nebula.colorMode === 'topic') return;
+    nebula.colorMode = 'topic';
+    this.classList.add('active');
+    document.getElementById('modeNovelty').classList.remove('active');
+    applyColors(true); renderLegend();
+  });
+  document.getElementById('modeNovelty').addEventListener('click', function () {
+    if (nebula.colorMode === 'novelty') return;
+    nebula.colorMode = 'novelty';
+    this.classList.add('active');
+    document.getElementById('modeTopic').classList.remove('active');
+    applyColors(true); renderLegend();
+  });
+
+  /* 视口尺寸变化 → 重算布局 */
+  var rz;
+  window.addEventListener('resize', function () {
+    clearTimeout(rz);
+    rz = setTimeout(function () {
+      var w2 = stage.clientWidth, h2 = stage.clientHeight;
+      if (Math.abs(w2 - W) < 8 && Math.abs(h2 - H) < 8) return;
+      W = w2; H = h2;
+      svg.attr('width', W).attr('height', H);
+      centers = computeCenters(W, H, topicNames.length);
+      nebula.simulation.force('x', d3.forceX(function (n) { return centers[n.cluster].x; }).strength(0.09));
+      nebula.simulation.force('y', d3.forceY(function (n) { return centers[n.cluster].y; }).strength(0.09));
+      nebula.simulation.alpha(0.4).restart();
+    }, 220);
+  });
+
+  function computeCenters(w, h, k) {
+    var R = Math.min(w, h) * 0.335;
+    var out = [];
+    for (var i = 0; i < k; i++) {
+      var a = -Math.PI / 2 + i * (Math.PI * 2 / k);
+      out.push({ x: w / 2 + Math.cos(a) * R, y: h / 2 + Math.sin(a) * R * 0.86 });
+    }
+    return out;
+  }
+  function intersectCount(a, b) {
+    var setB = new Set(b), n = 0;
+    for (var i = 0; i < a.length; i++) if (setB.has(a[i])) n++;
+    return n;
+  }
+}
+
+/* ============================================================
+   论文详情侧滑卡
+   ============================================================ */
+var sheet = document.getElementById('paperSheet');
+var sheetBody = document.getElementById('sheetBody');
+var backdrop = document.getElementById('sheetBackdrop');
+
+function openSheet(p, tMeta) {
+  var novelty = Math.max(0, Math.min(10, +p.novelty || 0));
+  sheetBody.innerHTML =
+    '<span class="ps-topic" style="color:' + tMeta.color + ';border-color:' + tMeta.color + '44">' +
+      '<i style="background:' + tMeta.color + ';color:' + tMeta.color + '"></i>' + esc(p.topic) +
+    '</span>' +
+    '<h3 class="ps-title">' + esc(p.title) + '</h3>' +
+    '<div class="ps-meta">' +
+      '<span>' + esc((p.authors || []).join('、')) + '</span>' +
+      '<span class="mono">' + esc(p.journal || '') + '</span>' +
+      '<span class="mono">' + esc(p.issue || '') + '</span>' +
+      '<span class="mono" style="color:var(--ink-4)">' + esc(p.id || '') + '</span>' +
+    '</div>' +
+    (p.stance ? '<div class="ps-stance"><span class="tag">立场 POSITION</span>' + esc(p.stance) + '</div>' : '') +
+    (p.summary ? '<p class="ps-summary">' + esc(p.summary) + '</p>' : '') +
+    '<div class="ps-novelty">' +
+      '<span class="nv-label">新颖度</span>' +
+      '<span class="nv-bar"><i style="width:' + (novelty * 10) + '%"></i></span>' +
+      '<span class="nv-num">' + novelty + '<span style="color:var(--ink-4)">/10</span></span>' +
+    '</div>' +
+    ((p.keywords && p.keywords.length) ?
+      '<div class="ps-sec-label">关键词 KEYWORDS</div>' +
+      '<div class="ps-chips">' + p.keywords.map(function (k) { return '<span class="chip">' + esc(k) + '</span>'; }).join('') + '</div>' : '') +
+    ((p.theories && p.theories.length) ?
+      '<div class="ps-sec-label">涉及理论 THEORIES</div>' +
+      '<div class="ps-chips">' + p.theories.map(function (t) { return '<span class="chip theory">' + esc(t) + '</span>'; }).join('') + '</div>' : '') +
+    '<div class="ps-foot"><span class="ai-tag">AI生成，仅供娱乐与参考，以原文为准</span></div>';
+
+  sheet.classList.add('open');
+  backdrop.classList.add('open');
+  sheet.setAttribute('aria-hidden', 'false');
+  if (window.innerWidth < 900) document.body.style.overflow = 'hidden';
+}
+function closeSheet() {
+  sheet.classList.remove('open');
+  backdrop.classList.remove('open');
+  sheet.setAttribute('aria-hidden', 'true');
+  document.body.style.overflow = '';
+  if (nebula.clearSelection) nebula.clearSelection();
+}
+document.getElementById('sheetClose').addEventListener('click', closeSheet);
+backdrop.addEventListener('click', closeSheet);
+document.addEventListener('keydown', function (e) { if (e.key === 'Escape') closeSheet(); });
+
+/* ============================================================
+   模块三 · 本月对撞
+   ============================================================ */
+function renderClashes(meta, papers) {
+  var pairs = meta.controversyPairs || [];
+  if (!pairs.length) return; /* 空则隐藏模块 */
+
+  var byId = {};
+  papers.forEach(function (p) { byId[p.id] = p; });
+
+  var valid = pairs.filter(function (cp) {
+    return cp.pair && byId[cp.pair[0]] && byId[cp.pair[1]];
+  });
+  if (!valid.length) return;
+
+  document.getElementById('clash').style.display = '';
+  var list = document.getElementById('clashList');
+
+  list.innerHTML = valid.map(function (cp, i) {
+    var a = byId[cp.pair[0]], b = byId[cp.pair[1]];
+    var point = cp.point || '';
+    /* 分歧点标题 = "：" 之前部分 */
+    var head = point.split('：')[0] || ('COLLISION ' + (i + 1));
+    function side(p, cls) {
+      return '<div class="clash-side ' + cls + '">' +
+        '<div class="cs-journal">' + esc(p.journal || '') + ' · ' + esc(p.id) + '</div>' +
+        '<div class="cs-title">' + esc(p.title) + '</div>' +
+        '<div class="cs-author">' + esc((p.authors || []).join('、')) + '</div>' +
+        (p.stance ? '<div class="cs-stance">' + esc(p.stance) + '</div>' : '') +
+      '</div>';
+    }
+    return '<article class="clash-card">' +
+      '<div class="clash-head">' +
+        '<span class="c-no">COLLISION ' + String(i + 1).padStart(2, '0') + '</span>' +
+        '<span class="c-line"></span>' +
+        '<span class="c-topic">' + esc(head) + '</span>' +
+      '</div>' +
+      '<div class="clash-body">' +
+        side(a, 'left') +
+        '<div class="vs-wrap"><div class="vs-orb">VS</div></div>' +
+        side(b, 'right') +
+      '</div>' +
+      '<div class="clash-point"><span class="cp-tag">分歧点</span><span>' + esc(point) + '</span></div>' +
+    '</article>';
+  }).join('');
+
+  /* 对撞卡内点击标题也可打开详情（增强可用性） */
+  list.querySelectorAll('.clash-card').forEach(function (card, i) {
+    var cp = valid[i];
+    card.querySelectorAll('.clash-side').forEach(function (sideEl, k) {
+      sideEl.style.cursor = 'pointer';
+      sideEl.addEventListener('click', function () {
+        var p = byId[cp.pair[k]];
+        if (p) openSheet(p, topicMeta(p.topic));
+      });
+    });
+  });
+}
+
+/* ============================================================
+   初始化
+   ============================================================ */
+function init() {
+  if (typeof d3 === 'undefined' || typeof echarts === 'undefined') {
+    showFatal();
+    return;
+  }
+  loadData().then(function (data) {
+    var meta = data.meta || {};
+    var papers = data.papers || [];
+
+    renderPulse(meta);
+    renderNebula(papers, meta);
+    renderClashes(meta, papers);
+
+    /* 页脚注记 */
+    var notes = document.getElementById('footerNotes');
+    notes.innerHTML = (meta.notes || []).map(function (n) { return '<p>' + esc(n) + '</p>'; }).join('');
+
+    document.getElementById('loader').classList.add('done');
+  }).catch(function (err) {
+    if (window.console) console.error('[nebula] data load failed:', err);
+    showFatal();
+  });
+}
+function showFatal() {
+  document.getElementById('loader').classList.add('done');
+  document.getElementById('fatal').classList.add('show');
+}
+
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', init);
+} else {
+  init();
+}
+
+})();
+</script>
+</body>
+</html>

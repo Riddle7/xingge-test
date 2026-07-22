@@ -459,6 +459,248 @@
       border-radius: 8px;
     }
 
+    /* ============ 宣言展开/收起 ============
+       设计原则：
+       - 继承主站 Apple-clean 调性，与编辑式衬线宣言排版同语言
+       - 按钮采用 pill 轮廓 + 品牌蓝 ghost 样式，克制不抢戏
+       - 折叠容器使用 grid-template-rows 0fr -> 1fr 技巧实现平滑高度过渡
+         （无需 JS 测量高度，GPU 友好，支持响应式内容）
+       - 展开时内部 scroll-reveal 元素错峰渐入，与全局动画系统一致
+       - 完整支持 prefers-reduced-motion 与 dark theme
+    */
+    .manifesto-expand {
+      margin-top: 2.5rem; /* 40px - 与 §一 段落保持呼吸空间 */
+      max-width: 44rem;
+      display: flex;
+      justify-content: flex-end; /* 按钮右对齐，与 §一 文本列右边缘对齐 */
+    }
+    .manifesto-expand-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.625rem;
+      padding: 0.625rem 1.25rem;
+      border-radius: 999px; /* pill 形 */
+      border: 1px solid var(--color-background-300);
+      background: transparent;
+      color: var(--color-text-600);
+      font-family: 'Source Han Serif SC', 'Noto Serif SC', 'Songti SC', 'STSong', 'SimSun', Georgia, serif;
+      font-size: 15px;
+      line-height: 1;
+      cursor: pointer;
+      transition:
+        color 0.3s cubic-bezier(0.16, 1, 0.3, 1),
+        border-color 0.3s cubic-bezier(0.16, 1, 0.3, 1),
+        background-color 0.3s cubic-bezier(0.16, 1, 0.3, 1),
+        transform 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    .manifesto-expand-btn:hover {
+      color: var(--color-brand-500);
+      border-color: var(--color-brand-300);
+      background: var(--color-brand-50);
+    }
+    [data-theme="dark"] .manifesto-expand-btn {
+      color: var(--color-text-500);
+      border-color: var(--color-background-400);
+    }
+    [data-theme="dark"] .manifesto-expand-btn:hover {
+      color: var(--color-brand-300);
+      border-color: var(--color-brand-600);
+      background: rgba(46, 141, 255, 0.08);
+    }
+    .manifesto-expand-btn:active {
+      transform: translateY(1px); /* 物理按压反馈 */
+    }
+    .manifesto-expand-btn__label {
+      letter-spacing: 0.02em;
+    }
+    .manifesto-expand-btn__sublabel {
+      font-family: var(--font-mono);
+      font-size: 10px;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: var(--color-text-300);
+      font-weight: 500;
+      padding-left: 0.125rem;
+      border-left: 1px solid var(--color-background-300);
+      padding-left: 0.625rem;
+      margin-left: 0.125rem;
+    }
+    .manifesto-expand-btn__icon {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 16px;
+      height: 16px;
+      transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    .manifesto-expand-btn__icon svg {
+      width: 14px;
+      height: 14px;
+      stroke: currentColor;
+      stroke-width: 2;
+      fill: none;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+    }
+    .manifesto-expand-btn.is-expanded .manifesto-expand-btn__icon {
+      transform: rotate(180deg);
+    }
+    /* 折叠容器：grid-template-rows 0fr -> 1fr 实现高度动画 */
+    .manifesto-continuation {
+      display: grid;
+      grid-template-rows: 0fr;
+      transition: grid-template-rows 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+      max-width: 44rem;
+    }
+    .manifesto-continuation.is-expanded {
+      grid-template-rows: 1fr;
+    }
+    .manifesto-continuation__inner {
+      overflow: hidden;
+      min-height: 0; /* grid 子项必需，否则内容会撑开 */
+    }
+    /* 展开后的内容上边距：与按钮保持视觉分离 */
+    .manifesto-continuation__content {
+      padding-top: 2.5rem; /* 40px */
+    }
+    /* 折叠状态下移除内部 scroll-reveal 的 transform 偏移干扰 */
+    .manifesto-continuation:not(.is-expanded) .scroll-reveal {
+      transition-delay: 0s !important;
+    }
+    /* reduced motion：即时展开，关闭高度动画与图标旋转 */
+    @media (prefers-reduced-motion: reduce) {
+      .manifesto-continuation {
+        transition: none;
+      }
+      .manifesto-expand-btn__icon {
+        transition: none;
+      }
+      .manifesto-expand-btn {
+        transition: color 0.1s linear, background-color 0.1s linear, border-color 0.1s linear;
+      }
+    }
+    /* ============ 刑法学术雷达：文字与雷达融合的背景层 ============
+       设计原则：
+       - 雷达装饰作为卡片的背景层（绝对定位 + z-index: 0）
+       - 文字内容置于上层（relative + z-index: 10），保持完全可读性
+       - 雷达环、扫描线、星点使用品牌蓝（#007aff）极低透明度
+       - 旋转缓慢（12s）以营造持续扫描的呼吸感
+       - 完整支持 prefers-reduced-motion（静态降级）
+    */
+    .radar-card {
+      position: relative;
+      overflow: hidden;
+    }
+    .radar-bg {
+      position: absolute;
+      inset: 0;
+      z-index: 0;
+      pointer-events: none;
+      overflow: hidden;
+    }
+    /* 雷达环：定位到卡片中心偏右，让左侧文字区域呼吸更舒展 */
+    .radar-rings {
+      position: absolute;
+      top: 50%;
+      left: 58%;
+      transform: translate(-50%, -50%);
+      width: 620px;
+      height: 620px;
+    }
+    @media (max-width: 1023px) {
+      .radar-rings { left: 65%; width: 480px; height: 480px; }
+    }
+    @media (max-width: 639px) {
+      .radar-rings { left: 72%; width: 360px; height: 360px; }
+    }
+    .radar-ring {
+      position: absolute;
+      border-radius: 50%;
+      border: 1px solid rgba(0, 122, 255, 0.10);
+    }
+    [data-theme="dark"] .radar-ring {
+      border-color: rgba(46, 141, 255, 0.14);
+    }
+    .radar-ring--1 { inset: 0; }
+    .radar-ring--2 { inset: 14%; }
+    .radar-ring--3 { inset: 28%; }
+    .radar-ring--4 { inset: 44%; }
+    .radar-crosshair-h,
+    .radar-crosshair-v {
+      position: absolute;
+      background: rgba(0, 122, 255, 0.05);
+    }
+    [data-theme="dark"] .radar-crosshair-h,
+    [data-theme="dark"] .radar-crosshair-v {
+      background: rgba(46, 141, 255, 0.08);
+    }
+    .radar-crosshair-h { top: 50%; left: 0; right: 0; height: 1px; }
+    .radar-crosshair-v { left: 50%; top: 0; bottom: 0; width: 1px; }
+    .radar-center {
+      position: absolute;
+      top: 50%; left: 50%;
+      transform: translate(-50%, -50%);
+      width: 6px; height: 6px;
+      border-radius: 50%;
+      background: rgba(0, 122, 255, 0.4);
+      box-shadow: 0 0 10px rgba(0, 122, 255, 0.3);
+    }
+    [data-theme="dark"] .radar-center {
+      background: rgba(46, 141, 255, 0.5);
+      box-shadow: 0 0 12px rgba(46, 141, 255, 0.4);
+    }
+    .radar-dot {
+      position: absolute;
+      border-radius: 50%;
+    }
+    /* 扫描线：conic-gradient 缓慢旋转，透明度极低以免影响文字可读性 */
+    .radar-sweep {
+      position: absolute;
+      inset: 0;
+      border-radius: 50%;
+      background: conic-gradient(
+        from 0deg,
+        transparent 0deg,
+        transparent 280deg,
+        rgba(0, 122, 255, 0.04) 320deg,
+        rgba(0, 122, 255, 0.10) 360deg
+      );
+      -webkit-mask: radial-gradient(circle, transparent 0%, black 1px, black 100%);
+      mask: radial-gradient(circle, transparent 0%, black 1px, black 100%);
+    }
+    [data-theme="dark"] .radar-sweep {
+      background: conic-gradient(
+        from 0deg,
+        transparent 0deg,
+        transparent 280deg,
+        rgba(46, 141, 255, 0.06) 320deg,
+        rgba(46, 141, 255, 0.14) 360deg
+      );
+    }
+    @media (prefers-reduced-motion: no-preference) {
+      .radar-sweep {
+        animation: radar-sweep-rotate 12s linear infinite;
+      }
+      @keyframes radar-sweep-rotate {
+        from { transform: rotate(0deg); }
+        to { transform: rotate(360deg); }
+      }
+      .radar-dot {
+        animation: radar-dot-pulse 4s ease-in-out infinite;
+      }
+      .radar-dot--delay-1 { animation-delay: 0.8s; }
+      .radar-dot--delay-2 { animation-delay: 1.6s; }
+      .radar-dot--delay-3 { animation-delay: 2.4s; }
+      .radar-dot--delay-4 { animation-delay: 3.2s; }
+      @keyframes radar-dot-pulse {
+        0%, 100% { opacity: 0.4; }
+        50% { opacity: 1; }
+      }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      .radar-sweep { animation: none; }
+      .radar-dot { animation: none; opacity: 0.7; }
+    }
     /* ============ 碰撞 反驳观点赛博朋克呈现动效 ============ */
     @media (prefers-reduced-motion: no-preference) {
       /* 标签 glitch：RGB 双色分离 + 微抖动，0.5s steps 制造机械感 */
@@ -698,6 +940,7 @@
       <ul class="hidden md:flex items-center gap-0.5">
         <li><a href="#manifesto" class="nav-link px-3 py-2 text-[13px] font-medium text-[var(--color-text-500)] hover:text-[var(--color-text-800)] rounded-[8px] transition-colors">宣言</a></li>
         <li><a href="#lab" class="nav-link px-3 py-2 text-[13px] font-medium text-[var(--color-text-500)] hover:text-[var(--color-text-800)] rounded-[8px] transition-colors">实验室</a></li>
+        <li><a href="#radar" class="nav-link px-3 py-2 text-[13px] font-medium text-[var(--color-text-500)] hover:text-[var(--color-text-800)] rounded-[8px] transition-colors">雷达</a></li>
         <li><a href="#readings" class="nav-link px-3 py-2 text-[13px] font-medium text-[var(--color-text-500)] hover:text-[var(--color-text-800)] rounded-[8px] transition-colors">阅读</a></li>
         <li><a href="#collision" class="nav-link px-3 py-2 text-[13px] font-medium text-[var(--color-text-500)] hover:text-[var(--color-text-800)] rounded-[8px] transition-colors">碰撞</a></li>
         <li><a href="#about" class="nav-link px-3 py-2 text-[13px] font-medium text-[var(--color-text-500)] hover:text-[var(--color-text-800)] rounded-[8px] transition-colors">关于</a></li>
@@ -720,6 +963,7 @@
       <ul class="px-6 py-3 flex flex-col gap-1">
         <li><a href="#manifesto" class="mobile-nav-link block px-3 py-3 text-[15px] font-medium text-[var(--color-text-600)] hover:text-[var(--color-brand-600)] hover:bg-[var(--color-background-100)] rounded-[8px] transition-colors">宣言</a></li>
         <li><a href="#lab" class="mobile-nav-link block px-3 py-3 text-[15px] font-medium text-[var(--color-text-600)] hover:text-[var(--color-brand-600)] hover:bg-[var(--color-background-100)] rounded-[8px] transition-colors">实验室</a></li>
+        <li><a href="#radar" class="mobile-nav-link block px-3 py-3 text-[15px] font-medium text-[var(--color-text-600)] hover:text-[var(--color-brand-600)] hover:bg-[var(--color-background-100)] rounded-[8px] transition-colors">雷达</a></li>
         <li><a href="#readings" class="mobile-nav-link block px-3 py-3 text-[15px] font-medium text-[var(--color-text-600)] hover:text-[var(--color-brand-600)] hover:bg-[var(--color-background-100)] rounded-[8px] transition-colors">阅读</a></li>
         <li><a href="#collision" class="mobile-nav-link block px-3 py-3 text-[15px] font-medium text-[var(--color-text-600)] hover:text-[var(--color-brand-600)] hover:bg-[var(--color-background-100)] rounded-[8px] transition-colors">碰撞</a></li>
         <li><a href="#about" class="mobile-nav-link block px-3 py-3 text-[15px] font-medium text-[var(--color-text-600)] hover:text-[var(--color-brand-600)] hover:bg-[var(--color-background-100)] rounded-[8px] transition-colors">关于</a></li>
@@ -794,43 +1038,75 @@
               <p class="mt-4 text-[12px] font-mono text-[var(--color-text-400)] tracking-[0.05em]">生成式法学宣言 题铭</p>
             </div>
 
-            <!-- 宣言正文：衬线体，编辑式排版 -->
-            <div class="scroll-reveal max-w-[44rem] space-y-8 text-[17px] leading-[1.95] text-[var(--color-text-700)]" style="font-family: 'Source Han Serif SC', 'Noto Serif SC', 'Songti SC', 'STSong', 'SimSun', Georgia, serif;">
+            <!-- 宣言正文：衬线体，编辑式排版（§一 开篇定调，始终可见） -->
+            <div class="scroll-reveal max-w-[44rem] text-[17px] leading-[1.95] text-[var(--color-text-700)]" style="font-family: 'Source Han Serif SC', 'Noto Serif SC', 'Songti SC', 'STSong', 'SimSun', Georgia, serif;">
               <!-- § 一：首字下沉，开篇定调 -->
               <p class="first-letter:float-left first-letter:text-[5em] first-letter:leading-[0.82] first-letter:font-bold first-letter:mr-3 first-letter:mt-1 first-letter:text-[var(--color-brand-500)]">
                 机器开始写作了。它能起草合同、预测判决、生成论文，甚至颇为不敬地模仿法学家的口吻谈论正义。于是有人问，法学家还剩下什么？我们的回答是，最重要的部分。机器可以生成文本，但不能生成正当性。它知道下一个词最可能是什么，却不知道我们应当如何共同生活。预测裁判是一回事，为裁判负责是另一回事。责任以立场为前提，而立场需要一具会疼痛、会犹疑、会在深夜里辗转反侧的血肉之躯。这是法学不可让渡的领地。
               </p>
-              <p>
-                法学本无须向人工智能让渡生成二字。这门学问从来就是生成式的，每一代人都在旧文本中生成新意义，在既有规则中生成新秩序。法解释学的千年传统早已深谙生成之道，只不过我们的模型以良心为底座，以论辩为训练，以整个法律共同体的实践为语料。人工智能不是法学的掘墓人，是一面镜子，照见法律思维中可以机械化的部分，也反衬出判断、衡平与想象这些不可替代的东西。
-              </p>
             </div>
 
-            <!-- 中心论点：pull quote，论文核心命题的视觉强调 -->
-            <div class="scroll-reveal my-16 lg:my-24 max-w-[44rem]">
-              <p class="text-[22px] sm:text-[26px] lg:text-[30px] font-semibold leading-[1.4] tracking-[-0.015em] text-[var(--color-text-900)] text-balance" style="font-family: 'Source Han Serif SC', 'Noto Serif SC', 'Songti SC', Georgia, serif;">
-                机器可以生成文本，<br/>但不能生成正当性。
-              </p>
+            <!-- 展开全文 按钮：编辑式 pill，克制 ghost 样式 -->
+            <div class="scroll-reveal manifesto-expand">
+              <button id="manifestoExpandBtn"
+                      class="manifesto-expand-btn"
+                      type="button"
+                      aria-expanded="false"
+                      aria-controls="manifestoContinuation">
+                <span class="manifesto-expand-btn__label">展开全文</span>
+                <span class="manifesto-expand-btn__sublabel">Read More</span>
+                <span class="manifesto-expand-btn__icon" aria-hidden="true">
+                  <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                    <polyline points="6 9 12 15 18 9"></polyline>
+                  </svg>
+                </span>
+              </button>
             </div>
 
-            <!-- 宣言正文续 -->
-            <div class="scroll-reveal max-w-[44rem] space-y-8 text-[17px] leading-[1.95] text-[var(--color-text-700)]" style="font-family: 'Source Han Serif SC', 'Noto Serif SC', 'Songti SC', 'STSong', 'SimSun', Georgia, serif;">
-              <p>
-                我们拒绝两种姿态，技术乐观主义的盲目欢呼，与人文主义者的末日哀叹。前者忘记了法律关乎权力与服从，后者忘记了法学从来都在技术变迁中生长。生成式法学的任务，是在人机之际重新勘定法学的疆域。技术深入生活之处，皆需法学为之定向。不是因为法学强大到无视技术。恰恰相反，技术走得越远，越需要法学告诉它边界在哪里。
-              </p>
-              <p>
-                最后，一点坦白，我们以学术为志业，但不打算永远板着脸。法学可以是严肃的志业，也可以是有趣的游戏。本文每一个字都经人逐句推敲、如假包换。至于这句话是真是假，就交给诸君自己判断了。
-              </p>
-            </div>
+            <!-- 宣言续篇：默认折叠，点击按钮后展开 -->
+            <div id="manifestoContinuation"
+                 class="manifesto-continuation"
+                 aria-hidden="true"
+                 role="region"
+                 aria-labelledby="manifestoExpandBtn">
+              <div class="manifesto-continuation__inner">
+                <div class="manifesto-continuation__content">
+                  <!-- § 二：紧接 §一 的论证展开 -->
+                  <div class="scroll-reveal max-w-[44rem] text-[17px] leading-[1.95] text-[var(--color-text-700)]" style="font-family: 'Source Han Serif SC', 'Noto Serif SC', 'Songti SC', 'STSong', 'SimSun', Georgia, serif;">
+                    <p>
+                      法学本无须向人工智能让渡生成二字。这门学问从来就是生成式的，每一代人都在旧文本中生成新意义，在既有规则中生成新秩序。法解释学的千年传统早已深谙生成之道，只不过我们的模型以良心为底座，以论辩为训练，以整个法律共同体的实践为语料。人工智能不是法学的掘墓人，是一面镜子，照见法律思维中可以机械化的部分，也反衬出判断、衡平与想象这些不可替代的东西。
+                    </p>
+                  </div>
 
-            <!-- 收尾：短分隔线 + 核心论断 + 落款 -->
-            <div class="scroll-reveal mt-16 lg:mt-20 max-w-[44rem]">
-              <div class="w-12 h-px bg-[var(--color-text-300)] mb-8"></div>
-              <p class="text-xl sm:text-2xl font-semibold leading-[1.45] tracking-[-0.015em] text-[var(--color-text-900)] text-balance" style="font-family: 'Source Han Serif SC', 'Noto Serif SC', 'Songti SC', Georgia, serif;">
-                法律由人制定、为人存在，其意义必须由人生成。
-              </p>
-              <p class="mt-5 text-sm font-mono italic text-[var(--color-text-400)] tracking-wide">
-                是为生成式法学。
-              </p>
+                  <!-- 中心论点：pull quote，论文核心命题的视觉强调 -->
+                  <div class="scroll-reveal my-16 lg:my-24 max-w-[44rem]">
+                    <p class="text-[22px] sm:text-[26px] lg:text-[30px] font-semibold leading-[1.4] tracking-[-0.015em] text-[var(--color-text-900)] text-balance" style="font-family: 'Source Han Serif SC', 'Noto Serif SC', 'Songti SC', Georgia, serif;">
+                      机器可以生成文本，<br/>但不能生成正当性。
+                    </p>
+                  </div>
+
+                  <!-- 宣言正文续 -->
+                  <div class="scroll-reveal max-w-[44rem] space-y-8 text-[17px] leading-[1.95] text-[var(--color-text-700)]" style="font-family: 'Source Han Serif SC', 'Noto Serif SC', 'Songti SC', 'STSong', 'SimSun', Georgia, serif;">
+                    <p>
+                      我们拒绝两种姿态，技术乐观主义的盲目欢呼，与人文主义者的末日哀叹。前者忘记了法律关乎权力与服从，后者忘记了法学从来都在技术变迁中生长。生成式法学的任务，是在人机之际重新勘定法学的疆域。技术深入生活之处，皆需法学为之定向。不是因为法学强大到无视技术。恰恰相反，技术走得越远，越需要法学告诉它边界在哪里。
+                    </p>
+                    <p>
+                      最后，一点坦白，我们以学术为志业，但不打算永远板着脸。法学可以是严肃的志业，也可以是有趣的游戏。本文每一个字都经人逐句推敲、如假包换。至于这句话是真是假，就交给诸君自己判断了。
+                    </p>
+                  </div>
+
+                  <!-- 收尾：短分隔线 + 核心论断 + 落款 -->
+                  <div class="scroll-reveal mt-16 lg:mt-20 max-w-[44rem]">
+                    <div class="w-12 h-px bg-[var(--color-text-300)] mb-8"></div>
+                    <p class="text-xl sm:text-2xl font-semibold leading-[1.45] tracking-[-0.015em] text-[var(--color-text-900)] text-balance" style="font-family: 'Source Han Serif SC', 'Noto Serif SC', 'Songti SC', Georgia, serif;">
+                      法律由人制定、为人存在，其意义必须由人生成。
+                    </p>
+                    <p class="mt-5 text-sm font-mono italic text-[var(--color-text-400)] tracking-wide">
+                      是为生成式法学。
+                    </p>
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
         </div>
@@ -871,6 +1147,58 @@
       </div>
     </section>
 
+    <!-- ============ CRIMINAL LAW ACADEMIC RADAR ============ -->
+    <section id="radar" class="border-t border-[var(--color-background-300)]">
+      <div class="max-w-6xl mx-auto px-6 lg:px-8 py-20 sm:py-24 lg:py-28">
+        <div class="mb-12 max-w-2xl scroll-reveal">
+          <h2 class="text-3xl sm:text-4xl font-bold tracking-[-0.02em] text-[var(--color-text-800)] mb-2">刑法学术雷达</h2>
+          <p class="text-base font-mono text-[var(--color-text-500)] italic">Academic Radar</p>
+          <p class="text-[15px] text-[var(--color-text-500)] mt-3 leading-relaxed">每月一次，扫描刑法学界的理论星图。<span class="font-mono italic text-[var(--color-text-300)]"> A monthly scan of criminal law scholarship.</span></p>
+        </div>
+
+        <!-- Feature card: 学术雷达入口（融合布局：雷达装饰作为背景层，文字浮于上层） -->
+        <a href="nebula/2026-06.html" class="radar-card scroll-reveal group relative overflow-hidden rounded-[19px] border border-[var(--color-background-300)] bg-[var(--color-background-50)] hover:border-[var(--color-brand-300)] hover:shadow-lg transition-all block">
+          <!-- 背景层：装饰性雷达（同心圆环 + 扫描线 + 星点） -->
+          <div class="radar-bg" aria-hidden="true">
+            <div class="radar-rings">
+              <div class="radar-ring radar-ring--1"></div>
+              <div class="radar-ring radar-ring--2"></div>
+              <div class="radar-ring radar-ring--3"></div>
+              <div class="radar-ring radar-ring--4"></div>
+              <div class="radar-crosshair-h"></div>
+              <div class="radar-crosshair-v"></div>
+              <div class="radar-sweep"></div>
+              <div class="radar-center"></div>
+              <div class="radar-dot radar-dot--delay-1" style="top: 18%; left: 28%; width: 6px; height: 6px; background: rgba(0, 122, 255, 0.5);"></div>
+              <div class="radar-dot radar-dot--delay-2" style="top: 62%; left: 72%; width: 4px; height: 4px; background: rgba(0, 122, 255, 0.4);"></div>
+              <div class="radar-dot radar-dot--delay-3" style="top: 38%; left: 76%; width: 8px; height: 8px; background: rgba(0, 122, 255, 0.45);"></div>
+              <div class="radar-dot radar-dot--delay-4" style="top: 78%; left: 22%; width: 4px; height: 4px; background: rgba(0, 122, 255, 0.35);"></div>
+              <div class="radar-dot radar-dot--delay-1" style="top: 12%; left: 64%; width: 6px; height: 6px; background: rgba(0, 122, 255, 0.45);"></div>
+              <div class="radar-dot radar-dot--delay-2" style="top: 52%; left: 14%; width: 4px; height: 4px; background: rgba(0, 122, 255, 0.3);"></div>
+              <div class="radar-dot radar-dot--delay-3" style="top: 32%; left: 48%; width: 4px; height: 4px; background: rgba(0, 122, 255, 0.35);"></div>
+            </div>
+          </div>
+          <!-- 文字层：浮于雷达装饰之上 -->
+          <div class="relative z-10 p-8 sm:p-12 lg:p-14 max-w-xl">
+            <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-[6px] bg-[var(--color-brand-50)] text-[var(--color-brand-600)] text-[11px] font-mono font-semibold mb-5 w-fit">
+              <i data-lucide="orbit" class="w-3 h-3"></i>
+              2026年6月
+            </span>
+            <h3 class="text-2xl sm:text-3xl font-bold tracking-tight mb-2 text-[var(--color-text-800)]">理论星云图</h3>
+            <p class="text-base font-medium text-[var(--color-text-500)] mb-4">41篇核心期刊 &nbsp; 8个理论簇</p>
+            <p class="text-[14.5px] leading-[1.75] text-[var(--color-text-500)] max-w-lg mb-8">
+              将月度刑法学论文转化为可视化的理论星图。以论文为星辰，以理论为引力，以争议为碰撞带。在数据中观察学术脉络的走向。
+            </p>
+            <div>
+              <span class="inline-flex items-center gap-2 px-5 py-3 rounded-[999px] bg-[var(--color-brand-500)] text-white text-[14px] font-semibold group-hover:bg-[var(--color-brand-600)] group-hover:gap-3 active:translate-y-[1px] transition-all">
+                2026年6月
+                <i data-lucide="arrow-right" class="w-4 h-4"></i>
+              </span>
+            </div>
+          </div>
+        </a>
+      </div>
+    </section>
     <!-- ============ FEATURED READINGS (Asymmetric: 1 featured + 2 secondary) ============ -->
     <section id="readings" class="border-t border-[var(--color-background-300)] bg-[var(--color-background-100)]">
       <div class="max-w-6xl mx-auto px-6 lg:px-8 py-20 sm:py-24 lg:py-28">
@@ -1011,7 +1339,7 @@
 
       <!-- 中段：单一列导航，无 uppercase 标签，发丝线分隔 -->
       <nav class="scroll-reveal border-t border-[var(--color-background-300)] pt-10 mb-16">
-        <div class="grid grid-cols-2 md:grid-cols-4 gap-x-8 gap-y-6">
+        <div class="grid grid-cols-2 md:grid-cols-5 gap-x-8 gap-y-6">
           <a href="#manifesto" class="group block">
             <p class="text-[13px] font-mono text-[var(--color-text-300)] mb-1.5">01</p>
             <p class="text-[15px] text-[var(--color-text-800)] group-hover:text-[var(--color-brand-600)] transition-colors">宣言</p>
@@ -1022,13 +1350,18 @@
             <p class="text-[15px] text-[var(--color-text-800)] group-hover:text-[var(--color-brand-600)] transition-colors">实验室</p>
             <p class="text-[11px] font-mono text-[var(--color-text-400)] mt-0.5">Laboratory</p>
           </a>
-          <a href="#readings" class="group block">
+          <a href="#radar" class="group block">
             <p class="text-[13px] font-mono text-[var(--color-text-300)] mb-1.5">03</p>
+            <p class="text-[15px] text-[var(--color-text-800)] group-hover:text-[var(--color-brand-600)] transition-colors">雷达</p>
+            <p class="text-[11px] font-mono text-[var(--color-text-400)] mt-0.5">Radar</p>
+          </a>
+          <a href="#readings" class="group block">
+            <p class="text-[13px] font-mono text-[var(--color-text-300)] mb-1.5">04</p>
             <p class="text-[15px] text-[var(--color-text-800)] group-hover:text-[var(--color-brand-600)] transition-colors">阅读</p>
             <p class="text-[11px] font-mono text-[var(--color-text-400)] mt-0.5">Readings</p>
           </a>
           <a href="#collision" class="group block">
-            <p class="text-[13px] font-mono text-[var(--color-text-300)] mb-1.5">04</p>
+            <p class="text-[13px] font-mono text-[var(--color-text-300)] mb-1.5">05</p>
             <p class="text-[15px] text-[var(--color-text-800)] group-hover:text-[var(--color-brand-600)] transition-colors">碰撞</p>
             <p class="text-[11px] font-mono text-[var(--color-text-400)] mt-0.5">Collision</p>
           </a>
@@ -1185,6 +1518,63 @@
       // 不支持 IntersectionObserver 的浏览器直接显示
       revealEls.forEach(el => el.classList.add('is-visible'));
     }
+    /* ============ 宣言展开/收起 ============ */
+    (function () {
+      var btn = document.getElementById('manifestoExpandBtn');
+      var cont = document.getElementById('manifestoContinuation');
+      if (!btn || !cont) return;
+
+      var labelEl = btn.querySelector('.manifesto-expand-btn__label');
+      var COLLAPSED_LABEL = '展开全文';
+      var EXPANDED_LABEL = '收起';
+
+      var prefersReduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+      function revealInner() {
+        // 展开后让内部 scroll-reveal 元素错峰渐入
+        var reveals = cont.querySelectorAll('.scroll-reveal');
+        reveals.forEach(function (el, i) {
+          // 已可见的不再处理
+          if (el.classList.contains('is-visible')) return;
+          var delay = prefersReduced ? 0 : Math.min(i, 4) * 0.08;
+          el.style.transitionDelay = delay + 's';
+          // 下一帧触发，确保 transition 生效
+          requestAnimationFrame(function () {
+            el.classList.add('is-visible');
+          });
+        });
+      }
+
+      function expand() {
+        cont.classList.add('is-expanded');
+        btn.classList.add('is-expanded');
+        btn.setAttribute('aria-expanded', 'true');
+        cont.setAttribute('aria-hidden', 'false');
+        if (labelEl) labelEl.textContent = EXPANDED_LABEL;
+        // 高度动画结束后再触发内部渐入（reduced motion 下立即触发）
+        if (prefersReduced) {
+          revealInner();
+        } else {
+          setTimeout(revealInner, 120);
+        }
+      }
+
+      function collapse() {
+        cont.classList.remove('is-expanded');
+        btn.classList.remove('is-expanded');
+        btn.setAttribute('aria-expanded', 'false');
+        cont.setAttribute('aria-hidden', 'true');
+        if (labelEl) labelEl.textContent = COLLAPSED_LABEL;
+      }
+
+      btn.addEventListener('click', function () {
+        if (btn.classList.contains('is-expanded')) {
+          collapse();
+        } else {
+          expand();
+        }
+      });
+    })();
 
     /* ============ 阅读进度条 ============ */
     const progressBar = document.getElementById('readingProgress');
@@ -1198,7 +1588,7 @@
     updateProgress();
 
     /* ============ 导航栏当前章节高亮 ============ */
-    const sections = ['manifesto', 'lab', 'readings', 'collision', 'about'].map(id => document.getElementById(id)).filter(Boolean);
+    const sections = ['manifesto', 'lab', 'radar', 'readings', 'collision', 'about'].map(id => document.getElementById(id)).filter(Boolean);
     const navLinks = document.querySelectorAll('.nav-link');
     function updateActiveNav() {
       // 偏移量与 --scroll-offset 一致（80px），保证高亮判定与实际锚点滚动位置同步
