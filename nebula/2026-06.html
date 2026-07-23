@@ -770,6 +770,101 @@ a { color: inherit; text-decoration: none; }
   color: rgba(255, 255, 255, 0.45);
 }
 
+/* ---------- 论文详情浮层（星云图专属 · 无全屏蒙版 · 不遮挡画布主体） ---------- */
+/* 桌面：画布右侧玻璃浮层；移动：底部上滑卡。内部内容复用 .ps-* 样式 */
+.nebula-paper-pop {
+  position: absolute;
+  z-index: 8;
+  right: 12px;
+  top: 60px;             /* 避开右上角控制按钮 */
+  bottom: 56px;          /* 避开右下角搜索框 */
+  width: 340px;
+  background: rgba(255, 255, 255, 0.94);
+  border: 1px solid var(--line);
+  border-radius: var(--r-lg);
+  backdrop-filter: blur(20px) saturate(1.4);
+  -webkit-backdrop-filter: blur(20px) saturate(1.4);
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.14), 0 2px 8px rgba(0, 0, 0, 0.06);
+  opacity: 0;
+  transform: translateX(24px) scale(0.98);
+  pointer-events: none;
+  transition: opacity 0.32s cubic-bezier(0.22, 0.9, 0.28, 1),
+              transform 0.32s cubic-bezier(0.22, 0.9, 0.28, 1);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+.nebula-paper-pop.show {
+  opacity: 1;
+  transform: translateX(0) scale(1);
+  pointer-events: auto;
+}
+.nebula-paper-pop .npp-close {
+  position: absolute;
+  top: 10px; right: 10px;
+  width: 28px; height: 28px;
+  border-radius: 50%;
+  border: 1px solid var(--line);
+  background: rgba(255, 255, 255, 0.8);
+  color: var(--ink-3);
+  font-size: 18px;
+  line-height: 1;
+  cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  transition: color 0.2s, border-color 0.2s, background 0.2s;
+  z-index: 3;
+}
+.nebula-paper-pop .npp-close:hover {
+  color: var(--accent);
+  border-color: var(--accent-dim);
+  background: rgba(255, 255, 255, 1);
+}
+.nebula-paper-pop .npp-body {
+  padding: 16px 20px 20px;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior: contain;
+  flex: 1;
+}
+/* 浮层内的 ps-* 元素微调（比抽屉更紧凑） */
+.nebula-paper-pop .ps-topic { margin: 0 0 10px; }
+.nebula-paper-pop .ps-title { font-size: 17px; line-height: 1.45; padding-right: 24px; }
+.nebula-paper-pop .ps-summary { font-size: 13px; line-height: 1.85; }
+.nebula-paper-pop .ps-stance { font-size: 13px; padding: 10px 12px; }
+.nebula-paper-pop .ps-sec-label { margin-top: 14px; }
+.nebula-paper-pop .ps-novelty { margin-top: 14px; }
+
+/* 移动端：切换为底部上滑卡，铺满画布宽度 */
+@media (max-width: 899px) {
+  .nebula-paper-pop {
+    left: 0; right: 0; top: auto; bottom: 0;
+    width: auto;
+    max-height: 78vh;
+    max-height: 78dvh;
+    border-radius: 18px 18px 0 0;
+    border-bottom: none;
+    transform: translateY(106%);
+    transition: transform 0.4s cubic-bezier(0.22, 0.9, 0.28, 1);
+  }
+  .nebula-paper-pop.show {
+    transform: translateY(0);
+  }
+  .nebula-paper-pop .npp-body {
+    padding: 14px 18px calc(20px + env(safe-area-inset-bottom, 0px));
+  }
+  .nebula-paper-pop .npp-close { top: 8px; right: 12px; }
+  /* 移动端上滑指示条 */
+  .nebula-paper-pop::before {
+    content: '';
+    position: absolute;
+    top: 6px; left: 50%;
+    transform: translateX(-50%);
+    width: 38px; height: 4px;
+    border-radius: 4px;
+    background: var(--line);
+  }
+}
+
 /* ---------- 详情侧滑卡（桌面右侧抽屉 / 移动底部上滑） ---------- */
 .sheet-backdrop {
   position: fixed; inset: 0;
@@ -1185,6 +1280,12 @@ a { color: inherit; text-decoration: none; }
         <!-- 相近论文浮层：悬停光点时显示 -->
         <div class="nebula-relations" id="nebulaRelations" aria-hidden="true"></div>
 
+        <!-- 论文详情浮层：点击光点时显示（桌面右侧玻璃浮层，移动端底部上滑） -->
+        <div class="nebula-paper-pop" id="nebulaPaperPop" aria-hidden="true">
+          <button class="npp-close" id="nebulaPopClose" type="button" aria-label="关闭">×</button>
+          <div class="npp-body" id="nebulaPopBody"></div>
+        </div>
+
         <div class="nebula-hint">
           光点 = 论文 · 大小 = 理论数 · 云团 = 主题群<br />
           拖动旋转 · 滚轮缩放 · 悬停查看 · 点击详情
@@ -1583,16 +1684,18 @@ function renderNebula(papers, meta) {
 }
 
 /* ============================================================
-   论文详情侧滑卡
+   论文详情：共享 HTML 生成 + 侧滑卡 + 星云图专属浮层
    ============================================================ */
 var sheet = document.getElementById('paperSheet');
 var sheetBody = document.getElementById('sheetBody');
 var backdrop = document.getElementById('sheetBackdrop');
+var nebulaPop = document.getElementById('nebulaPaperPop');
+var nebulaPopBody = document.getElementById('nebulaPopBody');
 
-function openSheet(p, tMeta) {
+/* 共享：生成论文详情 HTML（供侧滑卡和星云浮层复用） */
+function buildPaperHTML(p, tMeta) {
   var novelty = Math.max(0, Math.min(10, +p.novelty || 0));
-  sheetBody.innerHTML =
-    '<span class="ps-topic" style="color:' + tMeta.color + ';border-color:' + tMeta.color + '44">' +
+  return '<span class="ps-topic" style="color:' + tMeta.color + ';border-color:' + tMeta.color + '44">' +
       '<i style="background:' + tMeta.color + ';color:' + tMeta.color + '"></i>' + esc(p.topic) +
     '</span>' +
     '<h3 class="ps-title">' + esc(p.title) + '</h3>' +
@@ -1616,7 +1719,10 @@ function openSheet(p, tMeta) {
       '<div class="ps-sec-label">涉及理论 THEORIES</div>' +
       '<div class="ps-chips">' + p.theories.map(function (t) { return '<span class="chip theory">' + esc(t) + '</span>'; }).join('') + '</div>' : '') +
     '<div class="ps-foot"><span class="ai-tag">AI生成，仅供娱乐与参考，以原文为准</span></div>';
+}
 
+function openSheet(p, tMeta) {
+  sheetBody.innerHTML = buildPaperHTML(p, tMeta);
   sheet.classList.add('open');
   backdrop.classList.add('open');
   sheet.setAttribute('aria-hidden', 'false');
@@ -1627,11 +1733,37 @@ function closeSheet() {
   backdrop.classList.remove('open');
   sheet.setAttribute('aria-hidden', 'true');
   document.body.style.overflow = '';
-  if (nebula.clearSelection) nebula.clearSelection();
+  if (window.Nebula3D && Nebula3D.clearSelection) Nebula3D.clearSelection();
 }
 document.getElementById('sheetClose').addEventListener('click', closeSheet);
 backdrop.addEventListener('click', closeSheet);
-document.addEventListener('keydown', function (e) { if (e.key === 'Escape') closeSheet(); });
+
+/* 星云图专属浮层：无全屏蒙版，不遮挡画布主体 */
+function openNebulaPop(p, tMeta) {
+  if (!nebulaPop) return;
+  nebulaPopBody.innerHTML = buildPaperHTML(p, tMeta);
+  nebulaPop.classList.add('show');
+  nebulaPop.setAttribute('aria-hidden', 'false');
+  if (window.innerWidth < 900) document.body.style.overflow = 'hidden';
+}
+function closeNebulaPop() {
+  if (!nebulaPop) return;
+  nebulaPop.classList.remove('show');
+  nebulaPop.setAttribute('aria-hidden', 'true');
+  document.body.style.overflow = '';
+  if (window.Nebula3D && Nebula3D.clearSelection) Nebula3D.clearSelection();
+}
+document.getElementById('nebulaPopClose').addEventListener('click', closeNebulaPop);
+
+/* ESC 统一关闭：优先关星云浮层，其次关侧滑卡 */
+document.addEventListener('keydown', function (e) {
+  if (e.key !== 'Escape') return;
+  if (nebulaPop && nebulaPop.classList.contains('show')) {
+    closeNebulaPop();
+  } else {
+    closeSheet();
+  }
+});
 
 /* ============================================================
    模块三 · 本月对撞
@@ -2532,15 +2664,15 @@ async function initNebula3D(sourceMeta) {
 
   try {
     await Nebula3D.init(stage, 'papers-3d.json', (paper) => {
-      // 点击光点回调：调用页面的 openSheet 显示详情
+      // 点击光点回调：调用星云图专属浮层显示详情（无全屏蒙版，不遮挡画布）
       const cluster = Nebula3D.clusters[paper.cluster];
       const tMeta = {
         name: cluster ? cluster.name : paper.topic,
         color: cluster ? cluster.color : '#8b3a3a',
         short: cluster ? topicShort(cluster.name) : paper.topic,
       };
-      if (typeof window.openSheet === 'function') {
-        window.openSheet(paper, tMeta);
+      if (typeof window.openNebulaPop === 'function') {
+        window.openNebulaPop(paper, tMeta);
       }
     });
 
