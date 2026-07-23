@@ -23,6 +23,16 @@
 <script src="https://cdn.jsdelivr.net/npm/d3@7.9.0/dist/d3.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/echarts@5.5.0/dist/echarts.min.js"></script>
 
+<!-- Three.js（ES Module + importmap，用于理论星云图 3D 渲染） -->
+<script type="importmap">
+{
+  "imports": {
+    "three": "https://cdn.jsdelivr.net/npm/three@0.169.0/build/three.module.js",
+    "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.169.0/examples/jsm/"
+  }
+}
+</script>
+
 <style>
 /* ============================================================
    Apple Light · 学术杂志风 —— 设计基调：
@@ -469,17 +479,15 @@ a { color: inherit; text-decoration: none; }
 }
 
 /* ============================================================
-   模块二 · 理论星云图
+   模块二 · 理论星云图（Three.js 3D · WebGL）
    ============================================================ */
 .nebula-shell {
   position: relative;
   border: 1px solid var(--line-soft);
   border-radius: var(--r-lg);
-  background:
-    radial-gradient(ellipse 120% 90% at 50% 0%, rgba(0, 113, 227, 0.025), transparent 70%),
-    linear-gradient(180deg, #ffffff, #fafafb);
+  background: #0a0e1a;  /* 深空背景：光点在深色画布上才发光，3D 画布作为独立可视化容器 */
   overflow: hidden;
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.03);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.03), 0 8px 32px rgba(10, 14, 26, 0.12);
 }
 .nebula-stage {
   position: relative;
@@ -489,9 +497,33 @@ a { color: inherit; text-decoration: none; }
 }
 .nebula-stage:active { cursor: grabbing; }
 @media (min-width: 900px) { .nebula-stage { height: 640px; } }
-#nebulaSvg { display: block; width: 100%; height: 100%; }
+.nebula-stage canvas { display: block; width: 100% !important; height: 100% !important; }
 
-/* 着色切换 */
+/* 加载状态 */
+.nebula-loading {
+  position: absolute; inset: 0;
+  display: flex; align-items: center; justify-content: center;
+  flex-direction: column; gap: 12px;
+  background: #0a0e1a;
+  z-index: 5;
+  transition: opacity 0.5s;
+}
+.nebula-loading.done { opacity: 0; pointer-events: none; }
+.nebula-loading-dot {
+  width: 8px; height: 8px; border-radius: 50%;
+  background: #b8860b;
+  animation: nebulaPulse 1.4s ease-in-out infinite;
+}
+.nebula-loading-text {
+  font-family: var(--mono); font-size: 11px; letter-spacing: 0.15em;
+  color: rgba(255, 255, 255, 0.5);
+}
+@keyframes nebulaPulse {
+  0%, 100% { opacity: 0.3; transform: scale(0.8); }
+  50% { opacity: 1; transform: scale(1.2); }
+}
+
+/* 着色切换（保留原样式） */
 .mode-toggle {
   display: inline-flex;
   border: 1px solid var(--line);
@@ -518,7 +550,7 @@ a { color: inherit; text-decoration: none; }
 }
 .mode-toggle button:not(.active):hover { color: var(--ink); }
 
-/* 图例 */
+/* 图例（覆盖在 3D 画布上，支持点击切换簇可见性） */
 .nebula-legend {
   position: absolute;
   left: 12px; top: 12px;
@@ -530,85 +562,213 @@ a { color: inherit; text-decoration: none; }
 .legend-chip {
   display: inline-flex; align-items: center; gap: 6px;
   font-family: var(--mono); font-size: 10px; letter-spacing: 0.04em;
-  color: var(--ink-2);
-  background: rgba(255, 255, 255, 0.85);
-  border: 1px solid var(--line-soft);
+  color: rgba(255, 255, 255, 0.82);
+  background: rgba(10, 14, 26, 0.6);
+  border: 1px solid rgba(255, 255, 255, 0.12);
   padding: 3px 9px;
   border-radius: 999px;
-  backdrop-filter: blur(6px);
-  -webkit-backdrop-filter: blur(6px);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  pointer-events: auto;
+  cursor: pointer;
+  user-select: none;
+  transition: opacity 0.2s, border-color 0.2s, background 0.2s;
 }
-.legend-chip i { width: 7px; height: 7px; border-radius: 50%; flex: none; }
+.legend-chip:hover {
+  border-color: rgba(184, 134, 11, 0.45);
+  background: rgba(10, 14, 26, 0.78);
+}
+.legend-chip i { width: 7px; height: 7px; border-radius: 50%; flex: none; transition: opacity 0.2s; }
+/* 关闭状态：整 chip 降低不透明度，色点变暗 */
+.legend-chip.off {
+  opacity: 0.4;
+}
+.legend-chip.off i { opacity: 0.25; }
+.legend-chip.off:hover { opacity: 0.7; }
+
+/* 控制按钮（自动旋转切换等） */
+.nebula-controls {
+  position: absolute;
+  right: 12px; top: 12px;
+  display: flex; gap: 6px;
+  z-index: 3;
+}
+.nebula-ctrl-btn {
+  font-family: var(--mono); font-size: 10px; letter-spacing: 0.08em;
+  color: rgba(255, 255, 255, 0.75);
+  background: rgba(10, 14, 26, 0.6);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  padding: 5px 11px;
+  border-radius: 999px;
+  cursor: pointer;
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  transition: color 0.2s, background 0.2s, border-color 0.2s;
+}
+.nebula-ctrl-btn:hover { color: #ffffff; border-color: rgba(255, 255, 255, 0.3); }
+.nebula-ctrl-btn.active { color: #b8860b; border-color: rgba(184, 134, 11, 0.5); }
 
 .nebula-hint {
   position: absolute;
   right: 12px; bottom: 10px;
   font-family: var(--mono); font-size: 10px; letter-spacing: 0.1em;
-  color: var(--ink-4);
+  color: rgba(255, 255, 255, 0.4);
   z-index: 3;
   pointer-events: none;
   text-align: right;
   line-height: 1.8;
 }
 
-/* SVG 内部元素 */
-.star { cursor: pointer; }
-.star .halo { transition: opacity 0.25s; }
-.star.dimmed { opacity: 0.22; transition: opacity 0.35s; }
-.star:not(.dimmed) { transition: opacity 0.35s; }
-.edge { pointer-events: none; }
-/* 理论共享边：古典金细线，体现理论流派归属 */
-.edge-theory {
-  stroke: #b8860b;
-  stroke-opacity: 0.22;
-  stroke-width: 0.7;
-  pointer-events: none;
+/* 搜索框：极简覆盖式，画布右下角 */
+.nebula-search {
+  position: absolute;
+  right: 12px; bottom: 56px;
+  z-index: 4;
+  display: flex; align-items: center; gap: 8px;
+  background: rgba(10, 14, 26, 0.6);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 999px;
+  padding: 4px 12px 4px 14px;
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  transition: border-color 0.2s, background 0.2s;
+  max-width: calc(100% - 24px);
 }
-/* 争议对边：暗酒红虚线，体现学术对立 */
-.edge-clash {
-  stroke: #8b3a3a;
-  stroke-opacity: 0.55;
-  stroke-width: 1.1;
-  stroke-dasharray: 3 3;
-  fill: none;
-  cursor: help;
-  transition: stroke-opacity 0.2s, stroke-width 0.2s;
+.nebula-search:focus-within {
+  border-color: rgba(184, 134, 11, 0.5);
+  background: rgba(10, 14, 26, 0.78);
 }
-.edge-clash:hover { stroke-opacity: 0.9; stroke-width: 1.6; }
-.cluster-label {
+.nebula-search input {
+  width: 200px;
+  background: transparent;
+  border: none;
+  outline: none;
+  color: rgba(255, 255, 255, 0.92);
+  font-family: var(--sans);
+  font-size: 12px;
+  letter-spacing: 0.02em;
+}
+.nebula-search input::placeholder {
+  color: rgba(255, 255, 255, 0.36);
+}
+.nebula-search input::-webkit-search-cancel-button {
+  -webkit-appearance: none;
+  height: 12px; width: 12px;
+  background: linear-gradient(45deg, transparent 45%, rgba(255,255,255,0.5) 45%, rgba(255,255,255,0.5) 55%, transparent 55%),
+              linear-gradient(-45deg, transparent 45%, rgba(255,255,255,0.5) 45%, rgba(255,255,255,0.5) 55%, transparent 55%);
+  cursor: pointer;
+}
+.ns-count {
   font-family: var(--mono);
-  font-size: 10.5px;
-  font-weight: 600;
-  letter-spacing: 0.14em;
-  fill: #1d1d1f;
-  pointer-events: none;
-  text-anchor: middle;
+  font-size: 9.5px;
+  letter-spacing: 0.08em;
+  color: rgba(184, 134, 11, 0.85);
+  white-space: nowrap;
+  min-width: 24px;
+  text-align: right;
 }
-.cluster-count {
+@media (max-width: 640px) {
+  .nebula-search input { width: 130px; }
+}
+
+/* 相近论文浮层：悬停光点时画布左下角显示最相近论文 */
+.nebula-relations {
+  position: absolute;
+  left: 12px; bottom: 10px;
+  z-index: 4;
+  max-width: min(58%, 360px);
+  padding: 10px 12px;
+  background: rgba(10, 14, 26, 0.78);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 8px;
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  opacity: 0;
+  transform: translateY(6px);
+  transition: opacity 0.25s, transform 0.25s;
+  pointer-events: none;
+}
+.nebula-relations.show {
+  opacity: 1;
+  transform: translateY(0);
+}
+.nr-head {
   font-family: var(--mono);
-  font-size: 8.5px;
-  font-weight: 400;
-  fill: #6e6e73;
+  font-size: 9px;
+  letter-spacing: 0.16em;
+  color: rgba(184, 134, 11, 0.85);
+  text-transform: uppercase;
+  margin-bottom: 6px;
+}
+.nr-item {
+  display: flex; align-items: baseline; gap: 8px;
+  padding: 3px 0;
+  font-family: var(--sans);
+  font-size: 11px;
+  color: rgba(255, 255, 255, 0.78);
+  line-height: 1.4;
+}
+.nr-item + .nr-item {
+  border-top: 1px solid rgba(255, 255, 255, 0.06);
+}
+.nr-sim {
+  font-family: var(--mono);
+  font-size: 9.5px;
+  color: rgba(184, 134, 11, 0.85);
+  flex: none;
+  width: 32px;
+}
+.nr-title {
+  flex: 1;
+  /* 单行省略 */
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+
+/* 悬停信息卡 */
+.nebula3d-tooltip {
+  position: absolute;
+  z-index: 10;
+  max-width: 280px;
+  padding: 10px 12px;
+  background: rgba(10, 14, 26, 0.92);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: 8px;
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
   pointer-events: none;
-  text-anchor: middle;
-  letter-spacing: 0.1em;
+  font-family: var(--sans);
+  pointer-events: none;
 }
-/* 标签背板：极淡白底胶囊，不挡节点又自带可读性 */
-.cluster-label-bg {
-  fill: rgba(255, 255, 255, 0.88);
-  stroke: rgba(60, 60, 67, 0.10);
-  stroke-width: 0.5;
-  rx: 4;
-  ry: 4;
+.n3d-tip-head {
+  display: flex; align-items: center; justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 4px;
 }
-/* 引线：极淡虚线，从云团重心连到外置标签 */
-.cluster-leader {
-  stroke: rgba(60, 60, 67, 0.28);
-  stroke-width: 0.6;
-  stroke-dasharray: 1.5 2.5;
-  fill: none;
+.n3d-tip-cluster {
+  font-family: var(--mono); font-size: 10px; font-weight: 600;
+  letter-spacing: 0.1em; text-transform: uppercase;
 }
-@keyframes twinkle { 0%, 100% { opacity: var(--tw-lo, 0.14); } 50% { opacity: var(--tw-hi, 0.4); } }
+.n3d-tip-id {
+  font-family: var(--mono); font-size: 9px; letter-spacing: 0.08em;
+  color: rgba(255, 255, 255, 0.4);
+}
+.n3d-tip-title {
+  font-family: var(--serif); font-size: 13px; font-weight: 600;
+  color: rgba(255, 255, 255, 0.95);
+  line-height: 1.4;
+  margin-bottom: 4px;
+}
+.n3d-tip-authors {
+  font-size: 11px;
+  color: rgba(255, 255, 255, 0.6);
+  margin-bottom: 4px;
+}
+.n3d-tip-meta {
+  display: flex; flex-wrap: wrap; gap: 4px 10px;
+  font-family: var(--mono); font-size: 9.5px; letter-spacing: 0.04em;
+  color: rgba(255, 255, 255, 0.45);
+}
 
 /* ---------- 详情侧滑卡（桌面右侧抽屉 / 移动底部上滑） ---------- */
 .sheet-backdrop {
@@ -986,11 +1146,58 @@ a { color: inherit; text-decoration: none; }
     </div>
   </header>
 
-  <!-- ══════════ 模块一 · 学术脉搏 ══════════ -->
+  <!-- ══════════ 模块一 · 理论星云图（Three.js 3D · WebGL） ══════════ -->
+  <section class="section" id="nebula">
+    <div class="section-head reveal">
+      <div>
+        <span class="idx">01 / NEBULA</span>
+        <h2>理论星云图<span class="en">Theory Nebula</span></h2>
+      </div>
+      <div class="head-side">
+        <span class="ai-tag">AI生成，仅供娱乐与参考，以原文为准</span>
+      </div>
+    </div>
+
+    <div class="nebula-shell reveal">
+      <div class="nebula-stage" id="nebulaStage">
+        <!-- Three.js canvas 由 JS 注入 -->
+        <div class="nebula-loading" id="nebulaLoading">
+          <div class="nebula-loading-dot"></div>
+          <div class="nebula-loading-text">LOADING NEBULA</div>
+        </div>
+
+        <!-- 图例（点击切换簇可见性，双击隔离） -->
+        <div class="nebula-legend" id="nebulaLegend"></div>
+
+        <!-- 控制按钮 -->
+        <div class="nebula-controls">
+          <button class="nebula-ctrl-btn active" id="nebulaRotate" type="button">AUTO ROTATE</button>
+          <button class="nebula-ctrl-btn" id="nebulaReset" type="button">RESET VIEW</button>
+        </div>
+
+        <!-- 搜索框：按标题/作者/议题过滤光点 -->
+        <div class="nebula-search" id="nebulaSearchWrap">
+          <input type="search" id="nebulaSearch" placeholder="搜索论文 / 作者 / 议题"
+                 autocomplete="off" aria-label="搜索论文" />
+          <span class="ns-count" id="nebulaSearchCount"></span>
+        </div>
+
+        <!-- 相近论文浮层：悬停光点时显示 -->
+        <div class="nebula-relations" id="nebulaRelations" aria-hidden="true"></div>
+
+        <div class="nebula-hint">
+          光点 = 论文 · 大小 = 理论数 · 云团 = 主题群<br />
+          拖动旋转 · 滚轮缩放 · 悬停查看 · 点击详情
+        </div>
+      </div>
+    </div>
+  </section>
+  <div class="hairline"></div>
+  <!-- ══════════ 模块二 · 学术脉搏 ══════════ -->
   <section class="section" id="pulse">
     <div class="section-head reveal">
       <div>
-        <span class="idx">01 / PULSE</span>
+        <span class="idx">02 / PULSE</span>
         <h2>学术脉搏<span class="en">Vital Signs</span></h2>
       </div>
       <div class="head-side">
@@ -1057,37 +1264,6 @@ a { color: inherit; text-decoration: none; }
       </div>
     </div>
   </section>
-
-  <div class="hairline"></div>
-
-  <!-- ══════════ 模块二 · 理论星云图 ══════════ -->
-  <section class="section" id="nebula">
-    <div class="section-head reveal">
-      <div>
-        <span class="idx">02 / NEBULA</span>
-        <h2>理论星云图<span class="en">Theory Nebula</span></h2>
-      </div>
-      <div class="head-side">
-        <div class="mode-toggle" role="group" aria-label="着色方式">
-          <button class="active" id="modeTopic" type="button">按议题着色</button>
-          <button id="modeNovelty" type="button">按新颖度着色</button>
-        </div>
-        <span class="ai-tag">AI生成，仅供娱乐与参考，以原文为准</span>
-      </div>
-    </div>
-
-    <div class="nebula-shell reveal">
-      <div class="nebula-stage" id="nebulaStage">
-        <svg id="nebulaSvg" role="img" aria-label="刑法学理论星云图"></svg>
-        <div class="nebula-legend" id="nebulaLegend"></div>
-        <div class="nebula-hint">
-          星体大小 = 理论数量 · 亮度 = 新颖度<br />
-          点击星体查看论文 · 可缩放拖动
-        </div>
-      </div>
-    </div>
-  </section>
-
   <div class="hairline"></div>
 
   <!-- ══════════ 模块三 · 本月对撞 ══════════ -->
@@ -1391,477 +1567,18 @@ function renderPulse(meta) {
 }
 
 /* ============================================================
-   模块二 · 理论星云图（D3 力导向 · SVG）
+   模块二 · 理论星云图（Three.js 3D · 由 module 脚本接管）
    ============================================================ */
 var nebula = {
-  simulation: null,
-  nodes: [],
-  edges: [],
-  clusters: [],
   selectedId: null,
-  colorMode: 'topic',
-  rScale: null,
-  noveltyScale: null,
-  adjacency: {}
+  clearSelection: function () { /* Three.js 模块接管 */ }
 };
 
 function renderNebula(papers, meta) {
-  var stage = document.getElementById('nebulaStage');
-  var svgEl = document.getElementById('nebulaSvg');
-  var W = stage.clientWidth, H = stage.clientHeight;
-
-  /* 比例尺 */
-  var tCounts = papers.map(function (p) { return (p.theories || []).length; });
-  var nValues = papers.map(function (p) { return +p.novelty || 5; });
-  var tMin = Math.min.apply(null, tCounts), tMax = Math.max.apply(null, tCounts);
-  var nMin = Math.min.apply(null, nValues), nMax = Math.max.apply(null, nValues);
-  nebula.rScale = d3.scaleLinear().domain([tMin, tMax]).range([4.6, Math.max(7.2, W / 68)]).clamp(true);
-  nebula.noveltyScale = d3.scaleLinear()
-    .domain([nMin, (nMin + nMax) / 2, nMax])
-    .range(['#6e6e73', '#0071e3', '#b8860b']) /* 灰墨 → Apple蓝 → 古典金（新颖度递增） */
-    .interpolate(d3.interpolateRgb)
-    .clamp(true);
-
-  /* 议题 → 集群 */
-  var topicNames = [];
-  papers.forEach(function (p) { if (topicNames.indexOf(p.topic) < 0) topicNames.push(p.topic); });
-  topicNames.sort(function (a, b) {
-    return papers.filter(function (p) { return p.topic === b; }).length -
-           papers.filter(function (p) { return p.topic === a; }).length;
-  });
-  var topicIndex = {};
-  topicNames.forEach(function (t, i) { topicIndex[t] = i; });
-
-  var centers = computeCenters(W, H, topicNames.length);
-
-  /* 节点：全部从中心出发（入场散开动画） */
-  nebula.nodes = papers.map(function (p, i) {
-    return {
-      data: p,
-      id: p.id,
-      cluster: topicIndex[p.topic],
-      r: nebula.rScale((p.theories || []).length),
-      x: W / 2 + (Math.random() - 0.5) * 10,
-      y: H / 2 + (Math.random() - 0.5) * 10
-    };
-  });
-
-  /* 理论共享边：共享 ≥2 个理论的论文对 */
-  nebula.edges = [];
-  nebula.adjacency = {};
-  for (var i = 0; i < papers.length; i++) {
-    for (var j = i + 1; j < papers.length; j++) {
-      var shared = intersectCount(papers[i].theories || [], papers[j].theories || []);
-      if (shared >= 2) {
-        nebula.edges.push({ s: i, t: j, shared: shared });
-        (nebula.adjacency[papers[i].id] = nebula.adjacency[papers[i].id] || new Set()).add(papers[j].id);
-        (nebula.adjacency[papers[j].id] = nebula.adjacency[papers[j].id] || new Set()).add(papers[i].id);
-      }
-    }
-  }
-
-  /* 争议对边：controversyPairs（学术对立关系，独立于理论共享） */
-  nebula.clashes = [];
-  var paperIdx = {};
-  papers.forEach(function (p, i) { paperIdx[p.id] = i; });
-  (meta.controversyPairs || []).forEach(function (cp) {
-    if (cp.pair && paperIdx[cp.pair[0]] != null && paperIdx[cp.pair[1]] != null) {
-      nebula.clashes.push({
-        s: paperIdx[cp.pair[0]],
-        t: paperIdx[cp.pair[1]],
-        point: cp.point || ''
-      });
-    }
-  });
-
-  /* SVG 骨架 */
-  var svg = d3.select(svgEl);
-  svg.selectAll('*').remove();
-  svg.attr('viewBox', null).attr('width', W).attr('height', H);
-
-  var gRoot = svg.append('g');
-  var gHulls = gRoot.append('g').attr('opacity', 0);
-  var gLeaders = gRoot.append('g').attr('opacity', 0); /* 引线层：云团重心 → 外置标签 */
-  var gEdges = gRoot.append('g').attr('opacity', 0); /* 理论共享边层 */
-  var gClashes = gRoot.append('g').attr('opacity', 0); /* 争议对边层：controversyPairs */
-  var gStars = gRoot.append('g');
-  var gLabels = gRoot.append('g').attr('opacity', 0); /* 标签层置顶：背板 + 名称 + 计数 */
-
-  /* 缩放 / 平移（移动端双指捏合） */
-  var zoom = d3.zoom()
-    .scaleExtent([0.55, 3.2])
-    .filter(function (e) {
-      if (e.type === 'wheel') return true;
-      var t = e.target;
-      return !(t && t.closest && t.closest('.star'));
-    })
-    .on('zoom', function (e) { gRoot.attr('transform', e.transform); });
-  svg.call(zoom);
-  svg.on('dblclick.zoom', null);
-
-  /* 点击空白 → 取消选中 */
-  svg.on('click', function (e) {
-    if (e.target === svgEl) clearSelection();
-  });
-
-  /* 集群结构 */
-  nebula.clusters = topicNames.map(function (name, i) {
-    return { name: name, meta: topicMeta(name), idx: i, nodes: [] };
-  });
-  nebula.nodes.forEach(function (n) { nebula.clusters[n.cluster].nodes.push(n); });
-
-  /* 星座晕区（凸包） */
-  var hullPath = d3.line().curve(d3.curveCatmullRomClosed.alpha(0.85));
-  var hullSel = gHulls.selectAll('path')
-    .data(nebula.clusters)
-    .enter().append('path')
-    .attr('fill', function (c) { return c.meta.color; })
-    .attr('fill-opacity', 0.045)
-    .attr('stroke', function (c) { return c.meta.color; })
-    .attr('stroke-opacity', 0.13)
-    .attr('stroke-width', 1)
-    .attr('stroke-dasharray', '2 5');
-
-  /* 引线：云团重心 → 外置标签（在标签背板之下绘制） */
-  var leaderSel = gLeaders.selectAll('line.cluster-leader')
-    .data(nebula.clusters)
-    .enter().append('line')
-    .attr('class', 'cluster-leader');
-
-  /* 标签背板：极淡白底胶囊，置于文字之下 */
-  var labelBgSel = gLabels.selectAll('rect.cluster-label-bg')
-    .data(nebula.clusters)
-    .enter().append('rect')
-    .attr('class', 'cluster-label-bg');
-
-  /* 星座标签 */
-  var labelNameSel = gLabels.selectAll('text.cluster-label')
-    .data(nebula.clusters)
-    .enter().append('text')
-    .attr('class', 'cluster-label')
-    .text(function (c) { return c.meta.short; });
-  var labelCountSel = gLabels.selectAll('text.cluster-count')
-    .data(nebula.clusters)
-    .enter().append('text')
-    .attr('class', 'cluster-count')
-    .text(function (c) { return c.nodes.length + ' 篇'; });
-
-  /* 理论共享边（古典金细线） */
-  var nodeById = {};
-  nebula.nodes.forEach(function (n) { nodeById[n.id] = n; });
-  var edgeSel = gEdges.selectAll('line.edge-theory')
-    .data(nebula.edges)
-    .enter().append('line')
-    .attr('class', 'edge-theory');
-
-  /* 争议对边（暗酒红虚线，悬停显示争议点） */
-  var clashEdgeSel = gClashes.selectAll('line.edge-clash')
-    .data(nebula.clashes)
-    .enter().append('line')
-    .attr('class', 'edge-clash')
-    .each(function (d) {
-      /* SVG 原生 title：浏览器 hover 显示争议点 */
-      d3.select(this).append('title').text(d.point);
-    });
-
-  /* 星体：光晕 + 星核 */
-  var starSel = gStars.selectAll('g.star')
-    .data(nebula.nodes)
-    .enter().append('g')
-    .attr('class', 'star');
-
-  starSel.append('circle')
-    .attr('class', 'halo')
-    .attr('r', function (n) { return n.r * 2.3; })
-    .attr('opacity', 0);
-
-  var coreSel = starSel.append('circle')
-    .attr('class', 'core')
-    .attr('r', 0)
-    .attr('stroke', 'rgba(255,255,255,0.35)')
-    .attr('stroke-width', 0.4);
-
-  /* 光晕轻微闪烁（纯 CSS 透明度，低开销） */
-  if (!REDUCED) {
-    starSel.select('.halo')
-      .style('animation', function (n, i) {
-        var lo = 0.10 + 0.014 * (+n.data.novelty || 5);
-        var hi = lo + 0.16;
-        return 'twinkle ' + (3.5 + (i % 7) * 0.7) + 's ease-in-out ' + ((i * 0.37) % 4) + 's infinite';
-      })
-      .style('--tw-lo', function (n) { return 0.10 + 0.014 * (+n.data.novelty || 5); })
-      .style('--tw-hi', function (n) { return 0.26 + 0.016 * (+n.data.novelty || 5); });
-  }
-
-  /* 着色 */
-  function haloOpacity(n) { return 0.10 + 0.022 * (+n.data.novelty || 5); }
-  function nodeColor(n) {
-    if (nebula.colorMode === 'novelty') return nebula.noveltyScale(+n.data.novelty || 5);
-    var base = nebula.clusters[n.cluster].meta.color;
-    var c = d3.color(base);
-    var delta = ((+n.data.novelty || 5) - 6.5) * 0.22; /* 新颖度 → 亮度偏移 */
-    try { c = delta >= 0 ? c.brighter(Math.abs(delta)) : c.darker(Math.abs(delta) * 1.4); } catch (e) { /* noop */ }
-    return c ? c.toString() : base;
-  }
-  function applyColors(animate) {
-    var t = animate && !REDUCED ? coreSel.transition().duration(550) : coreSel;
-    t.attr('fill', nodeColor);
-    var th = animate && !REDUCED ? starSel.select('.halo').transition().duration(550) : starSel.select('.halo');
-    th.attr('fill', nodeColor);
-  }
-  applyColors(false);
-
-  /* 入场：星核从 0 放大 + 力导向从中心散开 */
-  var rFinal = function (n) { return n.r; };
-  if (REDUCED) {
-    coreSel.attr('r', rFinal);
-    starSel.select('.halo').attr('opacity', haloOpacity);
-    gHulls.attr('opacity', 1); gLeaders.attr('opacity', 1); gEdges.attr('opacity', 1); gClashes.attr('opacity', 1); gLabels.attr('opacity', 1);
-  } else {
-    coreSel.transition()
-      .delay(function (n, i) { return 260 + i * 20; })
-      .duration(720)
-      .ease(d3.easeBackOut.overshoot(1.6))
-      .attr('r', rFinal);
-    starSel.select('.halo').transition()
-      .delay(function (n, i) { return 300 + i * 20; })
-      .duration(800)
-      .attr('opacity', haloOpacity);
-    gHulls.transition().delay(1100).duration(900).attr('opacity', 1);
-    gLeaders.transition().delay(1200).duration(900).attr('opacity', 1);
-    gEdges.transition().delay(1300).duration(900).attr('opacity', 1);
-    gClashes.transition().delay(1500).duration(900).attr('opacity', 1);
-    gLabels.transition().delay(1400).duration(900).attr('opacity', 1);
-  }
-
-  /* 悬停发光放大 */
-  starSel
-    .on('pointerenter', function (e, n) {
-      if (e.pointerType === 'touch') return;
-      var g = d3.select(this);
-      g.select('.halo').transition().duration(180).attr('opacity', Math.min(0.65, haloOpacity(n) + 0.3));
-      g.select('.core').transition().duration(180).attr('r', n.r * 1.35);
-      g.raise();
-    })
-    .on('pointerleave', function (e, n) {
-      if (e.pointerType === 'touch') return;
-      var g = d3.select(this);
-      g.select('.halo').transition().duration(240).attr('opacity', haloOpacity(n));
-      g.select('.core').transition().duration(240).attr('r', n.r);
-    });
-
-  /* 点击 → 选中 + 详情 */
-  starSel.on('click', function (e, n) {
-    e.stopPropagation();
-    selectStar(n);
-  });
-
-  /* 拖拽（桌面） */
-  var drag = d3.drag()
-    .clickDistance(6)
-    .on('start', function (e, n) {
-      if (!e.active) nebula.simulation.alphaTarget(0.22).restart();
-      n.fx = n.x; n.fy = n.y;
-    })
-    .on('drag', function (e, n) {
-      n.fx = e.x; n.fy = e.y;
-    })
-    .on('end', function (e, n) {
-      if (!e.active) nebula.simulation.alphaTarget(0);
-      n.fx = null; n.fy = null;
-    });
-  starSel.call(drag);
-
-  /* 力导向 */
-  nebula.simulation = d3.forceSimulation(nebula.nodes)
-    .force('charge', d3.forceManyBody().strength(-9))
-    .force('collide', d3.forceCollide().radius(function (n) { return n.r + 2.4; }).strength(0.85).iterations(2))
-    .force('x', d3.forceX(function (n) { return centers[n.cluster].x; }).strength(0.09))
-    .force('y', d3.forceY(function (n) { return centers[n.cluster].y; }).strength(0.09))
-    .alpha(1)
-    .alphaDecay(0.024)
-    .on('tick', ticked);
-
-  function ticked() {
-    edgeSel
-      .attr('x1', function (e) { return nebula.nodes[e.s].x; })
-      .attr('y1', function (e) { return nebula.nodes[e.s].y; })
-      .attr('x2', function (e) { return nebula.nodes[e.t].x; })
-      .attr('y2', function (e) { return nebula.nodes[e.t].y; });
-
-    /* 争议对边同步位置 */
-    clashEdgeSel
-      .attr('x1', function (e) { return nebula.nodes[e.s].x; })
-      .attr('y1', function (e) { return nebula.nodes[e.s].y; })
-      .attr('x2', function (e) { return nebula.nodes[e.t].x; })
-      .attr('y2', function (e) { return nebula.nodes[e.t].y; });
-
-    starSel.attr('transform', function (n) { return 'translate(' + n.x + ',' + n.y + ')'; });
-
-    /* 凸包 + 标签 */
-    nebula.clusters.forEach(function (c) {
-      var pts = c.nodes.map(function (n) { return [n.x, n.y]; });
-      var cx = d3.mean(pts, function (p) { return p[0]; });
-      var cy = d3.mean(pts, function (p) { return p[1]; });
-      var ring;
-      if (pts.length >= 3) {
-        var hull = d3.polygonHull(pts);
-        ring = hull.map(function (p) {
-          var dx = p[0] - cx, dy = p[1] - cy, d = Math.hypot(dx, dy) || 1;
-          var pad = 15;
-          return [p[0] + dx / d * pad, p[1] + dy / d * pad];
-        });
-      } else {
-        /* 1~2 个节点：以质心为圆心画圆近似 */
-        var rr = d3.max(pts, function (p) { return Math.hypot(p[0] - cx, p[1] - cy); }) || 0;
-        rr += 24;
-        ring = d3.range(10).map(function (k) {
-          var a = k / 10 * Math.PI * 2;
-          return [cx + Math.cos(a) * rr, cy + Math.sin(a) * rr];
-        });
-      }
-      c._cx = cx; c._cy = cy;
-      c._ring = ring;
-
-      /* 标签外推：沿「图中心 → cluster 重心」方向延伸到云团外缘外，避开节点密集区 */
-      var dxr = cx - W / 2, dyr = cy - H / 2, dr = Math.hypot(dxr, dyr) || 1;
-      /* 云团外缘半径估算：取凸包最远点距离，无凸包时用节点最大半径 */
-      var rMax = pts.length >= 3
-        ? d3.max(hull, function (p) { return Math.hypot(p[0] - cx, p[1] - cy); })
-        : (d3.max(pts, function (p) { return Math.hypot(p[0] - cx, p[1] - cy); }) || 0);
-      var offset = rMax + 26;
-      var lx = cx + dxr / dr * offset;
-      var ly = cy + dyr / dr * offset;
-      /* 边界约束：标签背板宽高的一半，防止飞出画布被裁切 */
-      var halfW = (c.meta.short.length * 8.5 + c.nodes.length.toString().length * 5 + 16) / 2 + 4;
-      var halfH = 16;
-      lx = Math.max(halfW, Math.min(W - halfW, lx));
-      ly = Math.max(halfH, Math.min(H - halfH, ly));
-      c._lx = lx;
-      c._ly = ly;
-    });
-    hullSel.attr('d', function (c) { return hullPath(c._ring); });
-    /* 引线：从云团重心连到标签位置 */
-    leaderSel
-      .attr('x1', function (c) { return c._cx; })
-      .attr('y1', function (c) { return c._cy; })
-      .attr('x2', function (c) { return c._lx; })
-      .attr('y2', function (c) { return c._ly; });
-    /* 标签背板：根据文字估算宽度，居中于标签位置 */
-    labelBgSel
-      .attr('x', function (c) {
-        var w = c.meta.short.length * 8.5 + c.nodes.length.toString().length * 5 + 16;
-        return c._lx - w / 2;
-      })
-      .attr('y', function (c) { return c._ly - 11; })
-      .attr('width', function (c) {
-        return c.meta.short.length * 8.5 + c.nodes.length.toString().length * 5 + 16;
-      })
-      .attr('height', 24);
-    labelNameSel.attr('x', function (c) { return c._lx; }).attr('y', function (c) { return c._ly; });
-    labelCountSel.attr('x', function (c) { return c._lx; }).attr('y', function (c) { return c._ly + 13; });
-  }
-
-  /* 选中 / 高亮 */
-  function selectStar(n) {
-    nebula.selectedId = n.id;
-    var neighbors = nebula.adjacency[n.id] || new Set();
-    starSel.classed('dimmed', function (m) { return m.id !== n.id && !neighbors.has(m.id); });
-    /* 选中节点的理论共享边高亮，其余淡化 */
-    edgeSel
-      .attr('stroke', function (e) {
-        var s = nebula.nodes[e.s], t = nebula.nodes[e.t];
-        return (s.id === n.id || t.id === n.id) ? nodeColor(n) : '#b8860b';
-      })
-      .attr('stroke-opacity', function (e) {
-        var s = nebula.nodes[e.s], t = nebula.nodes[e.t];
-        return (s.id === n.id || t.id === n.id) ? 0.75 : 0.08;
-      })
-      .attr('stroke-width', function (e) {
-        var s = nebula.nodes[e.s], t = nebula.nodes[e.t];
-        return (s.id === n.id || t.id === n.id) ? 1.2 : 0.7;
-      });
-    /* 争议边在选中时淡化，避免干扰 */
-    clashEdgeSel.attr('stroke-opacity', function (e) {
-      var s = nebula.nodes[e.s], t = nebula.nodes[e.t];
-      return (s.id === n.id || t.id === n.id) ? 0.85 : 0.18;
-    });
-    d3.select(starSel.nodes()[nebula.nodes.indexOf(n)]).raise();
-    openSheet(n.data, nebula.clusters[n.cluster].meta);
-  }
-  function clearSelection() {
-    nebula.selectedId = null;
-    starSel.classed('dimmed', false);
-    /* 恢复理论共享边默认古典金细线 */
-    edgeSel.attr('stroke', '#b8860b').attr('stroke-opacity', 0.22).attr('stroke-width', 0.7);
-    clashEdgeSel.attr('stroke-opacity', 0.55);
-  }
-  nebula.clearSelection = clearSelection;
-
-  /* 图例 */
-  function renderLegend() {
-    var el = document.getElementById('nebulaLegend');
-    var edgeLegend = '<span class="legend-chip"><i style="width:18px;height:0;border-top:1px solid #b8860b;opacity:0.6;background:none"></i>理论共享</span>' +
-      '<span class="legend-chip"><i style="width:18px;height:0;border-top:1.2px dashed #8b3a3a;opacity:0.7;background:none"></i>学术争议</span>';
-    if (nebula.colorMode === 'topic') {
-      el.innerHTML = nebula.clusters.map(function (c) {
-        return '<span class="legend-chip"><i style="background:' + c.meta.color + ';color:' + c.meta.color + '"></i>' +
-          esc(c.meta.short) + ' ' + c.nodes.length + '</span>';
-      }).join('') + edgeLegend;
-    } else {
-      el.innerHTML = '<span class="legend-chip">新颖度 ' + nMin + '</span>' +
-        '<span class="legend-chip" style="padding:0;overflow:hidden">' +
-        '<i style="width:74px;height:7px;border-radius:4px;box-shadow:none;background:linear-gradient(90deg,#6e6e73,#0071e3,#b8860b)"></i></span>' +
-        '<span class="legend-chip">' + nMax + '</span>' + edgeLegend;
-    }
-  }
-  renderLegend();
-
-  /* 着色切换 */
-  document.getElementById('modeTopic').addEventListener('click', function () {
-    if (nebula.colorMode === 'topic') return;
-    nebula.colorMode = 'topic';
-    this.classList.add('active');
-    document.getElementById('modeNovelty').classList.remove('active');
-    applyColors(true); renderLegend();
-  });
-  document.getElementById('modeNovelty').addEventListener('click', function () {
-    if (nebula.colorMode === 'novelty') return;
-    nebula.colorMode = 'novelty';
-    this.classList.add('active');
-    document.getElementById('modeTopic').classList.remove('active');
-    applyColors(true); renderLegend();
-  });
-
-  /* 视口尺寸变化 → 重算布局 */
-  var rz;
-  window.addEventListener('resize', function () {
-    clearTimeout(rz);
-    rz = setTimeout(function () {
-      var w2 = stage.clientWidth, h2 = stage.clientHeight;
-      if (Math.abs(w2 - W) < 8 && Math.abs(h2 - H) < 8) return;
-      W = w2; H = h2;
-      svg.attr('width', W).attr('height', H);
-      centers = computeCenters(W, H, topicNames.length);
-      nebula.simulation.force('x', d3.forceX(function (n) { return centers[n.cluster].x; }).strength(0.09));
-      nebula.simulation.force('y', d3.forceY(function (n) { return centers[n.cluster].y; }).strength(0.09));
-      nebula.simulation.alpha(0.4).restart();
-    }, 220);
-  });
-
-  function computeCenters(w, h, k) {
-    var R = Math.min(w, h) * 0.335;
-    var out = [];
-    for (var i = 0; i < k; i++) {
-      var a = -Math.PI / 2 + i * (Math.PI * 2 / k);
-      out.push({ x: w / 2 + Math.cos(a) * R, y: h / 2 + Math.sin(a) * R * 0.86 });
-    }
-    return out;
-  }
-  function intersectCount(a, b) {
-    var setB = new Set(b), n = 0;
-    for (var i = 0; i < a.length; i++) if (setB.has(a[i])) n++;
-    return n;
+  /* Three.js module 脚本会在 DOMContentLoaded 前挂载 window.initNebula3D。
+     此处仅触发初始化，3D 数据由 module 自行 fetch papers-3d.json。 */
+  if (typeof window.initNebula3D === 'function') {
+    window.initNebula3D(meta);
   }
 }
 
@@ -2014,5 +1731,943 @@ if (document.readyState === 'loading') {
 
 })();
 </script>
+<script type="module">
+/**
+ * 刑法学术雷达 · 理论星云图 3D（Three.js 实现）
+ * ============================================================
+ * 数据源：papers-3d.json（由 compute_nebula_3d.py 预计算）
+ *
+ * 渲染元素：
+ *   1) 光点 —— 每篇论文一个，颜色=簇色，大小=理论数+新颖度
+ *   2) 粒子云团 —— 每个簇中心渲染半透明粒子云
+ *   3) 连接线 —— 相似文章之间的细线
+ *   4) 悬停信息卡 —— 鼠标悬停光点显示论文信息
+ *   5) 轨道控制 —— 旋转/缩放/平移
+ *
+ * 暴露接口：window.Nebula3D.init(containerEl, dataUrl)
+ */
+
+import * as THREE from 'three';
+import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+
+const REDUCED = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+// 簇颜色解析：#rrggbb → { r, g, b } 0-1 范围
+function hexToRGB(hex) {
+  const h = hex.replace('#', '');
+  return {
+    r: parseInt(h.substring(0, 2), 16) / 255,
+    g: parseInt(h.substring(2, 4), 16) / 255,
+    b: parseInt(h.substring(4, 6), 16) / 255,
+  };
+}
+
+// 议题短名（与原页面 TOPIC_META 一致）
+function topicShort(name) {
+  const map = {
+    '罪刑各论（具体罪名教义学）': '罪刑各论',
+    '数字刑法与网络犯罪': '数字刑法',
+    '归责理论': '归责理论',
+    '刑罚论与刑事政策': '刑罚论',
+    '程序与实体交叉': '程序交叉',
+    '行刑衔接与轻罪治理': '行刑衔接',
+    '贿赂犯罪': '贿赂犯罪',
+    '法益理论': '法益理论',
+  };
+  if (map[name]) return map[name];
+  let short = name.split('（')[0];
+  if (short.length > 4) short = short.slice(0, 4);
+  return short;
+}
+
+const Nebula3D = {
+  scene: null,
+  camera: null,
+  renderer: null,
+  controls: null,
+  raycaster: null,
+  pointer: null,
+  pointsMesh: null,      // 光点 Points
+  cloudMeshes: [],       // 粒子云团 Points 数组
+  lineSegments: null,    // 连接线
+  papers: [],
+  clusters: [],
+  edges: [],
+  paperById: {},
+  hoveredId: null,
+  selectedId: null,
+  autoRotate: !REDUCED,
+  tooltipEl: null,
+  containerEl: null,
+  animationId: null,
+  resizeObserver: null,
+  // 实用性功能状态
+  searchQuery: '',
+  searchMatchIds: null,   // null = 无搜索过滤；Set = 匹配的 paper.id 集合
+  hiddenClusters: null,   // Set of hidden cluster indices（懒初始化）
+  _origColors: null,      // 光点原始颜色备份（用于过滤后恢复）
+
+  /**
+   * 初始化 3D 星云图
+   * @param {HTMLElement} containerEl - 容器元素
+   * @param {string} dataUrl - papers-3d.json 路径
+   * @param {function} onPaperClick - 点击光点回调（接收 paper 对象）
+   */
+  async init(containerEl, dataUrl, onPaperClick) {
+    this.containerEl = containerEl;
+    this.onPaperClick = onPaperClick;
+
+    // 加载数据
+    const data = await this.loadData(dataUrl);
+    this.papers = data.papers || [];
+    this.clusters = data.clusters || [];
+    this.edges = data.edges || [];
+    this.papers.forEach(p => { this.paperById[p.id] = p; });
+
+    if (!this.papers.length) {
+      console.warn('[Nebula3D] 无论文数据');
+      return;
+    }
+
+    this.setupScene();
+    this.buildClouds();
+    this.buildEdges();
+    this.buildPoints();
+    this.setupRaycaster();
+    this.setupTooltip();
+    this.bindEvents();
+    this.animate();
+  },
+
+  async loadData(dataUrl) {
+    const candidates = [
+      dataUrl,
+      '../papers-3d.json',
+      '/papers-3d.json',
+      'papers-3d.json',
+    ];
+    for (const url of candidates) {
+      try {
+        const res = await fetch(url, { cache: 'no-cache' });
+        if (res.ok) return await res.json();
+      } catch (e) { /* try next */ }
+    }
+    throw new Error('无法加载 papers-3d.json');
+  },
+
+  setupScene() {
+    const { containerEl } = this;
+    const W = containerEl.clientWidth;
+    const H = containerEl.clientHeight;
+
+    // 场景
+    this.scene = new THREE.Scene();
+    // 深空背景：与页面 Apple Light 协调的极深蓝灰（不纯黑）
+    this.scene.background = new THREE.Color('#0a0e1a');
+    this.scene.fog = new THREE.FogExp2('#0a0e1a', 0.08);
+
+    // 相机
+    this.camera = new THREE.PerspectiveCamera(50, W / H, 0.1, 100);
+    this.camera.position.set(0, 0, 6);
+
+    // 渲染器（抗锯齿 + DPR 限制保护性能）
+    this.renderer = new THREE.WebGLRenderer({
+      antialias: true,
+      alpha: false,
+      powerPreference: 'high-performance',
+    });
+    this.renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+    this.renderer.setSize(W, H);
+    containerEl.appendChild(this.renderer.domElement);
+    this.renderer.domElement.style.display = 'block';
+    this.renderer.domElement.style.width = '100%';
+    this.renderer.domElement.style.height = '100%';
+    this.renderer.domElement.style.cursor = 'grab';
+
+    // 轨道控制
+    this.controls = new OrbitControls(this.camera, this.renderer.domElement);
+    this.controls.enableDamping = true;
+    this.controls.dampingFactor = 0.08;
+    this.controls.rotateSpeed = 0.6;
+    this.controls.zoomSpeed = 0.8;
+    this.controls.panSpeed = 0.6;
+    this.controls.minDistance = 2.5;
+    this.controls.maxDistance = 14;
+    this.controls.autoRotate = this.autoRotate;
+    this.controls.autoRotateSpeed = 0.35; // 缓慢自转
+
+    // 环境光（光点用 ShaderMaterial 自发光，但仍加微弱环境光）
+    this.scene.add(new THREE.AmbientLight(0xffffff, 0.4));
+  },
+
+  /**
+   * 构建粒子云团：每个簇中心渲染一团半透明粒子
+   */
+  buildClouds() {
+    this.cloudMeshes = [];
+    this.clusters.forEach(cluster => {
+      const center = cluster.center;
+      const cx = center[0], cy = center[1], cz = center[2];
+      const color = hexToRGB(cluster.color);
+      const size = cluster.size || 1;
+
+      // 粒子数量：基于簇内论文数，每篇约 80 个粒子
+      const particleCount = Math.max(60, size * 80);
+      const positions = new Float32Array(particleCount * 3);
+      const colors = new Float32Array(particleCount * 3);
+      const sizes = new Float32Array(particleCount);
+
+      // 云团半径：基于簇大小，但有下限
+      const radius = Math.max(0.35, 0.18 + size * 0.04);
+
+      for (let i = 0; i < particleCount; i++) {
+        // 球内随机分布（偏向中心更密集）
+        const r = radius * Math.pow(Math.random(), 0.6);
+        const theta = Math.random() * Math.PI * 2;
+        const phi = Math.acos(2 * Math.random() - 1);
+
+        positions[i * 3]     = cx + r * Math.sin(phi) * Math.cos(theta);
+        positions[i * 3 + 1] = cy + r * Math.sin(phi) * Math.sin(theta);
+        positions[i * 3 + 2] = cz + r * Math.cos(phi);
+
+        // 颜色：簇色 + 轻微随机扰动
+        const jitter = 0.15;
+        colors[i * 3]     = Math.min(1, color.r + (Math.random() - 0.5) * jitter);
+        colors[i * 3 + 1] = Math.min(1, color.g + (Math.random() - 0.5) * jitter);
+        colors[i * 3 + 2] = Math.min(1, color.b + (Math.random() - 0.5) * jitter);
+
+        // 粒子大小：随机
+        sizes[i] = 0.015 + Math.random() * 0.025;
+      }
+
+      const geometry = new THREE.BufferGeometry();
+      geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+      geometry.setAttribute('color', new THREE.BufferAttribute(colors, 3));
+      geometry.setAttribute('size', new THREE.BufferAttribute(sizes, 1));
+
+      // 云团材质：半透明、柔光、加色混合
+      const material = new THREE.PointsMaterial({
+        size: 0.04,
+        sizeAttenuation: true,
+        transparent: true,
+        opacity: 0.18,
+        vertexColors: true,
+        blending: THREE.AdditiveBlending,
+        depthWrite: false,
+        sizeAttenuation: true,
+      });
+
+      const points = new THREE.Points(geometry, material);
+      this.scene.add(points);
+      this.cloudMeshes.push({ mesh: points, cluster });
+    });
+  },
+
+  /**
+   * 构建相似文章连接线
+   */
+  buildEdges() {
+    if (!this.edges.length) return;
+
+    const positions = new Float32Array(this.edges.length * 6);
+    const colors = new Float32Array(this.edges.length * 6);
+
+    this.edges.forEach((edge, i) => {
+      const s = this.paperById[edge.source];
+      const t = this.paperById[edge.target];
+      if (!s || !t) return;
+
+      positions[i * 6]     = s.x;
+      positions[i * 6 + 1] = s.y;
+      positions[i * 6 + 2] = s.z;
+      positions[i * 6 + 3] = t.x;
+      positions[i * 6 + 4] = t.y;
+      positions[i * 6 + 5] = t.z;
+
+      // 颜色：跨簇边用中性灰，同簇边用簇色淡化
+      if (edge.crossCluster) {
+        // 跨簇：暖灰
+        const c = 0.42;
+        colors[i * 6] = c; colors[i * 6 + 1] = c * 0.95; colors[i * 6 + 2] = c * 0.9;
+        colors[i * 6 + 3] = c; colors[i * 6 + 4] = c * 0.95; colors[i * 6 + 5] = c * 0.9;
+      } else {
+        // 同簇：簇色
+        const cluster = this.clusters[s.cluster];
+        const col = hexToRGB(cluster.color);
+        colors[i * 6] = col.r; colors[i * 6 + 1] = col.g; colors[i * 6 + 2] = col.b;
+        colors[i * 6 + 3] = col.r; colors[i * 6 + 4] = col.g; colors[i * 6 + 5] = col.b;
+      }
+    });
+
+    const geometry = new THREE.BufferGeometry();
+    geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+    geometry.setAttribute('color', new THREE.BufferAttribute(colors, 3));
+
+    const material = new THREE.LineBasicMaterial({
+      vertexColors: true,
+      transparent: true,
+      opacity: 0.25,
+      blending: THREE.AdditiveBlending,
+      depthWrite: false,
+    });
+
+    this.lineSegments = new THREE.LineSegments(geometry, material);
+    this.scene.add(this.lineSegments);
+  },
+
+  /**
+   * 构建光点：每篇论文一个，用 Points + 自定义 Shader
+   * 大小基于理论数量 + 新颖度；颜色基于簇
+   */
+  buildPoints() {
+    const count = this.papers.length;
+    const positions = new Float32Array(count * 3);
+    const colors = new Float32Array(count * 3);
+    const sizes = new Float32Array(count);
+
+    // 计算大小比例尺
+    const theoryCounts = this.papers.map(p => (p.theories || []).length);
+    const novelties = this.papers.map(p => +p.novelty || 5);
+    const tMin = Math.min(...theoryCounts), tMax = Math.max(...theoryCounts);
+    const nMin = Math.min(...novelties), nMax = Math.max(...novelties);
+
+    this.papers.forEach((p, i) => {
+      positions[i * 3] = p.x;
+      positions[i * 3 + 1] = p.y;
+      positions[i * 3 + 2] = p.z;
+
+      const cluster = this.clusters[p.cluster];
+      const col = hexToRGB(cluster.color);
+      colors[i * 3] = col.r;
+      colors[i * 3 + 1] = col.g;
+      colors[i * 3 + 2] = col.b;
+
+      // 大小：理论数（主） + 新颖度（次）
+      const tNorm = tMax > tMin ? (theoryCounts[i] - tMin) / (tMax - tMin) : 0.5;
+      const nNorm = nMax > nMin ? (novelties[i] - nMin) / (nMax - nMin) : 0.5;
+      sizes[i] = 0.06 + tNorm * 0.08 + nNorm * 0.04;
+    });
+
+    const geometry = new THREE.BufferGeometry();
+    geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+    geometry.setAttribute('color', new THREE.BufferAttribute(colors, 3));
+    geometry.setAttribute('size', new THREE.BufferAttribute(sizes, 1));
+
+    // 自定义 Shader：圆形光点 + 发光晕
+    const material = new THREE.ShaderMaterial({
+      uniforms: {
+        uHoverIdx: { value: -1 },
+        uSelectedIdx: { value: -1 },
+        uPixelRatio: { value: this.renderer.getPixelRatio() },
+      },
+      vertexShader: `
+        attribute float size;
+        attribute vec3 color;
+        varying vec3 vColor;
+        uniform float uPixelRatio;
+        void main() {
+          vColor = color;
+          vec4 mvPosition = modelViewMatrix * vec4(position, 1.0);
+          gl_PointSize = size * 300.0 * uPixelRatio / -mvPosition.z;
+          gl_Position = projectionMatrix * mvPosition;
+        }
+      `,
+      fragmentShader: `
+        varying vec3 vColor;
+        void main() {
+          // 圆形 + 柔光晕
+          vec2 c = gl_PointCoord - vec2(0.5);
+          float d = length(c);
+          if (d > 0.5) discard;
+          // 核心 + 光晕
+          float core = smoothstep(0.5, 0.0, d);
+          float glow = smoothstep(0.5, 0.15, d) * 0.5;
+          float alpha = core * 0.9 + glow * 0.3;
+          vec3 col = vColor * (1.0 + glow * 1.2);
+          gl_FragColor = vec4(col, alpha);
+        }
+      `,
+      transparent: true,
+      blending: THREE.AdditiveBlending,
+      depthWrite: false,
+    });
+
+    this.pointsMesh = new THREE.Points(geometry, material);
+    this.pointsMesh.userData.papers = this.papers;
+    this.scene.add(this.pointsMesh);
+
+    // 保存比例尺信息（供 tooltip 使用）
+    this._tRange = { min: tMin, max: tMax };
+    this._nRange = { min: nMin, max: nMax };
+  },
+
+  setupRaycaster() {
+    this.raycaster = new THREE.Raycaster();
+    this.raycaster.params.Points.threshold = 0.15;  // 增大阈值提高悬停命中率
+    this.pointer = new THREE.Vector2();
+  },
+
+  setupTooltip() {
+    // 创建悬停信息卡 DOM 元素
+    const tooltip = document.createElement('div');
+    tooltip.className = 'nebula3d-tooltip';
+    tooltip.setAttribute('role', 'tooltip');
+    tooltip.style.display = 'none';
+    this.containerEl.appendChild(tooltip);
+    this.tooltipEl = tooltip;
+  },
+
+  bindEvents() {
+    const canvas = this.renderer.domElement;
+
+    // 指针移动：悬停检测（同时监听 pointermove 和 mousemove 以兼容不同环境）
+    const onMove = (e) => {
+      const rect = canvas.getBoundingClientRect();
+      this.pointer.x = ((e.clientX - rect.left) / rect.width) * 2 - 1;
+      this.pointer.y = -((e.clientY - rect.top) / rect.height) * 2 + 1;
+      this._handleHover(e);
+    };
+    canvas.addEventListener('pointermove', onMove);
+    canvas.addEventListener('mousemove', onMove);
+
+    canvas.addEventListener('pointerleave', () => {
+      this._clearHover();
+    });
+
+    // 点击：选中论文
+    canvas.addEventListener('click', (e) => {
+      if (this.hoveredId) {
+        const paper = this.paperById[this.hoveredId];
+        if (paper && this.onPaperClick) {
+          this.onPaperClick(paper);
+        }
+      }
+    });
+
+    // 拖动时切换光标
+    canvas.addEventListener('pointerdown', () => {
+      canvas.style.cursor = 'grabbing';
+    });
+    canvas.addEventListener('pointerup', () => {
+      canvas.style.cursor = this.hoveredId ? 'pointer' : 'grab';
+    });
+
+    // 窗口尺寸变化
+    this.resizeObserver = new ResizeObserver(() => this._handleResize());
+    this.resizeObserver.observe(this.containerEl);
+  },
+
+  _handleHover(e) {
+    if (!this.pointsMesh) return;
+
+    this.raycaster.setFromCamera(this.pointer, this.camera);
+    const intersects = this.raycaster.intersectObject(this.pointsMesh);
+
+    if (intersects.length > 0) {
+      // 取最近的交点
+      const idx = intersects[0].index;
+      const paper = this.papers[idx];
+      if (paper && paper.id !== this.hoveredId) {
+        this.hoveredId = paper.id;
+        this._showTooltip(paper, e);
+        this._renderRelations(paper);  // 显示相近论文浮层
+        this.renderer.domElement.style.cursor = 'pointer';
+      } else if (paper) {
+        this._updateTooltipPosition(e);
+      }
+    } else {
+      this._clearHover();
+    }
+  },
+
+  _clearHover() {
+    this.hoveredId = null;
+    if (this.tooltipEl) this.tooltipEl.style.display = 'none';
+    this._hideRelations();  // 隐藏相近论文浮层
+    this.renderer.domElement.style.cursor = 'grab';
+  },
+
+  _showTooltip(paper, e) {
+    const tip = this.tooltipEl;
+    const cluster = this.clusters[paper.cluster];
+    const shortName = topicShort(cluster.name);
+    const authors = (paper.authors || []).join('、');
+    const theoryCount = (paper.theories || []).length;
+
+    tip.innerHTML =
+      '<div class="n3d-tip-head" style="color:' + cluster.color + '">' +
+        '<span class="n3d-tip-cluster">' + this._esc(shortName) + '</span>' +
+        '<span class="n3d-tip-id">' + this._esc(paper.id) + '</span>' +
+      '</div>' +
+      '<div class="n3d-tip-title">' + this._esc(paper.title) + '</div>' +
+      (authors ? '<div class="n3d-tip-authors">' + this._esc(authors) + '</div>' : '') +
+      '<div class="n3d-tip-meta">' +
+        '<span>' + theoryCount + ' 理论</span>' +
+        '<span>新颖度 ' + (paper.novelty || 5) + '/10</span>' +
+        (paper.journal ? '<span>' + this._esc(paper.journal) + '</span>' : '') +
+      '</div>';
+
+    tip.style.display = 'block';
+    this._updateTooltipPosition(e);
+  },
+
+  _updateTooltipPosition(e) {
+    const tip = this.tooltipEl;
+    const rect = this.containerEl.getBoundingClientRect();
+    const x = e.clientX - rect.left;
+    const y = e.clientY - rect.top;
+    const tipW = tip.offsetWidth;
+    const tipH = tip.offsetHeight;
+    // 避免超出容器边界
+    let left = x + 14;
+    let top = y + 14;
+    if (left + tipW > rect.width) left = x - tipW - 14;
+    if (top + tipH > rect.height) top = y - tipH - 14;
+    tip.style.left = left + 'px';
+    tip.style.top = top + 'px';
+  },
+
+  _esc(s) {
+    return String(s == null ? '' : s).replace(/[&<>"']/g, c => ({
+      '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;',
+    }[c]));
+  },
+
+  _handleResize() {
+    if (!this.containerEl) return;
+    const W = this.containerEl.clientWidth;
+    const H = this.containerEl.clientHeight;
+    this.camera.aspect = W / H;
+    this.camera.updateProjectionMatrix();
+    this.renderer.setSize(W, H);
+  },
+
+  animate() {
+    this.animationId = requestAnimationFrame(() => this.animate());
+    this.controls.update();
+    this.renderer.render(this.scene, this.camera);
+  },
+
+  /**
+   * 切换自动旋转
+   */
+  toggleAutoRotate() {
+    this.autoRotate = !this.autoRotate;
+    this.controls.autoRotate = this.autoRotate;
+    return this.autoRotate;
+  },
+
+  // ============================================================
+  // 实用性功能：搜索过滤 / 相近论文 / 簇可见性
+  // 设计原则：不破坏星云整体观赏性 ——
+  //   · 搜索时非匹配光点降亮度至 15%（不隐藏），保留星云形态
+  //   · 簇隐藏时光点+云团+连接线同步暗化，整体仍可见
+  // ============================================================
+
+  /**
+   * 应用搜索过滤
+   * @param {string} query - 搜索关键词（标题/作者/议题/理论/关键词）
+   * @returns {number} 匹配数量
+   */
+  applySearch(query) {
+    this.searchQuery = (query || '').trim().toLowerCase();
+    if (!this.searchQuery) {
+      this.searchMatchIds = null;
+    } else {
+      const q = this.searchQuery;
+      const matches = new Set();
+      this.papers.forEach(p => {
+        const haystack = [
+          p.title || '',
+          (p.authors || []).join(' '),
+          p.topic || '',
+          (p.theories || []).join(' '),
+          (p.keywords || []).join(' '),
+        ].join(' ').toLowerCase();
+        if (haystack.includes(q)) matches.add(p.id);
+      });
+      this.searchMatchIds = matches;
+    }
+    this._updatePointsVisibility();
+    this._updateEdgesVisibility();
+    return this.searchMatchIds ? this.searchMatchIds.size : this.papers.length;
+  },
+
+  /**
+   * 更新光点可见性（搜索过滤 + 簇隐藏）
+   * 通过修改顶点颜色实现"暗化"，不破坏星云整体形态
+   */
+  _updatePointsVisibility() {
+    if (!this.pointsMesh) return;
+    const colorAttr = this.pointsMesh.geometry.getAttribute('color');
+    if (!colorAttr) return;
+
+    // 懒初始化 hiddenClusters 与 _origColors
+    if (!this.hiddenClusters) this.hiddenClusters = new Set();
+
+    const hasFilter = this.searchMatchIds !== null;
+    const hidden = this.hiddenClusters;
+
+    this.papers.forEach((p, i) => {
+      const cluster = this.clusters[p.cluster];
+      const col = hexToRGB(cluster.color);
+
+      let dimmed = false;
+      // 簇隐藏
+      if (hidden.has(p.cluster)) dimmed = true;
+      // 搜索过滤：非匹配项暗化
+      if (hasFilter && !this.searchMatchIds.has(p.id)) dimmed = true;
+
+      const factor = dimmed ? 0.15 : 1.0;
+      colorAttr.array[i * 3]     = col.r * factor;
+      colorAttr.array[i * 3 + 1] = col.g * factor;
+      colorAttr.array[i * 3 + 2] = col.b * factor;
+    });
+
+    colorAttr.needsUpdate = true;
+  },
+
+  /**
+   * 更新粒子云团可见性（直接 visible 开关，云团是装饰性背景）
+   */
+  _updateCloudsVisibility() {
+    if (!this.cloudMeshes.length) return;
+    if (!this.hiddenClusters) this.hiddenClusters = new Set();
+    this.cloudMeshes.forEach((c, i) => {
+      c.mesh.visible = !this.hiddenClusters.has(i);
+    });
+  },
+
+  /**
+   * 更新连接线可见性（涉及隐藏簇的边暗化，不隐藏以保留星云网络感）
+   */
+  _updateEdgesVisibility() {
+    if (!this.lineSegments) return;
+    const colorAttr = this.lineSegments.geometry.getAttribute('color');
+    if (!colorAttr) return;
+    if (!this.hiddenClusters) this.hiddenClusters = new Set();
+
+    const hidden = this.hiddenClusters;
+    const hasSearch = this.searchMatchIds !== null;
+
+    this.edges.forEach((edge, i) => {
+      const s = this.paperById[edge.source];
+      const t = this.paperById[edge.target];
+      if (!s || !t) return;
+
+      const sHidden = hidden.has(s.cluster);
+      const tHidden = hidden.has(t.cluster);
+      // 搜索过滤：两端任一不匹配则暗化
+      const sFiltered = hasSearch && !this.searchMatchIds.has(s.id);
+      const tFiltered = hasSearch && !this.searchMatchIds.has(t.id);
+      const dimmed = sHidden || tHidden || sFiltered || tFiltered;
+
+      let r, g, b;
+      if (dimmed) {
+        r = 0.05; g = 0.05; b = 0.05;
+      } else if (edge.crossCluster) {
+        const c = 0.42;
+        r = c; g = c * 0.95; b = c * 0.9;
+      } else {
+        const cluster = this.clusters[s.cluster];
+        const col = hexToRGB(cluster.color);
+        r = col.r; g = col.g; b = col.b;
+      }
+
+      colorAttr.array[i * 6]     = r;
+      colorAttr.array[i * 6 + 1] = g;
+      colorAttr.array[i * 6 + 2] = b;
+      colorAttr.array[i * 6 + 3] = r;
+      colorAttr.array[i * 6 + 4] = g;
+      colorAttr.array[i * 6 + 5] = b;
+    });
+
+    colorAttr.needsUpdate = true;
+  },
+
+  /**
+   * 切换簇可见性
+   * @param {number} clusterIdx - 簇索引
+   * @param {boolean} isolate - true=隔离（只显示该簇），false=切换
+   */
+  toggleCluster(clusterIdx, isolate = false) {
+    if (!this.hiddenClusters) this.hiddenClusters = new Set();
+
+    if (isolate) {
+      // 双击隔离：若已是该簇隔离状态则恢复全部，否则隐藏其他所有簇
+      const onlyThisVisible = this.hiddenClusters.size === this.clusters.length - 1
+        && !this.hiddenClusters.has(clusterIdx);
+      if (onlyThisVisible) {
+        this.hiddenClusters = new Set();
+      } else {
+        this.hiddenClusters = new Set();
+        this.clusters.forEach((c, i) => {
+          if (i !== clusterIdx) this.hiddenClusters.add(i);
+        });
+      }
+    } else {
+      // 单击切换
+      if (this.hiddenClusters.has(clusterIdx)) {
+        this.hiddenClusters.delete(clusterIdx);
+      } else {
+        this.hiddenClusters.add(clusterIdx);
+      }
+    }
+
+    this._updatePointsVisibility();
+    this._updateCloudsVisibility();
+    this._updateEdgesVisibility();
+  },
+
+  /**
+   * 渲染相近论文浮层（悬停光点时，画布左下角显示 TOP 5 相近论文）
+   * @param {object} paper - 当前悬停的论文
+   */
+  _renderRelations(paper) {
+    const relEl = document.getElementById('nebulaRelations');
+    if (!relEl) return;
+
+    // 收集与该论文相关的边
+    const related = [];
+    this.edges.forEach(edge => {
+      let other = null;
+      let sim = 0;
+      if (edge.source === paper.id) {
+        other = this.paperById[edge.target];
+        sim = edge.similarity || edge.weight || 0;
+      } else if (edge.target === paper.id) {
+        other = this.paperById[edge.source];
+        sim = edge.similarity || edge.weight || 0;
+      }
+      if (other) related.push({ paper: other, sim });
+    });
+
+    // 按相似度降序，取前 5
+    related.sort((a, b) => b.sim - a.sim);
+    const top = related.slice(0, 5);
+
+    if (!top.length) {
+      relEl.classList.remove('show');
+      relEl.setAttribute('aria-hidden', 'true');
+      relEl.innerHTML = '';
+      return;
+    }
+
+    const items = top.map(r => {
+      const pct = Math.round((r.sim || 0) * 100);
+      const cluster = this.clusters[r.paper.cluster];
+      const color = cluster ? cluster.color : '#888';
+      return '<div class="nr-item">' +
+        '<span class="nr-sim" style="color:' + color + '">' + pct + '%</span>' +
+        '<span class="nr-title" title="' + this._esc(r.paper.title) + '">' +
+          this._esc(r.paper.title) +
+        '</span>' +
+      '</div>';
+    }).join('');
+
+    relEl.innerHTML =
+      '<div class="nr-head">相近论文 · TOP ' + top.length + '</div>' +
+      items;
+    relEl.classList.add('show');
+    relEl.setAttribute('aria-hidden', 'false');
+  },
+
+  /**
+   * 隐藏相近论文浮层
+   */
+  _hideRelations() {
+    const relEl = document.getElementById('nebulaRelations');
+    if (relEl) {
+      relEl.classList.remove('show');
+      relEl.setAttribute('aria-hidden', 'true');
+    }
+  },
+
+  /**
+   * 销毁实例，释放资源
+   */
+  dispose() {
+    if (this.animationId) cancelAnimationFrame(this.animationId);
+    if (this.resizeObserver) this.resizeObserver.disconnect();
+    if (this.controls) this.controls.dispose();
+    if (this.renderer) {
+      this.renderer.dispose();
+      if (this.renderer.domElement && this.renderer.domElement.parentNode) {
+        this.renderer.domElement.parentNode.removeChild(this.renderer.domElement);
+      }
+    }
+    if (this.tooltipEl && this.tooltipEl.parentNode) {
+      this.tooltipEl.parentNode.removeChild(this.tooltipEl);
+    }
+    // 释放 geometry / material
+    this.cloudMeshes.forEach(c => {
+      c.mesh.geometry.dispose();
+      c.mesh.material.dispose();
+    });
+    if (this.lineSegments) {
+      this.lineSegments.geometry.dispose();
+      this.lineSegments.material.dispose();
+    }
+    if (this.pointsMesh) {
+      this.pointsMesh.geometry.dispose();
+      this.pointsMesh.material.dispose();
+    }
+  },
+};
+
+window.Nebula3D = Nebula3D;
+
+// ============================================================
+// 初始化入口（供页面 init() 调用）
+// ============================================================
+
+/**
+ * 初始化理论星云图 3D
+ * @param {object} sourceMeta - 来自 papers-2026-06.json 的 meta（含 topics 颜色等）
+ */
+async function initNebula3D(sourceMeta) {
+  const stage = document.getElementById('nebulaStage');
+  const loadingEl = document.getElementById('nebulaLoading');
+  if (!stage) return;
+
+  try {
+    await Nebula3D.init(stage, 'papers-3d.json', (paper) => {
+      // 点击光点回调：调用页面的 openSheet 显示详情
+      const cluster = Nebula3D.clusters[paper.cluster];
+      const tMeta = {
+        name: cluster ? cluster.name : paper.topic,
+        color: cluster ? cluster.color : '#8b3a3a',
+        short: cluster ? topicShort(cluster.name) : paper.topic,
+      };
+      if (typeof window.openSheet === 'function') {
+        window.openSheet(paper, tMeta);
+      }
+    });
+
+    // 渲染图例
+    renderLegend();
+
+    // 绑定控制按钮
+    bindControls();
+
+    // 隐藏 loading
+    if (loadingEl) loadingEl.classList.add('done');
+  } catch (err) {
+    console.error('[Nebula3D] 初始化失败:', err);
+    if (loadingEl) {
+      loadingEl.querySelector('.nebula-loading-text').textContent = '加载失败';
+      loadingEl.querySelector('.nebula-loading-dot').style.background = '#8b3a3a';
+    }
+  }
+}
+
+/**
+ * 渲染图例（覆盖在 3D 画布上，支持点击切换簇可见性 / 双击隔离）
+ */
+function renderLegend() {
+  const legendEl = document.getElementById('nebulaLegend');
+  if (!legendEl || !Nebula3D.clusters.length) return;
+  legendEl.innerHTML = Nebula3D.clusters.map((c, i) => {
+    const short = topicShort(c.name);
+    return '<span class="legend-chip" data-cluster="' + i + '" ' +
+      'title="单击切换可见性 · 双击隔离" role="button" tabindex="0">' +
+      '<i style="background:' + c.color + '"></i>' +
+      Nebula3D._esc(short) + ' · ' + c.size +
+    '</span>';
+  }).join('');
+
+  // 绑定图例点击/双击
+  let clickTimer = null;
+  legendEl.querySelectorAll('.legend-chip').forEach(chip => {
+    const idx = parseInt(chip.getAttribute('data-cluster'), 10);
+    chip.addEventListener('click', () => {
+      // 延迟 250ms 判断是否为双击
+      if (clickTimer) {
+        clearTimeout(clickTimer);
+        clickTimer = null;
+        return;
+      }
+      clickTimer = setTimeout(() => {
+        clickTimer = null;
+        Nebula3D.toggleCluster(idx, false);
+        chip.classList.toggle('off');
+      }, 250);
+    });
+    chip.addEventListener('dblclick', () => {
+      if (clickTimer) {
+        clearTimeout(clickTimer);
+        clickTimer = null;
+      }
+      Nebula3D.toggleCluster(idx, true);
+      // 更新所有 chip 的 off 状态
+      const hidden = Nebula3D.hiddenClusters || new Set();
+      legendEl.querySelectorAll('.legend-chip').forEach(c => {
+        const ci = parseInt(c.getAttribute('data-cluster'), 10);
+        c.classList.toggle('off', hidden.has(ci));
+      });
+    });
+  });
+}
+
+/**
+ * 绑定控制按钮 + 搜索框
+ */
+function bindControls() {
+  const rotateBtn = document.getElementById('nebulaRotate');
+  const resetBtn = document.getElementById('nebulaReset');
+
+  if (rotateBtn) {
+    rotateBtn.addEventListener('click', () => {
+      const active = Nebula3D.toggleAutoRotate();
+      rotateBtn.classList.toggle('active', active);
+    });
+  }
+
+  if (resetBtn) {
+    resetBtn.addEventListener('click', () => {
+      if (Nebula3D.camera && Nebula3D.controls) {
+        Nebula3D.camera.position.set(0, 0, 6);
+        Nebula3D.controls.target.set(0, 0, 0);
+        Nebula3D.controls.update();
+      }
+    });
+  }
+
+  // 搜索框：实时过滤光点
+  const searchInput = document.getElementById('nebulaSearch');
+  const searchCount = document.getElementById('nebulaSearchCount');
+  if (searchInput) {
+    let searchTimer = null;
+    const doSearch = () => {
+      const q = searchInput.value || '';
+      const hit = Nebula3D.applySearch(q);
+      if (searchCount) {
+        searchCount.textContent = q.trim()
+          ? (hit + '/' + Nebula3D.papers.length)
+          : '';
+      }
+    };
+    searchInput.addEventListener('input', () => {
+      // 防抖 150ms
+      if (searchTimer) clearTimeout(searchTimer);
+      searchTimer = setTimeout(doSearch, 150);
+    });
+    // ESC 清空
+    searchInput.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') {
+        searchInput.value = '';
+        doSearch();
+        searchInput.blur();
+      }
+    });
+  }
+}
+
+// 挂载到全局，供页面 init() 调用
+window.initNebula3D = initNebula3D;
+
+
+</script>
 </body>
 </html>
+
