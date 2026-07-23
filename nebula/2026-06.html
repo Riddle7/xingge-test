@@ -667,9 +667,6 @@ a { color: inherit; text-decoration: none; }
   min-width: 24px;
   text-align: right;
 }
-@media (max-width: 640px) {
-  .nebula-search input { width: 130px; }
-}
 
 /* 相近论文浮层：悬停光点时画布左下角显示最相近论文 */
 .nebula-relations {
@@ -1173,20 +1170,127 @@ a { color: inherit; text-decoration: none; }
 }
 
 /* ---------- 响应式 ---------- */
+
+/* 平板及以下：学术脉搏 5 列 → 2 列 */
 @media (max-width: 899px) {
   .pulse-grid { grid-template-columns: repeat(2, 1fr); }
   .vital-card.wide { grid-column: span 2; }
   .pulse-panels { grid-template-columns: 1fr; }
   #topicsChart { height: 300px; }
+
+  /* 星云图覆盖层：压缩密度，避免互相重叠 */
+  .nebula-legend {
+    left: 8px; top: 8px;
+    max-width: calc(100% - 128px); /* 给右上角控制按钮留空间 */
+    max-height: 38%;
+    overflow-y: auto;
+    overflow-x: hidden;
+    scrollbar-width: thin;
+    scrollbar-color: rgba(255, 255, 255, 0.18) transparent;
+  }
+  .nebula-legend::-webkit-scrollbar { width: 3px; }
+  .nebula-legend::-webkit-scrollbar-track { background: transparent; }
+  .nebula-legend::-webkit-scrollbar-thumb { background: rgba(255, 255, 255, 0.15); border-radius: 3px; }
+  .legend-chip {
+    font-size: 9px;
+    padding: 2px 7px;
+    gap: 4px;
+  }
+  .legend-chip i { width: 6px; height: 6px; }
+
+  .nebula-controls { right: 8px; top: 8px; gap: 4px; }
+  .nebula-ctrl-btn {
+    font-size: 9px;
+    padding: 4px 8px;
+    letter-spacing: 0.06em;
+  }
+
+  .nebula-search {
+    right: 8px; bottom: 48px;
+    padding: 3px 10px 3px 12px;
+    gap: 6px;
+  }
+  .nebula-search input { width: 130px; font-size: 11px; }
+
+  .nebula-hint {
+    right: 8px; bottom: 8px;
+    font-size: 9px;
+    line-height: 1.7;
+  }
+
+  .nebula-relations {
+    left: 8px; bottom: 8px;
+    max-width: calc(100% - 150px);
+    padding: 8px 10px;
+  }
+  .nr-item { font-size: 10px; padding: 2px 0; }
+  .nr-sim { font-size: 9px; width: 28px; }
+  .nr-head { font-size: 8.5px; margin-bottom: 4px; }
+
+  /* 触摸目标增大：关闭按钮 ≥36px（移动端底部卡场景） */
+  .nebula-paper-pop .npp-close { width: 36px; height: 36px; top: 6px; right: 8px; font-size: 20px; }
+  .paper-sheet .ps-close { width: 38px; height: 38px; }
+
+  /* section-head 英文副标题：移动端另起一行，避免 vertical-align 错位 */
+  .section-head h2 .en {
+    display: block;
+    margin-left: 0;
+    margin-top: 5px;
+    font-size: 0.38em;
+    vertical-align: baseline;
+  }
 }
+
+/* 手机端：对撞卡片纵向排列，VS 居中 */
 @media (max-width: 640px) {
   .clash-body { grid-template-columns: 1fr; gap: 14px; }
   .clash-side.right { text-align: left; }
-  .vs-wrap { justify-content: flex-start; }
+  .vs-wrap { justify-content: center; padding: 2px 0; }
   .vs-orb { width: 46px; height: 46px; font-size: 11.5px; }
   .vs-orb::before { inset: -6px; }
   .mini-cols { grid-template-columns: 1fr; }
-  .hero .radar { opacity: 0.5; }
+  .hero .radar { opacity: 0.4; width: clamp(120px, 30vw, 180px); }
+
+  /* 页脚居中 */
+  .site-footer .foot-row {
+    justify-content: center;
+    text-align: center;
+    gap: 10px 16px;
+  }
+
+  /* 窄屏几乎必然是手机，无滚轮 */
+  .nebula-hint .hint-wheel { display: none; }
+}
+
+/* 触摸设备（任意宽度）：隐藏 tooltip，移除不适用文案 */
+@media (hover: none) {
+  .nebula3d-tooltip { display: none !important; }
+  .nebula-hint .hint-hover { display: none; }
+  .nebula-hint .hint-wheel { display: none; }
+}
+
+/* 超窄屏（≤380px）：脉搏卡片单列，星云覆盖层进一步压缩 */
+@media (max-width: 380px) {
+  .pulse-grid { grid-template-columns: 1fr; }
+  .vital-card.wide { grid-column: span 1; }
+  .vital-card { padding: 14px 14px 12px; }
+
+  .hero h1 { font-size: clamp(28px, 9vw, 34px); }
+  .hero .hero-sub { font-size: 13px; letter-spacing: 0.1em; }
+  .hero .hero-desc { font-size: 12px; line-height: 1.8; }
+  .hero .radar { opacity: 0.3; }
+
+  .nebula-legend { max-width: calc(100% - 108px); }
+  .nebula-search { bottom: 44px; }
+  .nebula-search input { width: 100px; }
+  .nebula-hint { font-size: 8.5px; }
+  .nebula-relations { max-width: calc(100% - 120px); }
+
+  .site-top { font-size: 10px; letter-spacing: 0.1em; }
+  .site-top .issue-badge { padding: 3px 8px; }
+
+  .section-head h2 { font-size: 20px; }
+  .section-head h2 .en { font-size: 0.34em; }
 }
 
 /* 减少动态效果偏好 */
@@ -1287,8 +1391,8 @@ a { color: inherit; text-decoration: none; }
         </div>
 
         <div class="nebula-hint">
-          光点 = 论文 · 大小 = 理论数 · 云团 = 主题群<br />
-          拖动旋转 · 滚轮缩放 · 悬停查看 · 点击详情
+          <span class="hint-line-1">光点 = 论文 · 大小 = 理论数 · 云团 = 主题群</span><br />
+          <span class="hint-line-2">拖动旋转<span class="hint-wheel"> · 滚轮缩放</span><span class="hint-hover"> · 悬停查看</span> · 点击详情</span>
         </div>
       </div>
     </div>
