@@ -607,6 +607,14 @@ a { color: inherit; text-decoration: none; }
 }
 .nebula-ctrl-btn:hover { color: #ffffff; border-color: rgba(255, 255, 255, 0.3); }
 .nebula-ctrl-btn.active { color: #b8860b; border-color: rgba(184, 134, 11, 0.5); }
+/* 桌面端：显示文字，隐藏图标 */
+.nebula-ctrl-btn .ncb-icon { display: none; }
+.nebula-ctrl-btn .ncb-text { display: inline; }
+
+/* 图例折叠按钮：仅移动端显示 */
+.nebula-legend-toggle {
+  display: none;
+}
 
 .nebula-hint {
   position: absolute;
@@ -1178,60 +1186,121 @@ a { color: inherit; text-decoration: none; }
   .pulse-panels { grid-template-columns: 1fr; }
   #topicsChart { height: 300px; }
 
-  /* 星云图覆盖层：压缩密度，避免互相重叠 */
+  /* ===== 星云图移动端交互重新设计 ===== */
+  /* 画布高度增加，给覆盖层更多空间 */
+  .nebula-stage { height: clamp(500px, 75vh, 600px); }
+
+  /* 图例：默认折叠为隐藏，由折叠按钮控制展开 */
   .nebula-legend {
-    left: 8px; top: 8px;
-    max-width: calc(100% - 128px); /* 给右上角控制按钮留空间 */
-    max-height: 38%;
+    left: 8px; top: 52px;  /* 避开折叠按钮 */
+    max-width: calc(100% - 16px);
+    max-height: 0;
+    overflow: hidden;
+    opacity: 0;
+    pointer-events: none;
+    transition: max-height 0.35s cubic-bezier(0.22, 0.9, 0.28, 1),
+                opacity 0.25s;
+  }
+  .nebula-legend.expanded {
+    max-height: 45%;
     overflow-y: auto;
     overflow-x: hidden;
+    opacity: 1;
+    pointer-events: auto;
     scrollbar-width: thin;
     scrollbar-color: rgba(255, 255, 255, 0.18) transparent;
   }
   .nebula-legend::-webkit-scrollbar { width: 3px; }
   .nebula-legend::-webkit-scrollbar-track { background: transparent; }
   .nebula-legend::-webkit-scrollbar-thumb { background: rgba(255, 255, 255, 0.15); border-radius: 3px; }
+  /* 图例 chip：触摸目标增大至 ≥36px 高 */
   .legend-chip {
-    font-size: 9px;
-    padding: 2px 7px;
-    gap: 4px;
+    font-size: 11px;
+    padding: 7px 12px;
+    gap: 5px;
+    min-height: 36px;
   }
-  .legend-chip i { width: 6px; height: 6px; }
+  .legend-chip i { width: 8px; height: 8px; }
 
-  .nebula-controls { right: 8px; top: 8px; gap: 4px; }
-  .nebula-ctrl-btn {
-    font-size: 9px;
-    padding: 4px 8px;
-    letter-spacing: 0.06em;
-  }
-
-  .nebula-search {
-    right: 8px; bottom: 48px;
-    padding: 3px 10px 3px 12px;
+  /* 图例折叠按钮：移动端显示 */
+  .nebula-legend-toggle {
+    display: inline-flex;
+    align-items: center;
     gap: 6px;
+    position: absolute;
+    left: 8px; top: 8px;
+    z-index: 4;
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: 0.04em;
+    color: rgba(255, 255, 255, 0.82);
+    background: rgba(10, 14, 26, 0.6);
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    padding: 7px 12px;
+    border-radius: 999px;
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    cursor: pointer;
+    user-select: none;
+    min-height: 36px;
+    transition: border-color 0.2s, background 0.2s;
   }
-  .nebula-search input { width: 130px; font-size: 11px; }
+  .nebula-legend-toggle:hover,
+  .nebula-legend-toggle.active {
+    border-color: rgba(184, 134, 11, 0.45);
+    background: rgba(10, 14, 26, 0.78);
+  }
+  .nebula-legend-toggle .nlt-icon { font-size: 12px; }
 
+  /* 控制按钮：用图标替代文字，触摸目标 ≥36px */
+  .nebula-controls { right: 8px; top: 8px; gap: 5px; }
+  .nebula-ctrl-btn {
+    font-size: 14px;
+    padding: 0;
+    width: 36px; height: 36px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    letter-spacing: 0;
+  }
+  .nebula-ctrl-btn .ncb-text { display: none; }
+  .nebula-ctrl-btn .ncb-icon { display: inline; font-size: 15px; }
+
+  /* 搜索框：调整位置避免与 hint 重叠 */
+  .nebula-search {
+    right: 8px; bottom: 44px;
+    padding: 5px 12px 5px 14px;
+    gap: 6px;
+    min-height: 36px;
+  }
+  .nebula-search input { width: 140px; font-size: 12px; }
+
+  /* hint：移到左下角，避免与搜索框和关系浮层重叠 */
   .nebula-hint {
-    right: 8px; bottom: 8px;
-    font-size: 9px;
-    line-height: 1.7;
+    left: 8px; right: auto; bottom: 8px;
+    font-size: 10px;
+    line-height: 1.6;
+    text-align: left;
+    max-width: calc(100% - 180px); /* 避免与搜索框重叠 */
   }
 
+  /* 相近论文浮层：移动端移到画布上方区域，避免与底部 hint/search 重叠 */
   .nebula-relations {
-    left: 8px; bottom: 8px;
-    max-width: calc(100% - 150px);
+    left: 8px; top: 52px;  /* 避开折叠按钮，在图例展开时隐藏 */
+    bottom: auto;
+    max-width: calc(100% - 16px);
     padding: 8px 10px;
   }
-  .nr-item { font-size: 10px; padding: 2px 0; }
-  .nr-sim { font-size: 9px; width: 28px; }
-  .nr-head { font-size: 8.5px; margin-bottom: 4px; }
+  .nebula-legend.expanded ~ .nebula-relations { display: none; }  /* 图例展开时隐藏关系浮层 */
+  .nr-item { font-size: 11px; padding: 3px 0; }
+  .nr-sim { font-size: 10px; width: 30px; }
+  .nr-head { font-size: 9px; margin-bottom: 4px; }
 
-  /* 触摸目标增大：关闭按钮 ≥36px（移动端底部卡场景） */
+  /* 触摸目标增大：关闭按钮 ≥36px */
   .nebula-paper-pop .npp-close { width: 36px; height: 36px; top: 6px; right: 8px; font-size: 20px; }
   .paper-sheet .ps-close { width: 38px; height: 38px; }
 
-  /* section-head 英文副标题：移动端另起一行，避免 vertical-align 错位 */
+  /* section-head 英文副标题：移动端另起一行 */
   .section-head h2 .en {
     display: block;
     margin-left: 0;
@@ -1258,8 +1327,12 @@ a { color: inherit; text-decoration: none; }
     gap: 10px 16px;
   }
 
-  /* 窄屏几乎必然是手机，无滚轮 */
+  /* 窄屏无滚轮 */
   .nebula-hint .hint-wheel { display: none; }
+
+  /* 搜索框在窄屏缩短 */
+  .nebula-search input { width: 110px; }
+  .nebula-hint { max-width: calc(100% - 150px); }
 }
 
 /* 触摸设备（任意宽度）：隐藏 tooltip，移除不适用文案 */
@@ -1269,7 +1342,7 @@ a { color: inherit; text-decoration: none; }
   .nebula-hint .hint-wheel { display: none; }
 }
 
-/* 超窄屏（≤380px）：脉搏卡片单列，星云覆盖层进一步压缩 */
+/* 超窄屏（≤380px） */
 @media (max-width: 380px) {
   .pulse-grid { grid-template-columns: 1fr; }
   .vital-card.wide { grid-column: span 1; }
@@ -1280,11 +1353,8 @@ a { color: inherit; text-decoration: none; }
   .hero .hero-desc { font-size: 12px; line-height: 1.8; }
   .hero .radar { opacity: 0.3; }
 
-  .nebula-legend { max-width: calc(100% - 108px); }
-  .nebula-search { bottom: 44px; }
-  .nebula-search input { width: 100px; }
-  .nebula-hint { font-size: 8.5px; }
-  .nebula-relations { max-width: calc(100% - 120px); }
+  .nebula-search input { width: 90px; font-size: 11px; }
+  .nebula-hint { font-size: 9px; max-width: calc(100% - 130px); }
 
   .site-top { font-size: 10px; letter-spacing: 0.1em; }
   .site-top .issue-badge { padding: 3px 8px; }
@@ -1368,10 +1438,22 @@ a { color: inherit; text-decoration: none; }
         <!-- 图例（点击切换簇可见性，双击隔离） -->
         <div class="nebula-legend" id="nebulaLegend"></div>
 
+        <!-- 移动端图例折叠按钮（≤899px 显示） -->
+        <button class="nebula-legend-toggle" id="nebulaLegendToggle" type="button" aria-label="切换图例">
+          <span class="nlt-icon" aria-hidden="true">◉</span>
+          <span class="nlt-label">图例</span>
+        </button>
+
         <!-- 控制按钮 -->
         <div class="nebula-controls">
-          <button class="nebula-ctrl-btn active" id="nebulaRotate" type="button">AUTO ROTATE</button>
-          <button class="nebula-ctrl-btn" id="nebulaReset" type="button">RESET VIEW</button>
+          <button class="nebula-ctrl-btn active" id="nebulaRotate" type="button" aria-label="自动旋转">
+            <span class="ncb-text">AUTO ROTATE</span>
+            <span class="ncb-icon" aria-hidden="true">⟳</span>
+          </button>
+          <button class="nebula-ctrl-btn" id="nebulaReset" type="button" aria-label="重置视角">
+            <span class="ncb-text">RESET VIEW</span>
+            <span class="ncb-icon" aria-hidden="true">◎</span>
+          </button>
         </div>
 
         <!-- 搜索框：按标题/作者/议题过滤光点 -->
@@ -2864,7 +2946,7 @@ function renderLegend() {
 }
 
 /**
- * 绑定控制按钮 + 搜索框
+ * 绑定控制按钮 + 搜索框 + 图例折叠
  */
 function bindControls() {
   const rotateBtn = document.getElementById('nebulaRotate');
@@ -2913,6 +2995,18 @@ function bindControls() {
         doSearch();
         searchInput.blur();
       }
+    });
+  }
+
+  // 移动端图例折叠按钮：点击切换 .expanded 类
+  const legendToggle = document.getElementById('nebulaLegendToggle');
+  const legendEl = document.getElementById('nebulaLegend');
+  if (legendToggle && legendEl) {
+    legendToggle.addEventListener('click', () => {
+      const expanded = legendEl.classList.toggle('expanded');
+      legendToggle.classList.toggle('active', expanded);
+      // 更新 aria-expanded 无障碍状态
+      legendToggle.setAttribute('aria-expanded', expanded ? 'true' : 'false');
     });
   }
 }
