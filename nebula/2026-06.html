@@ -1755,6 +1755,10 @@ function closeNebulaPop() {
 }
 document.getElementById('nebulaPopClose').addEventListener('click', closeNebulaPop);
 
+/* 挂载到 window：供模块脚本（nebula3d.js）调用 */
+window.openNebulaPop = openNebulaPop;
+window.closeNebulaPop = closeNebulaPop;
+
 /* ESC 统一关闭：优先关星云浮层，其次关侧滑卡 */
 document.addEventListener('keydown', function (e) {
   if (e.key !== 'Escape') return;
@@ -2266,22 +2270,36 @@ const Nebula3D = {
       this._clearHover();
     });
 
-    // 点击：选中论文
-    canvas.addEventListener('click', (e) => {
-      if (this.hoveredId) {
-        const paper = this.paperById[this.hoveredId];
+    // 点击：选中论文（用 pointerdown/up 自实现，避免 OrbitControls 拖动干扰 click）
+    let downX = 0, downY = 0, downTime = 0;
+    canvas.addEventListener('pointerdown', (e) => {
+      downX = e.clientX;
+      downY = e.clientY;
+      downTime = Date.now();
+      canvas.style.cursor = 'grabbing';
+    });
+    canvas.addEventListener('pointerup', (e) => {
+      canvas.style.cursor = this.hoveredId ? 'pointer' : 'grab';
+      // 判断是否为点击（移动距离小 + 时间短 = 点击，否则视为拖动）
+      const dx = e.clientX - downX;
+      const dy = e.clientY - downY;
+      const dist = Math.sqrt(dx * dx + dy * dy);
+      const elapsed = Date.now() - downTime;
+      if (dist > 6 || elapsed > 500) return;
+
+      // 重新执行 raycast，不依赖 hoveredId
+      const rect = canvas.getBoundingClientRect();
+      this.pointer.x = ((e.clientX - rect.left) / rect.width) * 2 - 1;
+      this.pointer.y = -((e.clientY - rect.top) / rect.height) * 2 + 1;
+      this.raycaster.setFromCamera(this.pointer, this.camera);
+      const intersects = this.raycaster.intersectObject(this.pointsMesh);
+      if (intersects.length > 0) {
+        const idx = intersects[0].index;
+        const paper = this.papers[idx];
         if (paper && this.onPaperClick) {
           this.onPaperClick(paper);
         }
       }
-    });
-
-    // 拖动时切换光标
-    canvas.addEventListener('pointerdown', () => {
-      canvas.style.cursor = 'grabbing';
-    });
-    canvas.addEventListener('pointerup', () => {
-      canvas.style.cursor = this.hoveredId ? 'pointer' : 'grab';
     });
 
     // 窗口尺寸变化
