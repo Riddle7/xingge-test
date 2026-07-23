@@ -579,12 +579,13 @@
         transition: color 0.1s linear, background-color 0.1s linear, border-color 0.1s linear;
       }
     }
-    /* ============ 刑法学术雷达：文字与雷达融合的背景层 ============
+    /* ============ 刑法学术月报：文献星云背景层 ============
        设计原则：
-       - 雷达装饰作为卡片的背景层（绝对定位 + z-index: 0）
+       - 星云装饰作为卡片的背景层（绝对定位 + z-index: 0）
        - 文字内容置于上层（relative + z-index: 10），保持完全可读性
-       - 雷达环、扫描线、星点使用品牌蓝（#007aff）极低透明度
-       - 旋转缓慢（12s）以营造持续扫描的呼吸感
+       - 散布星点（呼应星云图中的论文光点）+ 极淡星轨弧线
+       - 使用品牌蓝（#007aff）极低透明度，保持简洁优雅
+       - 星点缓慢呼吸脉动，营造星云静谧呼吸感
        - 完整支持 prefers-reduced-motion（静态降级）
     */
     .radar-card {
@@ -598,108 +599,129 @@
       pointer-events: none;
       overflow: hidden;
     }
-    /* 雷达环：定位到卡片中心偏右，让左侧文字区域呼吸更舒展 */
-    .radar-rings {
+    /* 星轨弧线：两条极淡弧线，定位到卡片右侧，营造星云引力轨道感 */
+    .nebula-orbit {
       position: absolute;
       top: 50%;
-      left: 58%;
+      left: 62%;
       transform: translate(-50%, -50%);
-      width: 620px;
-      height: 620px;
+      width: 560px;
+      height: 560px;
+      border-radius: 50%;
+      border: 1px solid rgba(0, 122, 255, 0.07);
+    }
+    [data-theme="dark"] .nebula-orbit {
+      border-color: rgba(46, 141, 255, 0.10);
+    }
+    .nebula-orbit--2 {
+      width: 360px;
+      height: 360px;
+      border-color: rgba(0, 122, 255, 0.05);
+      left: 66%;
+    }
+    [data-theme="dark"] .nebula-orbit--2 {
+      border-color: rgba(46, 141, 255, 0.07);
+    }
+    .nebula-orbit--3 {
+      width: 200px;
+      height: 200px;
+      border-color: rgba(0, 122, 255, 0.04);
+      left: 70%;
+    }
+    [data-theme="dark"] .nebula-orbit--3 {
+      border-color: rgba(46, 141, 255, 0.06);
     }
     @media (max-width: 1023px) {
-      .radar-rings { left: 65%; width: 480px; height: 480px; }
+      .nebula-orbit { left: 68%; width: 440px; height: 440px; }
+      .nebula-orbit--2 { left: 72%; width: 280px; height: 280px; }
+      .nebula-orbit--3 { left: 76%; width: 160px; height: 160px; }
     }
     @media (max-width: 639px) {
-      .radar-rings { left: 72%; width: 360px; height: 360px; }
+      .nebula-orbit { left: 75%; width: 320px; height: 320px; }
+      .nebula-orbit--2 { left: 78%; width: 200px; height: 200px; }
+      .nebula-orbit--3 { left: 82%; width: 120px; height: 120px; }
     }
-    .radar-ring {
+    /* 星点：作为星轨子元素，沿圆周分布，跟随星轨公转 */
+    .nebula-star {
       position: absolute;
       border-radius: 50%;
-      border: 1px solid rgba(0, 122, 255, 0.10);
-    }
-    [data-theme="dark"] .radar-ring {
-      border-color: rgba(46, 141, 255, 0.14);
-    }
-    .radar-ring--1 { inset: 0; }
-    .radar-ring--2 { inset: 14%; }
-    .radar-ring--3 { inset: 28%; }
-    .radar-ring--4 { inset: 44%; }
-    .radar-crosshair-h,
-    .radar-crosshair-v {
-      position: absolute;
-      background: rgba(0, 122, 255, 0.05);
-    }
-    [data-theme="dark"] .radar-crosshair-h,
-    [data-theme="dark"] .radar-crosshair-v {
-      background: rgba(46, 141, 255, 0.08);
-    }
-    .radar-crosshair-h { top: 50%; left: 0; right: 0; height: 1px; }
-    .radar-crosshair-v { left: 50%; top: 0; bottom: 0; width: 1px; }
-    .radar-center {
-      position: absolute;
-      top: 50%; left: 50%;
+      background: rgba(0, 122, 255, 0.45);
       transform: translate(-50%, -50%);
-      width: 6px; height: 6px;
-      border-radius: 50%;
-      background: rgba(0, 122, 255, 0.4);
-      box-shadow: 0 0 10px rgba(0, 122, 255, 0.3);
     }
-    [data-theme="dark"] .radar-center {
-      background: rgba(46, 141, 255, 0.5);
-      box-shadow: 0 0 12px rgba(46, 141, 255, 0.4);
+    [data-theme="dark"] .nebula-star {
+      background: rgba(46, 141, 255, 0.55);
     }
-    .radar-dot {
+    /* 星云中心微光：极淡径向渐变，营造星云团雾感 */
+    .nebula-glow {
       position: absolute;
+      top: 50%;
+      left: 64%;
+      transform: translate(-50%, -50%);
+      width: 400px;
+      height: 400px;
       border-radius: 50%;
+      background: radial-gradient(circle, rgba(0, 122, 255, 0.06) 0%, transparent 65%);
+      pointer-events: none;
     }
-    /* 扫描线：conic-gradient 缓慢旋转，透明度极低以免影响文字可读性 */
-    .radar-sweep {
-      position: absolute;
-      inset: 0;
-      border-radius: 50%;
-      background: conic-gradient(
-        from 0deg,
-        transparent 0deg,
-        transparent 280deg,
-        rgba(0, 122, 255, 0.04) 320deg,
-        rgba(0, 122, 255, 0.10) 360deg
-      );
-      -webkit-mask: radial-gradient(circle, transparent 0%, black 1px, black 100%);
-      mask: radial-gradient(circle, transparent 0%, black 1px, black 100%);
+    [data-theme="dark"] .nebula-glow {
+      background: radial-gradient(circle, rgba(46, 141, 255, 0.09) 0%, transparent 65%);
     }
-    [data-theme="dark"] .radar-sweep {
-      background: conic-gradient(
-        from 0deg,
-        transparent 0deg,
-        transparent 280deg,
-        rgba(46, 141, 255, 0.06) 320deg,
-        rgba(46, 141, 255, 0.14) 360deg
-      );
+    @media (max-width: 639px) {
+      .nebula-glow { width: 280px; height: 280px; left: 72%; }
     }
+    /* 星点呼吸脉动 + 中心微光呼吸 + 星点漂浮，营造星云静谧生命感 */
     @media (prefers-reduced-motion: no-preference) {
-      .radar-sweep {
-        animation: radar-sweep-rotate 12s linear infinite;
+      .nebula-star {
+        animation: nebula-star-pulse 5s ease-in-out infinite;
       }
-      @keyframes radar-sweep-rotate {
-        from { transform: rotate(0deg); }
-        to { transform: rotate(360deg); }
+      .nebula-star--delay-1 { animation-delay: 1s; }
+      .nebula-star--delay-2 { animation-delay: 2s; }
+      .nebula-star--delay-3 { animation-delay: 3s; }
+      .nebula-star--delay-4 { animation-delay: 4s; }
+      @keyframes nebula-star-pulse {
+        0%, 100% { opacity: 0.3; transform: translate(-50%, -50%) scale(0.85); }
+        50% { opacity: 1; transform: translate(-50%, -50%) scale(1.1); }
       }
-      .radar-dot {
-        animation: radar-dot-pulse 4s ease-in-out infinite;
+      /* 中心微光呼吸：缓慢膨胀收缩，让星云核心有生命感 */
+      .nebula-glow {
+        animation: nebula-glow-breathe 8s ease-in-out infinite;
       }
-      .radar-dot--delay-1 { animation-delay: 0.8s; }
-      .radar-dot--delay-2 { animation-delay: 1.6s; }
-      .radar-dot--delay-3 { animation-delay: 2.4s; }
-      .radar-dot--delay-4 { animation-delay: 3.2s; }
-      @keyframes radar-dot-pulse {
-        0%, 100% { opacity: 0.4; }
-        50% { opacity: 1; }
+      @keyframes nebula-glow-breathe {
+        0%, 100% { opacity: 0.6; transform: translate(-50%, -50%) scale(1); }
+        50% { opacity: 1; transform: translate(-50%, -50%) scale(1.15); }
+      }
+      /* 星轨极缓慢旋转，营造引力轨道运行感 */
+      .nebula-orbit {
+        animation: nebula-orbit-rotate 60s linear infinite;
+      }
+      .nebula-orbit--2 {
+        animation: nebula-orbit-rotate-reverse 80s linear infinite;
+      }
+      .nebula-orbit--3 {
+        animation: nebula-orbit-rotate 100s linear infinite;
+      }
+      @keyframes nebula-orbit-rotate {
+        from { transform: translate(-50%, -50%) rotate(0deg); }
+        to { transform: translate(-50%, -50%) rotate(360deg); }
+      }
+      @keyframes nebula-orbit-rotate-reverse {
+        from { transform: translate(-50%, -50%) rotate(360deg); }
+        to { transform: translate(-50%, -50%) rotate(0deg); }
+      }
+      /* 星点漂浮：每 6 个星点中第 1、4、7 个附加微小位移，打破整齐脉动 */
+      .nebula-star--drift {
+        animation: nebula-star-pulse 5s ease-in-out infinite, nebula-star-drift 12s ease-in-out infinite;
+      }
+      @keyframes nebula-star-drift {
+        0%, 100% { translate: 0 0; }
+        33% { translate: 3px -2px; }
+        66% { translate: -2px 3px; }
       }
     }
     @media (prefers-reduced-motion: reduce) {
-      .radar-sweep { animation: none; }
-      .radar-dot { animation: none; opacity: 0.7; }
+      .nebula-star { animation: none; opacity: 0.65; }
+      .nebula-orbit { animation: none; }
+      .nebula-glow { animation: none; }
     }
     /* ============ 碰撞 反驳观点赛博朋克呈现动效 ============ */
     @media (prefers-reduced-motion: no-preference) {
@@ -940,7 +962,7 @@
       <ul class="hidden md:flex items-center gap-0.5">
         <li><a href="#manifesto" class="nav-link px-3 py-2 text-[13px] font-medium text-[var(--color-text-500)] hover:text-[var(--color-text-800)] rounded-[8px] transition-colors">宣言</a></li>
         <li><a href="#lab" class="nav-link px-3 py-2 text-[13px] font-medium text-[var(--color-text-500)] hover:text-[var(--color-text-800)] rounded-[8px] transition-colors">实验室</a></li>
-        <li><a href="#radar" class="nav-link px-3 py-2 text-[13px] font-medium text-[var(--color-text-500)] hover:text-[var(--color-text-800)] rounded-[8px] transition-colors">雷达</a></li>
+        <li><a href="#radar" class="nav-link px-3 py-2 text-[13px] font-medium text-[var(--color-text-500)] hover:text-[var(--color-text-800)] rounded-[8px] transition-colors">月报</a></li>
         <li><a href="#readings" class="nav-link px-3 py-2 text-[13px] font-medium text-[var(--color-text-500)] hover:text-[var(--color-text-800)] rounded-[8px] transition-colors">阅读</a></li>
         <li><a href="#collision" class="nav-link px-3 py-2 text-[13px] font-medium text-[var(--color-text-500)] hover:text-[var(--color-text-800)] rounded-[8px] transition-colors">碰撞</a></li>
         <li><a href="#about" class="nav-link px-3 py-2 text-[13px] font-medium text-[var(--color-text-500)] hover:text-[var(--color-text-800)] rounded-[8px] transition-colors">关于</a></li>
@@ -963,7 +985,7 @@
       <ul class="px-6 py-3 flex flex-col gap-1">
         <li><a href="#manifesto" class="mobile-nav-link block px-3 py-3 text-[15px] font-medium text-[var(--color-text-600)] hover:text-[var(--color-brand-600)] hover:bg-[var(--color-background-100)] rounded-[8px] transition-colors">宣言</a></li>
         <li><a href="#lab" class="mobile-nav-link block px-3 py-3 text-[15px] font-medium text-[var(--color-text-600)] hover:text-[var(--color-brand-600)] hover:bg-[var(--color-background-100)] rounded-[8px] transition-colors">实验室</a></li>
-        <li><a href="#radar" class="mobile-nav-link block px-3 py-3 text-[15px] font-medium text-[var(--color-text-600)] hover:text-[var(--color-brand-600)] hover:bg-[var(--color-background-100)] rounded-[8px] transition-colors">雷达</a></li>
+        <li><a href="#radar" class="mobile-nav-link block px-3 py-3 text-[15px] font-medium text-[var(--color-text-600)] hover:text-[var(--color-brand-600)] hover:bg-[var(--color-background-100)] rounded-[8px] transition-colors">月报</a></li>
         <li><a href="#readings" class="mobile-nav-link block px-3 py-3 text-[15px] font-medium text-[var(--color-text-600)] hover:text-[var(--color-brand-600)] hover:bg-[var(--color-background-100)] rounded-[8px] transition-colors">阅读</a></li>
         <li><a href="#collision" class="mobile-nav-link block px-3 py-3 text-[15px] font-medium text-[var(--color-text-600)] hover:text-[var(--color-brand-600)] hover:bg-[var(--color-background-100)] rounded-[8px] transition-colors">碰撞</a></li>
         <li><a href="#about" class="mobile-nav-link block px-3 py-3 text-[15px] font-medium text-[var(--color-text-600)] hover:text-[var(--color-brand-600)] hover:bg-[var(--color-background-100)] rounded-[8px] transition-colors">关于</a></li>
@@ -1151,40 +1173,42 @@
     <section id="radar" class="border-t border-[var(--color-background-300)]">
       <div class="max-w-6xl mx-auto px-6 lg:px-8 py-20 sm:py-24 lg:py-28">
         <div class="mb-12 max-w-2xl scroll-reveal">
-          <h2 class="text-3xl sm:text-4xl font-bold tracking-[-0.02em] text-[var(--color-text-800)] mb-2">刑法学术雷达</h2>
-          <p class="text-base font-mono text-[var(--color-text-500)] italic">Academic Radar</p>
+          <h2 class="text-3xl sm:text-4xl font-bold tracking-[-0.02em] text-[var(--color-text-800)] mb-2">刑法学术月报</h2>
+          <p class="text-base font-mono text-[var(--color-text-500)] italic">Academic Monthly</p>
           <p class="text-[15px] text-[var(--color-text-500)] mt-3 leading-relaxed">每月一次，扫描刑法学界的理论星图。<span class="font-mono italic text-[var(--color-text-300)]"> A monthly scan of criminal law scholarship.</span></p>
         </div>
 
-        <!-- Feature card: 学术雷达入口（融合布局：雷达装饰作为背景层，文字浮于上层） -->
+        <!-- Feature card: 学术月报入口（融合布局：星云装饰作为背景层，文字浮于上层） -->
         <a href="nebula/2026-06.html" class="radar-card scroll-reveal group relative overflow-hidden rounded-[19px] border border-[var(--color-background-300)] bg-[var(--color-background-50)] hover:border-[var(--color-brand-300)] hover:shadow-lg transition-all block">
-          <!-- 背景层：装饰性雷达（同心圆环 + 扫描线 + 星点） -->
+          <!-- 背景层：星云装饰（星轨带动星点公转 + 中心微光） -->
           <div class="radar-bg" aria-hidden="true">
-            <div class="radar-rings">
-              <div class="radar-ring radar-ring--1"></div>
-              <div class="radar-ring radar-ring--2"></div>
-              <div class="radar-ring radar-ring--3"></div>
-              <div class="radar-ring radar-ring--4"></div>
-              <div class="radar-crosshair-h"></div>
-              <div class="radar-crosshair-v"></div>
-              <div class="radar-sweep"></div>
-              <div class="radar-center"></div>
-              <div class="radar-dot radar-dot--delay-1" style="top: 18%; left: 28%; width: 6px; height: 6px; background: rgba(0, 122, 255, 0.5);"></div>
-              <div class="radar-dot radar-dot--delay-2" style="top: 62%; left: 72%; width: 4px; height: 4px; background: rgba(0, 122, 255, 0.4);"></div>
-              <div class="radar-dot radar-dot--delay-3" style="top: 38%; left: 76%; width: 8px; height: 8px; background: rgba(0, 122, 255, 0.45);"></div>
-              <div class="radar-dot radar-dot--delay-4" style="top: 78%; left: 22%; width: 4px; height: 4px; background: rgba(0, 122, 255, 0.35);"></div>
-              <div class="radar-dot radar-dot--delay-1" style="top: 12%; left: 64%; width: 6px; height: 6px; background: rgba(0, 122, 255, 0.45);"></div>
-              <div class="radar-dot radar-dot--delay-2" style="top: 52%; left: 14%; width: 4px; height: 4px; background: rgba(0, 122, 255, 0.3);"></div>
-              <div class="radar-dot radar-dot--delay-3" style="top: 32%; left: 48%; width: 4px; height: 4px; background: rgba(0, 122, 255, 0.35);"></div>
+            <div class="nebula-glow"></div>
+            <!-- 星轨 1（最大）：带动 4 个星点公转 -->
+            <div class="nebula-orbit">
+              <div class="nebula-star nebula-star--delay-1 nebula-star--drift" style="top: 15%; left: 82%; width: 6px; height: 6px;"></div>
+              <div class="nebula-star nebula-star--delay-2" style="top: 78%; left: 85%; width: 4px; height: 4px;"></div>
+              <div class="nebula-star nebula-star--delay-3" style="top: 85%; left: 18%; width: 5px; height: 5px;"></div>
+              <div class="nebula-star nebula-star--delay-4 nebula-star--drift" style="top: 12%; left: 15%; width: 4px; height: 4px;"></div>
+            </div>
+            <!-- 星轨 2（中等）：带动 3 个星点反向公转 -->
+            <div class="nebula-orbit nebula-orbit--2">
+              <div class="nebula-star nebula-star--delay-1" style="top: 10%; left: 75%; width: 5px; height: 5px;"></div>
+              <div class="nebula-star nebula-star--delay-2 nebula-star--drift" style="top: 80%; left: 78%; width: 4px; height: 4px;"></div>
+              <div class="nebula-star nebula-star--delay-3" style="top: 72%; left: 22%; width: 3px; height: 3px;"></div>
+            </div>
+            <!-- 星轨 3（最小）：带动 2 个星点公转 -->
+            <div class="nebula-orbit nebula-orbit--3">
+              <div class="nebula-star nebula-star--delay-1" style="top: 15%; left: 80%; width: 4px; height: 4px;"></div>
+              <div class="nebula-star nebula-star--delay-2 nebula-star--drift" style="top: 82%; left: 28%; width: 3px; height: 3px;"></div>
             </div>
           </div>
-          <!-- 文字层：浮于雷达装饰之上 -->
+          <!-- 文字层：浮于星云装饰之上 -->
           <div class="relative z-10 p-8 sm:p-12 lg:p-14 max-w-xl">
             <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-[6px] bg-[var(--color-brand-50)] text-[var(--color-brand-600)] text-[11px] font-mono font-semibold mb-5 w-fit">
               <i data-lucide="orbit" class="w-3 h-3"></i>
               2026年6月
             </span>
-            <h3 class="text-2xl sm:text-3xl font-bold tracking-tight mb-2 text-[var(--color-text-800)]">理论星云图</h3>
+            <h3 class="text-2xl sm:text-3xl font-bold tracking-tight mb-2 text-[var(--color-text-800)]">文献星云图</h3>
             <p class="text-base font-medium text-[var(--color-text-500)] mb-4">41篇核心期刊 &nbsp; 8个理论簇</p>
             <p class="text-[14.5px] leading-[1.75] text-[var(--color-text-500)] max-w-lg mb-8">
               将月度刑法学论文转化为可视化的理论星图。以论文为星辰，以理论为引力，以争议为碰撞带。在数据中观察学术脉络的走向。
@@ -1352,8 +1376,8 @@
           </a>
           <a href="#radar" class="group block">
             <p class="text-[13px] font-mono text-[var(--color-text-300)] mb-1.5">03</p>
-            <p class="text-[15px] text-[var(--color-text-800)] group-hover:text-[var(--color-brand-600)] transition-colors">雷达</p>
-            <p class="text-[11px] font-mono text-[var(--color-text-400)] mt-0.5">Radar</p>
+            <p class="text-[15px] text-[var(--color-text-800)] group-hover:text-[var(--color-brand-600)] transition-colors">月报</p>
+            <p class="text-[11px] font-mono text-[var(--color-text-400)] mt-0.5">Monthly</p>
           </a>
           <a href="#readings" class="group block">
             <p class="text-[13px] font-mono text-[var(--color-text-300)] mb-1.5">04</p>

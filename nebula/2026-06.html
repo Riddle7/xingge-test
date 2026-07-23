@@ -3,16 +3,16 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-<meta name="description" content="2026年6月·刑法学理论星云图与学术脉搏。AI 生成的本月刑法学核心期刊论文可视化：理论星云、学术脉搏、观点对撞。" />
+<meta name="description" content="2026年6月·刑法学文献星云图与学术脉搏。AI 生成的本月刑法学核心期刊论文可视化：文献星云、学术脉搏、观点对撞。" />
 <meta name="theme-color" content="#fbfbfc" />
-<title>刑法学术雷达 · 2026年6月 · 理论星云图</title>
+<title>刑法学术月报 · 2026年6月 · 文献星云图</title>
 
 <!-- Open Graph / 微信分享 -->
-<meta property="og:title" content="刑法学术雷达 · 2026年6月" />
-<meta property="og:description" content="Generative Jurisprudence · 生成式法理学：41 篇核心期刊论文的理论星云图与学术脉搏" />
+<meta property="og:title" content="刑法学术月报 · 2026年6月" />
+<meta property="og:description" content="Generative Jurisprudence · 生成式法理学：41 篇核心期刊论文的文献星云图与学术脉搏" />
 <meta property="og:type" content="article" />
-<meta name="weixin:title" content="刑法学术雷达 · 2026年6月" />
-<meta name="weixin:description" content="41 篇刑法学核心论文的理论星云图与学术脉搏" />
+<meta name="weixin:title" content="刑法学术月报 · 2026年6月" />
+<meta name="weixin:description" content="41 篇刑法学核心论文的文献星云图与学术脉搏" />
 
 <!-- 字体：Noto Serif SC（标题）+ DM Sans（正文）+ JetBrains Mono（数字标签） -->
 <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -23,7 +23,7 @@
 <script src="https://cdn.jsdelivr.net/npm/d3@7.9.0/dist/d3.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/echarts@5.5.0/dist/echarts.min.js"></script>
 
-<!-- Three.js（ES Module + importmap，用于理论星云图 3D 渲染） -->
+<!-- Three.js（ES Module + importmap，用于文献星云图 3D 渲染） -->
 <script type="importmap">
 {
   "imports": {
@@ -479,7 +479,7 @@ a { color: inherit; text-decoration: none; }
 }
 
 /* ============================================================
-   模块二 · 理论星云图（Three.js 3D · WebGL）
+   模块二 · 文献星云图（Three.js 3D · WebGL）
    ============================================================ */
 .nebula-shell {
   position: relative;
@@ -831,6 +831,10 @@ a { color: inherit; text-decoration: none; }
   overscroll-behavior: contain;
   flex: 1;
 }
+/* 抓取条把手：桌面端隐藏，仅移动端 Peek+Expand 模式显示 */
+.nebula-paper-pop .npp-handle {
+  display: none;
+}
 /* 浮层内的 ps-* 元素微调（比抽屉更紧凑） */
 .nebula-paper-pop .ps-topic { margin: 0 0 10px; }
 .nebula-paper-pop .ps-title { font-size: 17px; line-height: 1.45; padding-right: 24px; }
@@ -839,34 +843,69 @@ a { color: inherit; text-decoration: none; }
 .nebula-paper-pop .ps-sec-label { margin-top: 14px; }
 .nebula-paper-pop .ps-novelty { margin-top: 14px; }
 
-/* 移动端：切换为底部上滑卡，铺满画布宽度 */
+/* 移动端：Peek + Expand 底卡模式（不遮挡星云图主体） */
 @media (max-width: 899px) {
   .nebula-paper-pop {
     left: 0; right: 0; top: auto; bottom: 0;
     width: auto;
-    max-height: 78vh;
-    max-height: 78dvh;
+    max-height: 42vh;        /* Peek 状态：仅占 42%，保留星云图可见 */
     border-radius: 18px 18px 0 0;
     border-bottom: none;
-    transform: translateY(106%);
-    transition: transform 0.4s cubic-bezier(0.22, 0.9, 0.28, 1);
+    transform: translateY(110%);
+    transition: transform 0.4s cubic-bezier(0.22, 0.9, 0.28, 1),
+                max-height 0.4s cubic-bezier(0.22, 0.9, 0.28, 1);
   }
   .nebula-paper-pop.show {
     transform: translateY(0);
   }
-  .nebula-paper-pop .npp-body {
-    padding: 14px 18px calc(20px + env(safe-area-inset-bottom, 0px));
+  .nebula-paper-pop.expanded {
+    max-height: 78vh;
+    max-height: 78dvh;
   }
-  .nebula-paper-pop .npp-close { top: 8px; right: 12px; }
-  /* 移动端上滑指示条 */
-  .nebula-paper-pop::before {
-    content: '';
-    position: absolute;
-    top: 6px; left: 50%;
-    transform: translateX(-50%);
-    width: 38px; height: 4px;
+  /* 抓取条把手：可点击展开/收起 */
+  .nebula-paper-pop .npp-handle {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 32px;
+    cursor: pointer;
+    user-select: none;
+    flex: none;
+  }
+  .nebula-paper-pop .npp-grab {
+    width: 40px; height: 4px;
     border-radius: 4px;
     background: var(--line);
+    transition: background 0.2s;
+  }
+  .nebula-paper-pop .npp-handle:active .npp-grab {
+    background: var(--ink-4);
+  }
+  .nebula-paper-pop .npp-body {
+    padding: 0 18px calc(20px + env(safe-area-inset-bottom, 0px));
+  }
+  /* Peek 状态：内容溢出隐藏；展开后自由滚动 */
+  .nebula-paper-pop:not(.expanded) .npp-body {
+    overflow: hidden;
+  }
+  /* Peek 状态：标题与摘要截断为 2 行，保持卡片整洁 */
+  .nebula-paper-pop:not(.expanded) .ps-title {
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+  .nebula-paper-pop:not(.expanded) .ps-summary {
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+  /* 关闭按钮：避开 18px 圆角，触摸目标 44px（Apple HIG） */
+  .nebula-paper-pop .npp-close {
+    top: 14px; right: 14px;
+    width: 44px; height: 44px;
+    font-size: 22px;
   }
 }
 
@@ -1296,8 +1335,7 @@ a { color: inherit; text-decoration: none; }
   .nr-sim { font-size: 10px; width: 30px; }
   .nr-head { font-size: 9px; margin-bottom: 4px; }
 
-  /* 触摸目标增大：关闭按钮 ≥36px */
-  .nebula-paper-pop .npp-close { width: 36px; height: 36px; top: 6px; right: 8px; font-size: 20px; }
+  /* 触摸目标增大：侧滑卡关闭按钮 */
   .paper-sheet .ps-close { width: 38px; height: 38px; }
 
   /* section-head 英文副标题：移动端另起一行 */
@@ -1403,8 +1441,8 @@ a { color: inherit; text-decoration: none; }
         <span class="blip" style="top:44%;left:72%;animation-delay:2.5s"></span>
       </div>
       <p class="hero-eyebrow">生成式法理学 · 学术娱乐观测站</p>
-      <h1>刑法学术雷达</h1>
-      <p class="hero-sub">2026年6月 · 理论星云图 × 学术脉搏</p>
+      <h1>刑法学术月报</h1>
+      <p class="hero-sub">2026年6月 · 文献星云图 × 学术脉搏</p>
       <p class="hero-desc">
         本月扫描 41 篇刑法学核心期刊论文，将其映射为一片理论星空：
         每篇论文是一颗星，同一议题聚成星座，理论之间以微光相连。
@@ -1415,12 +1453,12 @@ a { color: inherit; text-decoration: none; }
     </div>
   </header>
 
-  <!-- ══════════ 模块一 · 理论星云图（Three.js 3D · WebGL） ══════════ -->
+  <!-- ══════════ 模块一 · 文献星云图（Three.js 3D · WebGL） ══════════ -->
   <section class="section" id="nebula">
     <div class="section-head reveal">
       <div>
         <span class="idx">01 / NEBULA</span>
-        <h2>理论星云图<span class="en">Theory Nebula</span></h2>
+        <h2>文献星云图<span class="en">Theory Nebula</span></h2>
       </div>
       <div class="head-side">
         <span class="ai-tag">AI生成，仅供娱乐与参考，以原文为准</span>
@@ -1466,9 +1504,12 @@ a { color: inherit; text-decoration: none; }
         <!-- 相近论文浮层：悬停光点时显示 -->
         <div class="nebula-relations" id="nebulaRelations" aria-hidden="true"></div>
 
-        <!-- 论文详情浮层：点击光点时显示（桌面右侧玻璃浮层，移动端底部上滑） -->
+        <!-- 论文详情浮层：点击光点时显示（桌面右侧玻璃浮层，移动端 Peek+Expand 底卡） -->
         <div class="nebula-paper-pop" id="nebulaPaperPop" aria-hidden="true">
           <button class="npp-close" id="nebulaPopClose" type="button" aria-label="关闭">×</button>
+          <div class="npp-handle" id="nebulaPopHandle" role="button" aria-label="点击展开或收起" tabindex="0">
+            <span class="npp-grab" aria-hidden="true"></span>
+          </div>
           <div class="npp-body" id="nebulaPopBody"></div>
         </div>
 
@@ -1595,7 +1636,7 @@ a { color: inherit; text-decoration: none; }
 
 <script>
 /* ============================================================
-   刑法学术雷达 · 2026年6月 —— 主逻辑
+   刑法学术月报 · 2026年6月 —— 主逻辑
    数据：运行时 fetch papers-2026-06.json（站点根目录）
    ============================================================ */
 (function () {
@@ -1854,7 +1895,7 @@ function renderPulse(meta) {
 }
 
 /* ============================================================
-   模块二 · 理论星云图（Three.js 3D · 由 module 脚本接管）
+   模块二 · 文献星云图（Three.js 3D · 由 module 脚本接管）
    ============================================================ */
 var nebula = {
   selectedId: null,
@@ -1928,18 +1969,36 @@ backdrop.addEventListener('click', closeSheet);
 function openNebulaPop(p, tMeta) {
   if (!nebulaPop) return;
   nebulaPopBody.innerHTML = buildPaperHTML(p, tMeta);
+  nebulaPop.classList.remove('expanded');  /* 移动端：每次打开重置为 Peek 状态 */
   nebulaPop.classList.add('show');
   nebulaPop.setAttribute('aria-hidden', 'false');
-  if (window.innerWidth < 900) document.body.style.overflow = 'hidden';
+  /* 移动端 Peek 模式不锁定页面滚动，保留星云图可交互 */
 }
 function closeNebulaPop() {
   if (!nebulaPop) return;
-  nebulaPop.classList.remove('show');
+  nebulaPop.classList.remove('show', 'expanded');
   nebulaPop.setAttribute('aria-hidden', 'true');
-  document.body.style.overflow = '';
   if (window.Nebula3D && Nebula3D.clearSelection) Nebula3D.clearSelection();
 }
 document.getElementById('nebulaPopClose').addEventListener('click', closeNebulaPop);
+
+/* 移动端抓取条：点击切换 Peek / Expanded 状态 */
+(function () {
+  var handle = document.getElementById('nebulaPopHandle');
+  if (!handle || !nebulaPop) return;
+  var toggleExpand = function () {
+    var isExpanded = nebulaPop.classList.toggle('expanded');
+    handle.setAttribute('aria-expanded', isExpanded ? 'true' : 'false');
+  };
+  handle.addEventListener('click', toggleExpand);
+  /* 键盘支持：Enter / Space 触发 */
+  handle.addEventListener('keydown', function (e) {
+    if (e.key === 'Enter' || e.key === ' ') {
+      e.preventDefault();
+      toggleExpand();
+    }
+  });
+})();
 
 /* 挂载到 window：供模块脚本（nebula3d.js）调用 */
 window.openNebulaPop = openNebulaPop;
@@ -2055,7 +2114,7 @@ if (document.readyState === 'loading') {
 </script>
 <script type="module">
 /**
- * 刑法学术雷达 · 理论星云图 3D（Three.js 实现）
+ * 刑法学术月报 · 文献星云图 3D（Three.js 实现）
  * ============================================================
  * 数据源：papers-3d.json（由 compute_nebula_3d.py 预计算）
  *
@@ -2858,7 +2917,7 @@ window.Nebula3D = Nebula3D;
 // ============================================================
 
 /**
- * 初始化理论星云图 3D
+ * 初始化文献星云图 3D
  * @param {object} sourceMeta - 来自 papers-2026-06.json 的 meta（含 topics 颜色等）
  */
 async function initNebula3D(sourceMeta) {
