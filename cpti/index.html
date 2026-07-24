@@ -202,6 +202,46 @@
       }
       .modal-overlay.active { display: flex; }
 
+      /* ===== 人格人物形象（图片头像） ===== */
+      #result-avatar-section {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        padding: 8px 0 4px;
+      }
+      .cpti-avatar-wrap {
+        position: relative;
+        width: 220px;
+        height: 220px;
+        border-radius: 20px;
+        overflow: hidden;
+        background: linear-gradient(180deg, rgba(255,255,255,0.6) 0%, rgba(248,250,252,0.9) 100%);
+        border: 1px solid rgba(79,70,229,0.08);
+        box-shadow: 0 4px 24px rgba(15,23,42,0.06), inset 0 1px 0 rgba(255,255,255,0.8);
+      }
+      .cpti-avatar-img {
+        width: 100%;
+        height: 100%;
+        display: block;
+        object-fit: cover;
+        object-position: center;
+      }
+      @keyframes avatarReveal {
+        from { opacity: 0; transform: scale(0.92); }
+        to { opacity: 1; transform: scale(1); }
+      }
+      .cpti-avatar-wrap.entering { animation: avatarReveal 0.6s cubic-bezier(0.16,1,0.3,1) forwards; }
+      @media (max-width: 640px) {
+        .cpti-avatar-wrap {
+          width: 180px;
+          height: 180px;
+          border-radius: 16px;
+        }
+      }
+      @media (prefers-reduced-motion: reduce) {
+        .cpti-avatar-wrap.entering { animation: none; opacity: 1; transform: none; }
+      }
+
       /* ===== Toast 提示 ===== */
       #toast {
         position: fixed;
@@ -424,6 +464,11 @@
         <p id="result-nickname" class="text-2xl font-semibold text-primary mb-4">持刀哲学家</p>
         <div id="result-tags" class="flex flex-wrap justify-center gap-2"></div>
         <p id="result-borderline" class="text-xs text-muted-foreground mt-3" style="display:none"></p>
+      </section>
+
+      <!-- 人格人物形象（JPG 图片，置于四维坐标前） -->
+      <section id="result-avatar-section" class="mb-6">
+        <div id="result-avatar" class="cpti-avatar-wrap entering"></div>
       </section>
 
       <section class="bg-card border border-border rounded-lg p-6 mb-8 shadow-sm">
@@ -758,6 +803,15 @@ const personalities = {
     career: { job: '学者', reason: '你打心底认为刑法能不用就不用，但你不是那种只会喊口号的反对者。你能用实质解释说清楚为什么某件事不该入罪，也承认预防犯罪是正当的公共目标，只是在刑法的门槛前你永远是那个举手说再等一下的人。你在刑事政策研究中找到了一个安放这些信念的位置，用最少的条文和最轻的手段去实现公共安全，而不是反过来。' }
   }
 };
+
+/* ===== 17 种人格人物形象（JPG 图片） =====
+   图片位于 ./avatars/<typeKey>.jpg，HYBRID 对应 HYBRID.jpg
+   buildAvatarImg(typeKey) 返回 <img> 元素 HTML 字符串 */
+var AVATAR_IMG_BASE = './avatars/';
+function buildAvatarImgSrc(typeKey) {
+  var key = typeKey && typeKey.includes('/') ? 'HYBRID' : typeKey;
+  return AVATAR_IMG_BASE + key + '.jpg';
+}
 
 /* ===== 全局统计 API 配置 ===== */
 // 部署 Worker 后替换为真实 URL，例如：https://cpti-stats.your-name.workers.dev
@@ -1137,6 +1191,24 @@ function renderResult(typeKey, p, scores, confidence) {
   state.lastResult = { typeKey: typeKey, p: p, scores: scores };
   document.getElementById('result-type').textContent = typeKey;
   document.getElementById('result-nickname').textContent = p.nickname;
+
+  // 注入人格形象图片（置于四维坐标前）
+  var avatarHost = document.getElementById('result-avatar');
+  if (avatarHost) {
+    var imgSrc = buildAvatarImgSrc(typeKey);
+    avatarHost.innerHTML = '<img class="cpti-avatar-img" alt="' + typeKey + ' 人物形象" src="' + imgSrc + '">';
+    // 触发入场动画（移除并重置 entering 类）
+    avatarHost.classList.remove('entering');
+    void avatarHost.offsetWidth;
+    avatarHost.classList.add('entering');
+    // 预加载 Image，供 saveAsImage 在 canvas 上同步绘制（CORS 启用以便 canvas 不污染）
+    state.avatarImg = null;
+    var img = new Image();
+    img.crossOrigin = 'anonymous';
+    img.onload = function() { state.avatarImg = img; };
+    img.onerror = function() { console.warn('Avatar 图片加载失败：', imgSrc); };
+    img.src = imgSrc;
+  }
 
   var tagsHtml = '';
   p.tags.forEach(function(tag) {
@@ -1582,9 +1654,11 @@ function saveAsImage() {
     }
 
     // 各区块高度（严格对应绘制流程）
-    // hHdr = 16(起点) + 24(标签) + 16(间距) + typeKeySize + 8(间距) + 24(昵称) + 16(间距) + tagRows*32-8(tags，每行24+8间距，末行减8) + 32(到坐标轴间距)
+    // hHdr = 16(起点) + 24(标签) + 16(间距) + typeKeySize + 8(间距) + 24(昵称) + 16(间距) + tagRows*32-8(tags，每行24+8间距，末行减8) + 32(到人物形象区间距)
     //      = 128 + typeKeySize + tagRows * 32
     var hHdr = 128 + typeKeySize + tagRows * 32;
+    // 人格形象区：8px top padding + 220px avatar + 4px bottom padding + 32px 到坐标轴间距
+    var hAvatar = 8 + 220 + 4 + 32;
     var hAxis = 24 + 20 + 20 + 4 * 28 + 24; // p-6=24, 标题+mb-5=20+20, 4行*28(复合标签单行)+ p-6=24
     var hJudg = 24 + 24 + 12 + jLines.length * 22 + 24; // p-6=24, 标题+mb-3=24+12, 正文行高22, p-6=24
     // 互粉互怼卡片：动态高度，每条 list 可能换行（typeKey+nickname 字符数不定）
@@ -1610,7 +1684,7 @@ function saveAsImage() {
     var hJudge = 148;
     // 品牌性收尾 footer：分隔线上间距 16 + 分隔线 1 + footer 区 106
     var hFooter = 16 + 1 + 106;
-    var totalH = hHdr + hAxis + 32 + hJudg + 32 + hPeers + 40 + hJudge + hFooter;
+    var totalH = hHdr + hAvatar + hAxis + 32 + hJudg + 32 + hPeers + 40 + hJudge + hFooter;
 
     var canvas = document.createElement('canvas');
     canvas.width = W * SCALE;
@@ -1679,6 +1753,37 @@ function saveAsImage() {
       ty += tagH + 8;
     });
     y = ty - 8 + 32;
+
+    // 人格形象区（页面：#result-avatar-section，220×220 正方形头像居中）
+    if (state.avatarImg) {
+      var avW = 220, avH = 220;
+      var avX = cx - avW / 2;
+      var avY = y + 8; // 顶部 8px padding
+      // 背景容器（呼应 DOM：浅色渐变 + 圆角 + 轻阴影 + 1px 边框）
+      ctx.save();
+      ctx.shadowColor = 'rgba(15,23,42,0.06)';
+      ctx.shadowBlur = 12;
+      ctx.shadowOffsetY = 4;
+      var avGrad = ctx.createLinearGradient(0, avY, 0, avY + avH);
+      avGrad.addColorStop(0, 'rgba(255,255,255,0.6)');
+      avGrad.addColorStop(1, 'rgba(248,250,252,0.9)');
+      ctx.fillStyle = avGrad;
+      rr(ctx, avX, avY, avW, avH, 20); ctx.fill();
+      ctx.restore();
+      ctx.strokeStyle = 'rgba(79,70,229,0.08)';
+      ctx.lineWidth = 1;
+      rr(ctx, avX, avY, avW, avH, 20); ctx.stroke();
+      // 裁剪为圆角后绘制 JPG 图片
+      ctx.save();
+      rr(ctx, avX, avY, avW, avH, 20); ctx.clip();
+      try {
+        ctx.drawImage(state.avatarImg, avX, avY, avW, avH);
+      } catch (avErr) {
+        console.warn('Avatar 绘制失败，已跳过：', avErr);
+      }
+      ctx.restore();
+    }
+    y += hAvatar;
 
     // 四维坐标卡片（页面：bg-card border rounded-lg p-6 shadow-sm）
     card(ctx, PAD, y, CW, hAxis);
