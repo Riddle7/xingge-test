@@ -1018,9 +1018,10 @@ function calculateScores() {
 }
 
 /* ===== v7 平局裁决链 =====
-   规则红线：平局维度 =1 个才裁决，≥2 个直接 HYBRID（绝不做"插补的插补"）。
-   只剩 1 维平分时，根据其他 3 个实测维度推算倾向；2 维及以上平分说明用户立场本身模糊，
-   不再强行破平，直接判 HYBRID。三级裁决（证据每弱一级，置信度标记降一级）：
+   规则红线：3 维及以上平分直接 HYBRID；2 维平分优先联合破平，阵营抵消时退回单维裁决；
+   仅 1 维平分时直接走单维裁决链。杜绝"插补的插补"——各级只读实测维度，裁出字母互不作证据。
+   2 维平分 → 阵营一致性联合破平（camp-infer）：用另外两维实测的阵营倾向同步推断两个平分维度
+   1 维平分 或 2 维阵营抵消 → 三级裁决（证据每弱一级，置信度标记降一级）：
      1. weightedVote      本维度残余信息：默认赞同偏差校正的加权计票
      2. inferFromMeasured 并行跨维度推断：只用"实测维度"（总分≠0），推断结果互不作证据
      3. priorVote         基础率先验：无数据时 50/50 随机（随机不偏斜分布，且会被披露）
@@ -1103,11 +1104,40 @@ function getTypeKey(scoresObj) {
     else tied.push(i);
   }
 
-  // 规则红线：≥2 个维度平分 → 不做任何插补，直接缝合怪
-  // 只剩 1 维平分时走三级裁决链，根据其他 3 个实测维度推算倾向
-  if (tied.length >= 2) return { key: 'HYBRID', confidence: confidence };
+  // ===== 2 维平分时：阵营一致性联合破平 =====
+  // 恰好两维平分时，用另外两维实测的阵营倾向联合推断。
+  // 阵营 A（法益保护/积极派）：O/M/P/E；阵营 B（自由保障/消极派）：S/F/R/Re
+  // 联合推断比单维独立推断更稳定：避免两个平分维度被裁向不同阵营，保持理论亲缘性。
+  if (tied.length === 2) {
+    var CAMP_A = ['O', 'M', 'P', 'E'];
+    var campScore = 0;
+    for (var k = 0; k < 4; k++) {
+      if (measured[k]) {
+        campScore += (CAMP_A.indexOf(letters[k]) >= 0) ? 1 : -1;
+      }
+    }
+    // 实测维度有明确阵营倾向（不抵消）→ 两个平分维度同步判给该阵营
+    if (campScore !== 0) {
+      var targetCamp = campScore > 0 ? 'A' : 'B';
+      for (var t = 0; t < tied.length; t++) {
+        var idx = tied[t];
+        var posLetter = dims[idx].pos;
+        var negLetter = dims[idx].neg;
+        var isPosCampA = CAMP_A.indexOf(posLetter) >= 0;
+        letters[idx] = (targetCamp === 'A')
+          ? (isPosCampA ? posLetter : negLetter)
+          : (isPosCampA ? negLetter : posLetter);
+        confidence[idx] = 'camp-infer';
+      }
+      return { key: letters.join('-'), confidence: confidence };
+    }
+    // 实测阵营抵消 → 退回单维三级裁决链（见下方）
+  }
 
-  // 仅 1 个平分维度：走三级裁决链，根据其他 3 个实测维度推算倾向。
+  // 3 维及以上平分 → 直接缝合怪（仅 0 或 1 个实测维度，不足以做阵营推断）
+  if (tied.length >= 3) return { key: 'HYBRID', confidence: confidence };
+
+  // 单维平分 或 2 维阵营抵消：走三级裁决链，根据实测维度推算倾向。
   // 各级只读取本维度信息或实测维度，裁出的字母互不作证据（并行，不链式）
   var remain1 = [];
   for (var t = 0; t < tied.length; t++) {
