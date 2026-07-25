@@ -488,6 +488,305 @@ async function withAuth(request, env, ctx, handler) {
   return handler(request, env, ctx);
 }
 
+// ============ Admin API Handlers ============
+
+// GET /api/admin/overview
+async function handleAdminOverview(request, env, ctx) {
+  const today = bjDateNow();
+  const yesterday = bjDateFromIso(new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString());
+  const sevenDaysAgo = bjDateFromIso(new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString());
+  const thirtyDaysAgo = bjDateFromIso(new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString());
+
+  const [todayPV, todayTests, todaySessions, todayBounce,
+         yesterdayPV, yesterdayTests,
+         legacyVisits, countsSum,
+         trend7d, trend30d] = await Promise.all([
+    env.CPTI_DB.prepare(
+      "SELECT COUNT(*) AS c FROM (SELECT DISTINCT session_id FROM events WHERE event_type='page_view' AND ts_date_bj=? AND session_id IS NOT NULL) UNION ALL SELECT COUNT(*) AS c FROM events WHERE event_type='page_view' AND ts_date_bj=? AND session_id IS NULL"
+    ).bind(today, today).all(),
+    env.CPTI_DB.prepare("SELECT COUNT(*) AS c FROM events WHERE event_type='test_completed' AND ts_date_bj=?").bind(today).first(),
+    env.CPTI_DB.prepare("SELECT COUNT(DISTINCT session_id) AS c FROM events WHERE ts_date_bj=? AND session_id IS NOT NULL").bind(today).first(),
+    env.CPTI_DB.prepare(
+      "SELECT AVG(CASE WHEN cnt=1 THEN 1.0 ELSE 0.0 END) AS r FROM (SELECT session_id, COUNT(*) AS cnt FROM events WHERE ts_date_bj=? AND session_id IS NOT NULL GROUP BY session_id)"
+    ).bind(today).first(),
+    env.CPTI_DB.prepare(
+      "SELECT (SELECT COUNT(*) FROM (SELECT DISTINCT session_id FROM events WHERE event_type='page_view' AND ts_date_bj=? AND session_id IS NOT NULL) UNION ALL SELECT COUNT(*) FROM events WHERE event_type='page_view' AND ts_date_bj=? AND session_id IS NULL) AS c"
+    ).bind(yesterday, yesterday).first(),
+    env.CPTI_DB.prepare("SELECT COUNT(*) AS c FROM events WHERE event_type='test_completed' AND ts_date_bj=?").bind(yesterday).first(),
+    env.CPTI_DB.prepare("SELECT count FROM visits WHERE key='total'").first(),
+    env.CPTI_DB.prepare("SELECT SUM(count) AS c FROM counts").first(),
+    env.CPTI_DB.prepare(
+      "SELECT ts_date_bj AS d, SUM(CASE WHEN event_type='page_view' THEN 1 ELSE 0 END) AS v, SUM(CASE WHEN event_type='test_completed' THEN 1 ELSE 0 END) AS t FROM events WHERE ts_date_bj >= ? GROUP BY ts_date_bj ORDER BY ts_date_bj"
+    ).bind(sevenDaysAgo).all(),
+    env.CPTI_DB.prepare(
+      "SELECT ts_date_bj AS d, SUM(CASE WHEN event_type='page_view' THEN 1 ELSE 0 END) AS v, SUM(CASE WHEN event_type='test_completed' THEN 1 ELSE 0 END) AS t FROM events WHERE ts_date_bj >= ? GROUP BY ts_date_bj ORDER BY ts_date_bj"
+    ).bind(thirtyDaysAgo).all()
+  ]);
+
+  const todayVisits = (todayPV.results[0]?.c || 0) + (todayPV.results[1]?.c || 0);
+  const todayTestsN = todayTests?.c || 0;
+  const todaySess = todaySessions?.c || 0;
+  const bounce = todayBounce?.r || 0;
+  const yesterdayVisits = yesterdayPV?.c || 0;
+  const yesterdayTestsN = yesterdayTests?.c || 0;
+  const totalVisits = legacyVisits?.count || 0;
+  const totalTests = countsSum?.c || 0;
+
+  const fmtTrend = function (rows) {
+    return (rows.results || []).map(function (r) {
+      return { date: r.d, visits: r.v, tests: r.t };
+    });
+  };
+
+  return json({
+    today: {
+      date: today,
+      visits: todayVisits,
+      tests: todayTestsN,
+      unique_sessions: todaySess,
+      bounce_rate: Math.round(bounce * 100) / 100
+    },
+    yesterday: {
+      date: yesterday,
+      visits: yesterdayVisits,
+      tests: yesterdayTestsN
+    },
+    total: {
+      visits: totalVisits,
+      tests: totalTests,
+      legacy_visits: totalVisits,
+      legacy_tests: totalTests
+    },
+    trend_7d: fmtTrend(trend7d),
+    trend_30d: fmtTrend(trend30d)
+  });
+}
+
+// GET /api/admin/timeseries?days=30&metric=both
+async function handleAdminTimeseries(request, env, ctx) {
+  const url = new URL(request.url);
+  const days = Math.min(Math.max(parseInt(url.searchParams.get('days') || '30', 10), 1), 90);
+  const metric = url.searchParams.get('metric') || 'both';
+  const sinceDate = bjDateFromIso(new Date(Date.now() - days * 24 * 60 * 60 * 1000).toISOString());
+
+  const { results } = await env.CPTI_DB.prepare(
+    "SELECT ts_date_bj AS d, SUM(CASE WHEN event_type='page_view' THEN 1 ELSE 0 END) AS v, SUM(CASE WHEN event_type='test_completed' THEN 1 ELSE 0 END) AS t FROM events WHERE ts_date_bj >= ? GROUP BY ts_date_bj ORDER BY ts_date_bj"
+  ).bind(sinceDate).all();
+
+  const points = (results || []).map(function (r) {
+    const p = { date: r.d };
+    if (metric === 'visits' || metric === 'both') p.visits = r.v;
+    if (metric === 'tests' || metric === 'both') p.tests = r.t;
+    return p;
+  });
+  return json({ days: days, points: points });
+}
+
+// GET /api/admin/hourly?date=today
+async function handleAdminHourly(request, env, ctx) {
+  const url = new URL(request.url);
+  const dateParam = url.searchParams.get('date') || 'today';
+  let date;
+  if (dateParam === 'today') date = bjDateNow();
+  else if (dateParam === 'yesterday') date = bjDateFromIso(new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString());
+  else date = dateParam;
+
+  const { results } = await env.CPTI_DB.prepare(
+    "SELECT substr(ts_hour, 12, 2) AS h, event_type, COUNT(*) AS c FROM events WHERE ts_date_bj=? GROUP BY h, event_type"
+  ).bind(date).all();
+
+  const visits = new Array(24).fill(0);
+  const tests = new Array(24).fill(0);
+  (results || []).forEach(function (r) {
+    const idx = parseInt(r.h, 10);
+    if (idx >= 0 && idx < 24) {
+      if (r.event_type === 'page_view') visits[idx] = r.c;
+      else if (r.event_type === 'test_completed') tests[idx] = r.c;
+    }
+  });
+  return json({
+    date: date,
+    hours: Array.from({ length: 24 }, function (_, i) { return i; }),
+    visits: visits,
+    tests: tests
+  });
+}
+
+// GET /api/admin/pages?days=30&limit=20
+async function handleAdminPages(request, env, ctx) {
+  const url = new URL(request.url);
+  const days = Math.min(Math.max(parseInt(url.searchParams.get('days') || '30', 10), 1), 90);
+  const limit = Math.min(Math.max(parseInt(url.searchParams.get('limit') || '20', 10), 1), 100);
+  const sinceDate = bjDateFromIso(new Date(Date.now() - days * 24 * 60 * 60 * 1000).toISOString());
+
+  const { results } = await env.CPTI_DB.prepare(
+    "SELECT page, COUNT(DISTINCT session_id) AS v FROM events WHERE event_type='page_view' AND ts_date_bj >= ? AND session_id IS NOT NULL GROUP BY page ORDER BY v DESC LIMIT ?"
+  ).bind(sinceDate, limit).all();
+
+  const totalVisits = (results || []).reduce(function (s, r) { return s + r.v; }, 0);
+  const pages = (results || []).map(function (r) {
+    return {
+      page: r.page,
+      visits: r.v,
+      percent: totalVisits > 0 ? Math.round((r.v / totalVisits) * 1000) / 10 : 0
+    };
+  });
+  return json({ pages: pages, total_visits: totalVisits });
+}
+
+// GET /api/admin/types?date=today
+async function handleAdminTypes(request, env, ctx) {
+  const url = new URL(request.url);
+  const dateParam = url.searchParams.get('date') || 'today';
+  let date;
+  if (dateParam === 'today') date = bjDateNow();
+  else if (dateParam === 'yesterday') date = bjDateFromIso(new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString());
+  else date = dateParam;
+
+  const [todayRows, cumulRows] = await Promise.all([
+    env.CPTI_DB.prepare(
+      "SELECT type, COUNT(*) AS c FROM events WHERE event_type='test_completed' AND ts_date_bj=? GROUP BY type ORDER BY c DESC"
+    ).bind(date).all(),
+    env.CPTI_DB.prepare("SELECT type, count FROM counts").all()
+  ]);
+
+  const todayTotal = (todayRows.results || []).reduce(function (s, r) { return s + r.c; }, 0);
+  const cumulTotal = (cumulRows.results || []).reduce(function (s, r) { return s + r.count; }, 0);
+
+  const distribution = (todayRows.results || []).map(function (r) {
+    return {
+      type: r.type,
+      count: r.c,
+      percent: todayTotal > 0 ? Math.round((r.c / todayTotal) * 1000) / 10 : 0
+    };
+  });
+  const cumulative = (cumulRows.results || []).map(function (r) {
+    return {
+      type: r.type,
+      count: r.count,
+      percent: cumulTotal > 0 ? Math.round((r.count / cumulTotal) * 1000) / 10 : 0
+    };
+  }).sort(function (a, b) { return b.count - a.count; });
+
+  return json({
+    date: date,
+    total: todayTotal,
+    distribution: distribution,
+    cumulative: cumulative,
+    cumulative_total: cumulTotal
+  });
+}
+
+// GET /api/admin/heatmap?days=7
+async function handleAdminHeatmap(request, env, ctx) {
+  const url = new URL(request.url);
+  const days = Math.min(Math.max(parseInt(url.searchParams.get('days') || '7', 10), 1), 30);
+  const sinceDate = bjDateFromIso(new Date(Date.now() - days * 24 * 60 * 60 * 1000).toISOString());
+
+  const { results } = await env.CPTI_DB.prepare(
+    "SELECT ts_date_bj AS d, substr(ts_hour, 12, 2) AS h, COUNT(*) AS c FROM events WHERE event_type='page_view' AND ts_date_bj >= ? GROUP BY d, h"
+  ).bind(sinceDate).all();
+
+  const matrix = [];
+  for (let i = days - 1; i >= 0; i--) {
+    const d = bjDateFromIso(new Date(Date.now() - i * 24 * 60 * 60 * 1000).toISOString());
+    const row = new Array(24).fill(0);
+    (results || []).forEach(function (r) {
+      if (r.d === d) {
+        const idx = parseInt(r.h, 10);
+        if (idx >= 0 && idx < 24) row[idx] = r.c;
+      }
+    });
+    matrix.push(row);
+  }
+  const max = matrix.reduce(function (m, row) {
+    return Math.max(m, row.reduce(function (mr, v) { return Math.max(mr, v); }, 0));
+  }, 0);
+  return json({ days: days, matrix: matrix, max: max });
+}
+
+// GET /api/admin/sessions?days=7&limit=100
+async function handleAdminSessions(request, env, ctx) {
+  const url = new URL(request.url);
+  const days = Math.min(Math.max(parseInt(url.searchParams.get('days') || '7', 10), 1), 30);
+  const limit = Math.min(Math.max(parseInt(url.searchParams.get('limit') || '100', 10), 1), 500);
+  const sinceDate = bjDateFromIso(new Date(Date.now() - days * 24 * 60 * 60 * 1000).toISOString());
+
+  const { results } = await env.CPTI_DB.prepare(
+    "SELECT session_id, MIN(ts) AS first_seen, MAX(ts) AS last_seen, COUNT(*) AS cnt FROM events WHERE ts_date_bj >= ? AND session_id IS NOT NULL GROUP BY session_id ORDER BY last_seen DESC LIMIT ?"
+  ).bind(sinceDate, limit).all();
+
+  const sessions = (results || []).map(function (r) {
+    const first = new Date(r.first_seen);
+    const last = new Date(r.last_seen);
+    return {
+      session_id: r.session_id,
+      first_seen: r.first_seen,
+      last_seen: r.last_seen,
+      duration_sec: Math.round((last - first) / 1000),
+      page_count: r.cnt
+    };
+  });
+
+  const totalSessions = sessions.length;
+  const avgDuration = totalSessions > 0 ? Math.round(sessions.reduce(function (s, x) { return s + x.duration_sec; }, 0) / totalSessions) : 0;
+  const avgPages = totalSessions > 0 ? Math.round(sessions.reduce(function (s, x) { return s + x.page_count; }, 0) / totalSessions * 10) / 10 : 0;
+  const bounceCount = sessions.filter(function (x) { return x.page_count === 1; }).length;
+  const bounceRate = totalSessions > 0 ? Math.round(bounceCount / totalSessions * 100) / 100 : 0;
+
+  return json({
+    sessions: sessions,
+    summary: {
+      total_sessions: totalSessions,
+      avg_duration_sec: avgDuration,
+      avg_page_count: avgPages,
+      bounce_rate: bounceRate
+    }
+  });
+}
+
+// GET /api/admin/referrers?days=30&limit=20
+async function handleAdminReferrers(request, env, ctx) {
+  const url = new URL(request.url);
+  const days = Math.min(Math.max(parseInt(url.searchParams.get('days') || '30', 10), 1), 90);
+  const limit = Math.min(Math.max(parseInt(url.searchParams.get('limit') || '20', 10), 1), 100);
+  const sinceDate = bjDateFromIso(new Date(Date.now() - days * 24 * 60 * 60 * 1000).toISOString());
+
+  const { results } = await env.CPTI_DB.prepare(
+    "SELECT referrer, COUNT(DISTINCT session_id) AS c FROM events WHERE event_type='page_view' AND ts_date_bj >= ? AND session_id IS NOT NULL GROUP BY referrer ORDER BY c DESC LIMIT ?"
+  ).bind(sinceDate, limit).all();
+
+  const total = (results || []).reduce(function (s, r) { return s + r.c; }, 0);
+  const referrers = (results || []).map(function (r) {
+    let label = r.referrer || '直接访问';
+    if (r.referrer) {
+      try {
+        const u = new URL(r.referrer);
+        label = u.origin + '/';
+      } catch (e) {}
+    }
+    return {
+      referrer: label,
+      visits: r.c,
+      percent: total > 0 ? Math.round((r.c / total) * 1000) / 10 : 0
+    };
+  });
+  // 合并同 origin
+  const merged = {};
+  referrers.forEach(function (r) {
+    if (merged[r.referrer]) {
+      merged[r.referrer].visits += r.visits;
+    } else {
+      merged[r.referrer] = r;
+    }
+  });
+  const finalList = Object.values(merged).sort(function (a, b) { return b.visits - a.visits; });
+  finalList.forEach(function (r) {
+    r.percent = total > 0 ? Math.round((r.visits / total) * 1000) / 10 : 0;
+  });
+  return json({ referrers: finalList.slice(0, limit), total_visits: total });
+}
+
 export default {
   async fetch(request, env, ctx) {
     // CORS 预检
