@@ -28,6 +28,52 @@ const CORS_HEADERS = {
   'Access-Control-Max-Age': '86400'
 };
 
+// ============ 时间工具：北京时间桶 ============
+// UTC 存储 ts，但 KPI 按北京日显示，预存桶字段避免 strftime 转换
+function bjDateNow() {
+  // 北京时间 = UTC+8；toISOString 返回 UTC，加 8 小时得北京
+  const bj = new Date(Date.now() + 8 * 60 * 60 * 1000);
+  return bj.toISOString().slice(0, 10); // 'YYYY-MM-DD'
+}
+function bjHourNow() {
+  const bj = new Date(Date.now() + 8 * 60 * 60 * 1000);
+  // 'YYYY-MM-DDTHH'，注意 toISOString 返回 'YYYY-MM-DDTHH:MM:SS.xxxZ'，截到小时
+  return bj.toISOString().slice(0, 13);
+}
+function bjDateFromIso(isoTs) {
+  // 把任意 UTC ISO 时间转成北京日期
+  const d = new Date(isoTs);
+  const bj = new Date(d.getTime() + 8 * 60 * 60 * 1000);
+  return bj.toISOString().slice(0, 10);
+}
+function bjHourFromIso(isoTs) {
+  const d = new Date(isoTs);
+  const bj = new Date(d.getTime() + 8 * 60 * 60 * 1000);
+  return bj.toISOString().slice(0, 13);
+}
+
+// ============ events 表写入辅助 ============
+// 写入一条事件到 events 表；调用方负责事务/缓存失效
+async function insertEvent(env, ctx, payload) {
+  // payload: { event_type, page, type?, session_id?, referrer?, ua?, country? }
+  const now = new Date();
+  const ts = now.toISOString();
+  const tsHour = bjHourFromIso(ts);
+  const tsDateBj = bjDateFromIso(ts);
+  await env.CPTI_DB.prepare(
+    'INSERT INTO events (ts, ts_hour, ts_date_bj, event_type, page, type, session_id, referrer, ua, country) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)'
+  ).bind(
+    ts, tsHour, tsDateBj,
+    payload.event_type,
+    payload.page,
+    payload.type || null,
+    payload.session_id || null,
+    payload.referrer || null,
+    payload.ua || null,
+    payload.country || null
+  ).run();
+}
+
 function json(data, status = 200) {
   return new Response(JSON.stringify(data), {
     status,
