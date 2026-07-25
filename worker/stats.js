@@ -787,6 +787,35 @@ async function handleAdminReferrers(request, env, ctx) {
   return json({ referrers: finalList.slice(0, limit), total_visits: total });
 }
 
+// 静态资源：通过 env.STATIC_ASSETS 读取
+async function serveAdminHtml(env) {
+  const obj = await env.STATIC_ASSETS.fetch(new Request('https://internal/admin.html'));
+  if (!obj.ok) return new Response('admin.html not found', { status: 404 });
+  const html = await obj.text();
+  return new Response(html, {
+    status: 200,
+    headers: {
+      'Content-Type': 'text/html; charset=utf-8',
+      'Cache-Control': 'no-cache',
+      'Content-Security-Policy': "default-src 'self'; script-src 'self' https://cdn.jsdelivr.net; style-src 'self' https://fonts.googleapis.com 'unsafe-inline'; font-src 'self' https://fonts.gstatic.com; img-src 'self' data:;"
+    }
+  });
+}
+
+async function serveTrackingJs(env) {
+  const obj = await env.STATIC_ASSETS.fetch(new Request('https://internal/tracking.js'));
+  if (!obj.ok) return new Response('// tracking.js not found', { status: 404, headers: { 'Content-Type': 'application/javascript; charset=utf-8' } });
+  const js = await obj.text();
+  return new Response(js, {
+    status: 200,
+    headers: {
+      'Content-Type': 'application/javascript; charset=utf-8',
+      'Cache-Control': 'public, max-age=3600',
+      'Access-Control-Allow-Origin': '*'
+    }
+  });
+}
+
 export default {
   async fetch(request, env, ctx) {
     // CORS 预检
@@ -811,6 +840,46 @@ export default {
     }
     if (url.pathname === '/api/event' && request.method === 'POST') {
       return handleEvent(request, env, ctx);
+    }
+
+    // ===== Admin API =====
+    if (url.pathname === '/api/admin/login' && request.method === 'POST') {
+      return handleLogin(request, env, ctx);
+    }
+    if (url.pathname === '/api/admin/logout' && request.method === 'POST') {
+      return handleLogout(request, env, ctx);
+    }
+    if (url.pathname === '/api/admin/overview' && request.method === 'GET') {
+      return withAuth(request, env, ctx, handleAdminOverview);
+    }
+    if (url.pathname === '/api/admin/timeseries' && request.method === 'GET') {
+      return withAuth(request, env, ctx, handleAdminTimeseries);
+    }
+    if (url.pathname === '/api/admin/hourly' && request.method === 'GET') {
+      return withAuth(request, env, ctx, handleAdminHourly);
+    }
+    if (url.pathname === '/api/admin/pages' && request.method === 'GET') {
+      return withAuth(request, env, ctx, handleAdminPages);
+    }
+    if (url.pathname === '/api/admin/types' && request.method === 'GET') {
+      return withAuth(request, env, ctx, handleAdminTypes);
+    }
+    if (url.pathname === '/api/admin/heatmap' && request.method === 'GET') {
+      return withAuth(request, env, ctx, handleAdminHeatmap);
+    }
+    if (url.pathname === '/api/admin/sessions' && request.method === 'GET') {
+      return withAuth(request, env, ctx, handleAdminSessions);
+    }
+    if (url.pathname === '/api/admin/referrers' && request.method === 'GET') {
+      return withAuth(request, env, ctx, handleAdminReferrers);
+    }
+
+    // ===== Admin UI + 静态资源 =====
+    if (url.pathname === '/admin' || url.pathname === '/admin/') {
+      return serveAdminHtml(env);
+    }
+    if (url.pathname === '/tracking.js') {
+      return serveTrackingJs(env);
     }
 
     // 根路径返回简单状态信息
