@@ -7,6 +7,32 @@ let countdownTimer = null;
 let countdown = REFRESH_INTERVAL / 1000;
 const charts = {};
 
+// ===== 人格代号 → 中文名映射（17 种） =====
+const TYPE_LABELS = {
+  'S-F-R-E': '法条灭霸',
+  'S-F-R-Re': '立法者の忠犬',
+  'S-F-P-E': '预防性洁癖',
+  'S-F-P-Re': '依法从宽の神',
+  'S-M-R-E': '穿透法条的复仇之眼',
+  'S-M-R-Re': '持刀哲学家',
+  'S-M-P-E': '刑法工具人',
+  'S-M-P-Re': '被告人的天使',
+  'O-F-R-E': '结果导向暴君',
+  'O-F-R-Re': '法条打印机',
+  'O-F-P-E': '杀鸡儆猴推广大使',
+  'O-F-P-Re': '教育刑の循吏',
+  'O-M-R-E': '结果归责复仇者',
+  'O-M-R-Re': '自由原教旨',
+  'O-M-P-E': '安全乌托邦织网者',
+  'O-M-P-Re': '谦抑性玫瑰',
+  'HYBRID': '终极缝合怪'
+};
+// 格式化为 "typeKey · 中文名"，便于扫描与识别
+function formatTypeLabel(type) {
+  const name = TYPE_LABELS[type];
+  return name ? type + ' · ' + name : type;
+}
+
 // ===== 工具 =====
 function fmt(n) {
   return String(n || 0).replace(/\B(?=(\d{3})+(?!\d))/g, ',');
@@ -174,13 +200,28 @@ function renderTypesTodayChart(data) {
   const ctx = document.getElementById('chart-types-today');
   if (charts.typesToday) charts.typesToday.destroy();
   const dist = data.distribution || [];
+  const todayTotal = (data.total || 0) || dist.reduce(function (s, d) { return s + d.count; }, 0);
   charts.typesToday = new Chart(ctx, {
     type: 'doughnut',
     data: {
-      labels: dist.map(function (d) { return d.type; }),
+      labels: dist.map(function (d) { return formatTypeLabel(d.type); }),
       datasets: [{ data: dist.map(function (d) { return d.count; }), backgroundColor: palette(dist.length) }]
     },
-    options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'right', labels: { font: { family: 'JetBrains Mono', size: 11 } } } } }
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: {
+        legend: { position: 'right', labels: { font: { family: "'DM Sans', sans-serif", size: 11 } } },
+        tooltip: {
+          callbacks: {
+            label: function (ctx) {
+              const c = ctx.parsed;
+              const pct = todayTotal > 0 ? (Math.round(c / todayTotal * 1000) / 10) : 0;
+              return ' ' + fmt(c) + ' 人 · ' + pct + '%';
+            }
+          }
+        }
+      }
+    }
   });
 }
 
@@ -269,17 +310,38 @@ async function loadTestsTab() {
 }
 
 // ===== Types Tab =====
+// 横向 bar 图通用配置工厂：标签含中文名，tooltip 显示 count + percent，bar 末尾标注百分比
+function buildTypesBarOptions(total) {
+  return {
+    indexAxis: 'y', responsive: true, maintainAspectRatio: false,
+    plugins: {
+      legend: { display: false },
+      tooltip: {
+        callbacks: {
+          label: function (ctx) {
+            const c = ctx.parsed.x;
+            const pct = total > 0 ? (Math.round(c / total * 1000) / 10) : 0;
+            return ' ' + fmt(c) + ' 人 · ' + pct + '%';
+          }
+        }
+      }
+    },
+    scales: { x: { beginAtZero: true } }
+  };
+}
 async function loadTypesTab() {
   try {
     const data = await api('/api/admin/types?date=today');
+    const cumulTotal = data.cumulative_total || 0;
+    const todayTotal = data.total || 0;
     // 累计横向柱状
     const ctx1 = document.getElementById('chart-types-cumulative');
     if (charts.typesCumul) charts.typesCumul.destroy();
     const cumul = data.cumulative || [];
     charts.typesCumul = new Chart(ctx1, {
       type: 'bar',
-      data: { labels: cumul.map(function (d) { return d.type; }), datasets: [{ label: '累计', data: cumul.map(function (d) { return d.count; }), backgroundColor: 'rgba(0,122,255,0.6)' }] },
-      options: { indexAxis: 'y', responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { x: { beginAtZero: true } } }
+      data: { labels: cumul.map(function (d) { return formatTypeLabel(d.type); }), datasets: [{ label: '累计', data: cumul.map(function (d) { return d.count; }), backgroundColor: 'rgba(0,122,255,0.6)' }] },
+      options: buildTypesBarOptions(cumulTotal)
     });
     // 今日横向柱状
     const ctx2 = document.getElementById('chart-types-today-bar');
@@ -287,8 +349,8 @@ async function loadTypesTab() {
     const today = data.distribution || [];
     charts.typesTodayBar = new Chart(ctx2, {
       type: 'bar',
-      data: { labels: today.map(function (d) { return d.type; }), datasets: [{ label: '今日', data: today.map(function (d) { return d.count; }), backgroundColor: 'rgba(255,149,0,0.6)' }] },
-      options: { indexAxis: 'y', responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { x: { beginAtZero: true } } }
+      data: { labels: today.map(function (d) { return formatTypeLabel(d.type); }), datasets: [{ label: '今日', data: today.map(function (d) { return d.count; }), backgroundColor: 'rgba(255,149,0,0.6)' }] },
+      options: buildTypesBarOptions(todayTotal)
     });
     updateLastUpdate();
   } catch (e) { if (e.message !== 'unauthorized') toast('加载失败: ' + e.message, true); }
