@@ -326,6 +326,168 @@ async function handleStats(env, ctx) {
   });
 }
 
+// ============ 鉴权中间件 ============
+// Cookie 名：admin_session
+// Session 存储：visits 表 key='admin_session_<uuid>', count=<pw_version>, updated_at=<last_access>
+// 密码版本：visits 表 key='admin_pw_version', count=<整数>，改密码时 +1，使所有旧 session 失效
+// 限流：visits 表 key='login_fail_<ip>', count=<失败次数>, updated_at=<首次失败时间>
+
+const SESSION_COOKIE = 'admin_session';
+const SESSION_TTL_MS = 7 * 24 * 60 * 60 * 1000; // 7 天
+const LOGIN_FAIL_LIMIT = 5;
+const LOGIN_FAIL_WINDOW_MS = 15 * 60 * 1000; // 15 分钟
+
+function parseCookies(header) {
+  const out = {};
+  if (!header) return out;
+  header.split(';').forEach(function (p) {
+    const eq = p.indexOf('=');
+    if (eq < 0) return;
+    const k = p.slice(0, eq).trim();
+    const v = p.slice(eq + 1).trim();
+    out[k] = v;
+  });
+  return out;
+}
+
+function getClientIp(request) {
+  return request.headers.get('cf-connecting-ip') ||
+         request.headers.get('x-forwarded-for') ||
+         'unknown';
+}
+
+// 校验 cookie 是否有效：session 存在 + 未过期 + pw_version 匹配
+// 返回 { ok: true, token } 或 { ok: false }
+async function verifySession(env, request) {
+  const cookies = parseCookies(request.headers.get('Cookie'));
+  const token = cookies[SESSION_COOKIE];
+  if (!token) return { ok: false };
+
+  const sessionKey = 'admin_session_' + token;
+  const [sessionRow, pwVersionRow] = await Promise.all([
+    env.CPTI_DB.prepare('SELECT count, updated_at FROM visits WHERE key = ?').bind(sessionKey).first(),
+    env.CPTI_DB.prepare("SELECT count FROM visits WHERE key = 'admin_pw_version'").first()
+  ]);
+  if (!sessionRow || !pwVersionRow) return { ok: false };
+
+  // 校验密码版本
+  if (sessionRow.count !== pwVersionRow.count) return { ok: false };
+
+  // 校验过期
+  const updated = new Date(sessionRow.updated_at).getTime();
+  if (Date.now() - updated > SESSION_TTL_MS) return { ok: false };
+
+  // 续期（不阻塞响应）
+  await env.CPTI_DB.prepare('UPDATE visits SET updated_at = ? WHERE key = ?')
+    .bind(new Date().toISOString(), sessionKey).run();
+
+  return { ok: true, token: token };
+}
+
+// 检查 login 失败限流；返回 { allowed: bool, retryAfterSec: int }
+async function checkLoginRateLimit(env, ip) {
+  const key = 'login_fail_' + ip;
+  const row = await env.CPTI_DB.prepare('SELECT count, updated_at FROM visits WHERE key = ?').bind(key).first();
+  if (!row) return { allowed: true };
+  const firstFail = new Date(row.updated_at).getTime();
+  if (Date.now() - firstFail > LOGIN_FAIL_WINDOW_MS) {
+    // 窗口已过，重置
+    await env.CPTI_DB.prepare('DELETE FROM visits WHERE key = ?').bind(key).run();
+    return { allowed: true };
+  }
+  if (row.count >= LOGIN_FAIL_LIMIT) {
+    const retryAfterSec = Math.ceil((LOGIN_FAIL_WINDOW_MS - (Date.now() - firstFail)) / 1000);
+    return { allowed: false, retryAfterSec: retryAfterSec };
+  }
+  return { allowed: true };
+}
+
+// POST /api/admin/login { password }
+async function handleLogin(request, env, ctx) {
+  let body;
+  try { body = await request.json(); } catch (e) {
+    return json({ success: false, error: 'invalid json', code: 'INVALID_PARAMS' }, 400);
+  }
+  if (!body || typeof body.password !== 'string') {
+    return json({ success: false, error: 'missing password', code: 'INVALID_PARAMS' }, 400);
+  }
+
+  const ip = getClientIp(request);
+
+  // 检查限流
+  const rl = await checkLoginRateLimit(env, ip);
+  if (!rl.allowed) {
+    return new Response(JSON.stringify({
+      success: false,
+      error: 'too many attempts, retry after ' + rl.retryAfterSec + 's',
+      code: 'RATE_LIMITED'
+    }), {
+      status: 429,
+      headers: {
+        'Content-Type': 'application/json; charset=utf-8',
+        'Retry-After': String(rl.retryAfterSec)
+      }
+    });
+  }
+
+  // 校验密码
+  const expected = env.ADMIN_PASSWORD;
+  if (!expected || body.password !== expected) {
+    // 记录失败
+    const key = 'login_fail_' + ip;
+    await env.CPTI_DB.prepare(
+      "INSERT INTO visits (key, count, updated_at) VALUES (?, 1, ?) ON CONFLICT(key) DO UPDATE SET count = count + 1, updated_at = ?"
+    ).bind(key, new Date().toISOString(), new Date().toISOString()).run();
+    return json({ success: false, error: 'invalid password', code: 'INVALID_PASSWORD' }, 401);
+  }
+
+  // 校验通过：生成 session
+  const token = crypto.randomUUID();
+  const pwVersionRow = await env.CPTI_DB.prepare("SELECT count FROM visits WHERE key = 'admin_pw_version'").first();
+  const pwVersion = pwVersionRow ? pwVersionRow.count : 0;
+  const now = new Date().toISOString();
+  await env.CPTI_DB.prepare(
+    "INSERT INTO visits (key, count, updated_at) VALUES (?, ?, ?) ON CONFLICT(key) DO UPDATE SET count = ?, updated_at = ?"
+  ).bind('admin_session_' + token, pwVersion, now, pwVersion, now).run();
+
+  // 清除该 IP 的失败计数
+  await env.CPTI_DB.prepare('DELETE FROM visits WHERE key = ?').bind('login_fail_' + ip).run();
+
+  const respBody = JSON.stringify({ success: true });
+  return new Response(respBody, {
+    status: 200,
+    headers: {
+      'Content-Type': 'application/json; charset=utf-8',
+      'Set-Cookie': SESSION_COOKIE + '=' + token + '; HttpOnly; Secure; SameSite=Strict; Max-Age=604800; Path=/'
+    }
+  });
+}
+
+// POST /api/admin/logout
+async function handleLogout(request, env, ctx) {
+  const cookies = parseCookies(request.headers.get('Cookie'));
+  const token = cookies[SESSION_COOKIE];
+  if (token) {
+    await env.CPTI_DB.prepare('DELETE FROM visits WHERE key = ?').bind('admin_session_' + token).run();
+  }
+  return new Response(JSON.stringify({ success: true }), {
+    status: 200,
+    headers: {
+      'Content-Type': 'application/json; charset=utf-8',
+      'Set-Cookie': SESSION_COOKIE + '=; Max-Age=0; Path=/'
+    }
+  });
+}
+
+// 包装 admin handler：先校验 session，再调业务逻辑
+async function withAuth(request, env, ctx, handler) {
+  const session = await verifySession(env, request);
+  if (!session.ok) {
+    return json({ success: false, error: 'unauthorized', code: 'UNAUTHORIZED' }, 401);
+  }
+  return handler(request, env, ctx);
+}
+
 export default {
   async fetch(request, env, ctx) {
     // CORS 预检
