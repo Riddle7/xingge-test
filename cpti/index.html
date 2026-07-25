@@ -81,10 +81,18 @@
     <style>
       .page { display: none; }
       .page.active { display: block; }
-      /* ===== Likert 五级量表按钮（MBTI风格） ===== */
+      /* ===== Likert 五级量表按钮（克制学术风 · 移动端全面优化） =====
+         设计理念：高级感来自留白、层次、克制色彩，而非符号堆砌
+         1. 圆点强度指示：1-2 个圆点表示强度，精致克制
+         2. 选中态用浅色渐变背景+深色边框，而非塑料感全填充
+         3. 顶部色条作为状态指示器，选中时显现
+         4. 移动端 ≤640px 切换为 2×2 网格，min-height 88px 满足触控规范
+         5. :active 触觉缩放模拟物理按压
+         6. touch-action: manipulation 消除 300ms 点击延迟
+         7. -webkit-tap-highlight-color: transparent 移除 iOS 默认高亮 */
       .likert-scale {
         display: flex;
-        gap: 8px;
+        gap: 10px;
         align-items: stretch;
       }
       .likert-btn {
@@ -93,85 +101,193 @@
         flex-direction: column;
         align-items: center;
         justify-content: center;
-        gap: 8px;
-        padding: 22px 8px 20px;
-        border-radius: 16px;
-        border: 2px solid var(--color-border);
+        gap: 11px;
+        padding: 24px 10px 22px;
+        border-radius: 14px;
+        border: 1px solid rgba(15, 23, 42, 0.08);
         background: var(--card);
         color: var(--foreground);
         cursor: pointer;
-        transition: transform 0.25s cubic-bezier(0.34,1.56,0.64,1), border-color 0.2s, background 0.2s, box-shadow 0.2s;
+        -webkit-tap-highlight-color: transparent;
+        -webkit-user-select: none;
+        user-select: none;
+        touch-action: manipulation;
+        transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1),
+                    border-color 0.3s cubic-bezier(0.16, 1, 0.3, 1),
+                    background 0.3s cubic-bezier(0.16, 1, 0.3, 1),
+                    box-shadow 0.3s cubic-bezier(0.16, 1, 0.3, 1),
+                    color 0.3s;
         position: relative;
         overflow: hidden;
-        min-height: 104px;
+        min-height: 108px;
       }
-      .likert-btn::before {
-        content: '';
-        position: absolute;
-        inset: 0;
-        opacity: 0;
-        transition: opacity 0.2s;
-        pointer-events: none;
-      }
-      /* 顶部色条指示器 */
+      /* 顶部色条：默认不可见，hover/selected 时作为状态指示器显现 */
       .likert-bar {
-        width: 100%;
-        height: 4px;
-        border-radius: 2px;
         position: absolute;
         top: 0;
         left: 0;
-        opacity: 0.5;
-        transition: opacity 0.2s;
+        right: 0;
+        height: 0;
+        background: currentColor;
+        transition: height 0.35s cubic-bezier(0.16, 1, 0.3, 1),
+                    opacity 0.3s;
+        opacity: 0;
       }
       .likert-btn[data-level="2"]  .likert-bar { background: #059669; }
       .likert-btn[data-level="1"]  .likert-bar { background: #10b981; }
       .likert-btn[data-level="-1"] .likert-bar { background: #f43f5e; }
       .likert-btn[data-level="-2"] .likert-bar { background: #dc2626; }
-      /* hover 时色条加亮 */
-      .likert-btn:hover .likert-bar { opacity: 1; height: 5px; }
-      .likert-btn.selected .likert-bar { opacity: 0; }
-      /* 各选项的hover背景梯度 */
-      .likert-btn[data-level="2"]::before  { background: linear-gradient(180deg, #10b98115, #05966920); }
-      .likert-btn[data-level="1"]::before  { background: linear-gradient(180deg, #34d39910, #10b98115); }
-      .likert-btn[data-level="-1"]::before { background: linear-gradient(180deg, #fb718510, #f43f5e15); }
-      .likert-btn[data-level="-2"]::before { background: linear-gradient(180deg, #ef444415, #dc262620); }
-      .likert-btn:hover::before { opacity: 1; }
-      .likert-btn:hover {
-        transform: translateY(-3px);
-        border-color: var(--color-primary);
-        box-shadow: 0 8px 24px rgba(79,70,229,0.12);
+      /* 圆点强度指示：1 点=普通强度，2 点=非常强度，精致克制 */
+      .likert-dots {
+        display: inline-flex;
+        gap: 5px;
+        align-items: center;
+        height: 7px;
       }
-      /* 选中态：用对应强度的纯色填充 */
-      .likert-btn.selected[data-level="2"]  { border-color: #059669; background: #059669; color: #fff; box-shadow: 0 8px 28px rgba(5,150,105,0.35); transform: translateY(-2px); }
-      .likert-btn.selected[data-level="1"]  { border-color: #10b981; background: #10b981; color: #fff; box-shadow: 0 8px 28px rgba(16,185,129,0.35); transform: translateY(-2px); }
-      .likert-btn.selected[data-level="-1"] { border-color: #f43f5e; background: #f43f5e; color: #fff; box-shadow: 0 8px 28px rgba(244,63,94,0.35); transform: translateY(-2px); }
-      .likert-btn.selected[data-level="-2"] { border-color: #dc2626; background: #dc2626; color: #fff; box-shadow: 0 8px 28px rgba(220,38,38,0.35); transform: translateY(-2px); }
-      .likert-btn.selected::before { opacity: 0 !important; }
+      .likert-dots .dot {
+        width: 6px;
+        height: 6px;
+        border-radius: 50%;
+        background: rgba(15, 23, 42, 0.14);
+        transition: background 0.3s cubic-bezier(0.16, 1, 0.3, 1),
+                    transform 0.3s cubic-bezier(0.16, 1, 0.3, 1),
+                    opacity 0.3s;
+      }
+      .likert-btn[data-level="2"]  .dot { background: #059669; opacity: 0.32; }
+      .likert-btn[data-level="1"]  .dot { background: #10b981; opacity: 0.32; }
+      .likert-btn[data-level="-1"] .dot { background: #f43f5e; opacity: 0.32; }
+      .likert-btn[data-level="-2"] .dot { background: #dc2626; opacity: 0.32; }
+      /* hover 仅在真正支持悬停的设备上生效（桌面端） */
+      @media (hover: hover) {
+        .likert-btn:hover {
+          transform: translateY(-2px);
+          border-color: rgba(15, 23, 42, 0.16);
+          box-shadow: 0 6px 20px rgba(15, 23, 42, 0.05);
+        }
+        .likert-btn:hover .dot { opacity: 0.7; }
+        .likert-btn:hover .likert-bar { height: 3px; opacity: 0.55; }
+      }
+      /* 按下 tactile feedback：移动端 + 桌面端均生效，模拟物理按压 */
+      .likert-btn:not(.selected):active {
+        transform: scale(0.97);
+        transition: transform 0.1s ease;
+      }
+      /* 选中态：浅色渐变背景 + 深色边框 + 顶部色条 + 圆点高亮
+         摒弃塑料感全填充，用层次感传递高级感 */
+      .likert-btn.selected[data-level="2"] {
+        border-color: #059669;
+        background: linear-gradient(180deg, rgba(5,150,105,0.05) 0%, rgba(5,150,105,0.11) 100%);
+        color: #064e3b;
+        box-shadow: 0 6px 22px rgba(5,150,105,0.14), inset 0 1px 0 rgba(255,255,255,0.6);
+      }
+      .likert-btn.selected[data-level="1"] {
+        border-color: #10b981;
+        background: linear-gradient(180deg, rgba(16,185,129,0.04) 0%, rgba(16,185,129,0.10) 100%);
+        color: #065f46;
+        box-shadow: 0 6px 22px rgba(16,185,129,0.12), inset 0 1px 0 rgba(255,255,255,0.6);
+      }
+      .likert-btn.selected[data-level="-1"] {
+        border-color: #f43f5e;
+        background: linear-gradient(180deg, rgba(244,63,94,0.04) 0%, rgba(244,63,94,0.10) 100%);
+        color: #9f1239;
+        box-shadow: 0 6px 22px rgba(244,63,94,0.12), inset 0 1px 0 rgba(255,255,255,0.6);
+      }
+      .likert-btn.selected[data-level="-2"] {
+        border-color: #dc2626;
+        background: linear-gradient(180deg, rgba(220,38,38,0.05) 0%, rgba(220,38,38,0.11) 100%);
+        color: #991b1b;
+        box-shadow: 0 6px 22px rgba(220,38,38,0.14), inset 0 1px 0 rgba(255,255,255,0.6);
+      }
+      .likert-btn.selected .likert-bar {
+        height: 3px;
+        opacity: 1;
+      }
+      .likert-btn.selected .dot {
+        opacity: 1 !important;
+        transform: scale(1.2);
+      }
       .likert-label {
-        font-size: 15px;
-        font-weight: 600;
+        font-size: 14px;
+        font-weight: 500;
         line-height: 1.3;
         text-align: center;
-        letter-spacing: 0.02em;
+        letter-spacing: 0.05em;
       }
-      .likert-btn.selected .likert-label { color: #fff; }
-      /* 移动端适配：文字换行控制 */
-      @media (max-width: 480px) {
-        .likert-label { font-size: 13px; }
-        .likert-btn { padding: 18px 4px 16px; min-height: 92px; gap: 6px; }
-        .likert-scale { gap: 5px; }
+      .likert-btn.selected .likert-label {
+        font-weight: 600;
+        letter-spacing: 0.04em;
       }
       /* 量表两端的语义标签 */
       .likert-axis-labels {
         display: flex;
         justify-content: space-between;
         padding: 0 4px;
-        margin-bottom: 10px;
+        margin-bottom: 12px;
         font-size: 11px;
         color: var(--color-muted-foreground);
         font-weight: 600;
-        letter-spacing: 0.05em;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+      }
+      /* 移动端 ≤640px：2×2 网格布局
+         grid-template-areas 重排：
+           第一行：非常赞同(2) | 非常反对(-2)  ← 强烈行
+           第二行：  赞同(1)  |   反对(-1)    ← 普通行
+         左列=赞同（绿），右列=反对（红）；上行=非常（强），下行=普通（弱）
+         手机操作逻辑优化：
+           - min-height 88px 满足 Apple HIG 44pt 最小触控区 ×2 安全冗余
+           - gap 10px 防止相邻按钮误触
+           - 圆点+文字垂直堆叠，拇指扫视即可识别 */
+      @media (max-width: 640px) {
+        .likert-scale {
+          display: grid;
+          grid-template-columns: 1fr 1fr;
+          grid-template-areas:
+            "lv2 lvm2"
+            "lv1 lvm1";
+          gap: 10px;
+        }
+        .likert-btn[data-level="2"]  { grid-area: lv2; }
+        .likert-btn[data-level="1"]  { grid-area: lv1; }
+        .likert-btn[data-level="-1"] { grid-area: lvm1; }
+        .likert-btn[data-level="-2"] { grid-area: lvm2; }
+        .likert-btn {
+          padding: 20px 10px;
+          min-height: 92px;
+          gap: 9px;
+          border-radius: 13px;
+        }
+        .likert-label { font-size: 14px; }
+        /* 轴标签变为两列居中，作为 2×2 网格的列标题 */
+        .likert-axis-labels {
+          display: grid;
+          grid-template-columns: 1fr 1fr;
+          gap: 10px;
+          padding: 0;
+          margin-bottom: 9px;
+        }
+        .likert-axis-labels span { text-align: center; }
+        /* 2×2 网格下左右已是赞同/反对列，箭头方向会误导，移动端隐藏 */
+        .axis-arrow { display: none; }
+      }
+      /* 横屏 / 矮视口紧凑布局：避免选项被压缩到不可见 */
+      @media (max-width: 640px) and (max-height: 480px) {
+        .likert-btn {
+          min-height: 68px;
+          padding: 12px 8px;
+          gap: 5px;
+        }
+        .likert-label { font-size: 13px; }
+      }
+      @media (prefers-reduced-motion: reduce) {
+        .likert-btn,
+        .likert-btn .likert-bar,
+        .likert-btn .dot,
+        .likert-label {
+          transition: none;
+        }
+        .likert-btn:not(.selected):active { transform: none; }
+        .likert-btn.selected .dot { transform: none; }
       }
       @keyframes fade-in {
         from { opacity: 0; transform: translateY(16px); }
@@ -284,6 +400,144 @@
         font-weight: 500;
       }
       .unanswered-hint.show { display: flex; }
+
+      /* ===== 17 种人格全览（开始页底部可折叠面板） ===== */
+      .all-personalities-panel {
+        display: grid;
+        grid-template-rows: 0fr;
+        transition: grid-template-rows 0.55s cubic-bezier(0.16, 1, 0.3, 1);
+      }
+      .all-personalities-panel.expanded {
+        grid-template-rows: 1fr;
+      }
+      .all-personalities-inner {
+        overflow: hidden;
+        min-height: 0;
+      }
+      .all-personalities-chevron {
+        transition: transform 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+      }
+      .all-personalities-chevron.rotated {
+        transform: rotate(180deg);
+      }
+      .ap-toggle-btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 12px 24px;
+        border-radius: 999px;
+        border: 2px solid rgba(79, 70, 229, 0.28);
+        background: var(--card);
+        color: var(--color-primary);
+        font-family: var(--font-display);
+        font-weight: 600;
+        font-size: 14px;
+        letter-spacing: 0.01em;
+        cursor: pointer;
+        transition: transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1),
+                    background 0.25s, color 0.25s, border-color 0.25s, box-shadow 0.25s;
+        box-shadow: 0 2px 8px rgba(15, 23, 42, 0.04);
+      }
+      .ap-toggle-btn:hover {
+        background: var(--color-primary);
+        color: var(--color-primary-foreground);
+        border-color: var(--color-primary);
+        box-shadow: 0 8px 24px rgba(79, 70, 229, 0.18);
+        transform: translateY(-1px);
+      }
+      .ap-toggle-btn:active {
+        transform: translateY(0) scale(0.98);
+      }
+      .ap-toggle-btn:focus-visible {
+        outline: 2px solid var(--color-primary);
+        outline-offset: 3px;
+      }
+      .ap-row {
+        display: flex;
+        gap: 12px;
+        align-items: flex-start;
+        padding: 14px;
+        border: 1px solid var(--color-border);
+        background: var(--card);
+        border-radius: 12px;
+        transition: border-color 0.2s, box-shadow 0.2s, transform 0.2s;
+      }
+      .ap-row:hover {
+        border-color: rgba(79, 70, 229, 0.4);
+        box-shadow: 0 4px 16px rgba(79, 70, 229, 0.08);
+        transform: translateY(-1px);
+      }
+      .ap-avatar {
+        flex-shrink: 0;
+        width: 64px;
+        height: 64px;
+        border-radius: 10px;
+        overflow: hidden;
+        background: linear-gradient(180deg, rgba(255,255,255,0.6) 0%, rgba(248,250,252,0.9) 100%);
+        border: 1px solid rgba(79, 70, 229, 0.08);
+      }
+      .ap-avatar-img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        object-position: center;
+        display: block;
+      }
+      .ap-content {
+        flex: 1;
+        min-width: 0;
+      }
+      .ap-header {
+        display: flex;
+        align-items: baseline;
+        gap: 8px;
+        margin-bottom: 4px;
+        flex-wrap: wrap;
+      }
+      .ap-nickname {
+        font-family: var(--font-display);
+        font-weight: 600;
+        font-size: 15px;
+        color: var(--foreground);
+        line-height: 1.3;
+      }
+      .ap-typekey {
+        font-family: ui-monospace, 'SF Mono', Consolas, monospace;
+        font-size: 10px;
+        font-weight: 700;
+        letter-spacing: 0.04em;
+        color: var(--color-primary);
+        background: var(--color-primary-50);
+        padding: 2px 6px;
+        border-radius: 4px;
+        white-space: nowrap;
+      }
+      .ap-typekey.hybrid {
+        font-family: var(--font-body);
+        font-weight: 600;
+        letter-spacing: 0.02em;
+      }
+      .ap-quote {
+        font-size: 13px;
+        color: var(--color-muted-foreground);
+        line-height: 1.6;
+        font-style: italic;
+      }
+      @media (min-width: 640px) {
+        .ap-row { gap: 16px; padding: 16px; }
+        .ap-avatar { width: 80px; height: 80px; }
+        .ap-nickname { font-size: 16px; }
+        .ap-typekey { font-size: 11px; }
+        .ap-quote { font-size: 14px; }
+      }
+      @media (prefers-reduced-motion: reduce) {
+        .all-personalities-panel,
+        .all-personalities-chevron,
+        .ap-toggle-btn,
+        .ap-row {
+          transition: none;
+        }
+      }
     </style>
 </head>
 <body class="min-h-screen font-body antialiased">
@@ -395,8 +649,31 @@
       </div>
     </section>
 
+    <section class="px-6 pb-16 max-w-2xl mx-auto">
+      <div class="bg-card border border-border rounded-lg p-6 md:p-8">
+        <h2 class="font-display text-xl font-semibold text-foreground mb-2 flex items-center justify-center gap-2">
+          <i data-lucide="layers" class="w-5 h-5 text-primary"></i>
+          17 种刑法人格全览
+        </h2>
+        <p class="text-muted-foreground text-sm mb-6 leading-relaxed text-center max-w-md mx-auto">从 16 种四维组合到终极缝合怪，每一型都有一句独家判语。展开看看你可能的镜像。</p>
+        <div class="flex justify-center">
+          <button onclick="toggleAllPersonalities()" id="all-personalities-toggle"
+                  class="ap-toggle-btn"
+                  aria-controls="all-personalities-panel" aria-expanded="false">
+            <i data-lucide="chevron-down" class="w-4 h-4 all-personalities-chevron" id="all-personalities-chevron"></i>
+            <span id="all-personalities-label">展开 17 种人格</span>
+          </button>
+        </div>
+        <div id="all-personalities-panel" class="all-personalities-panel" aria-hidden="true">
+          <div class="all-personalities-inner">
+            <ul id="all-personalities-list" class="space-y-3 pt-8"></ul>
+          </div>
+        </div>
+      </div>
+    </section>
+
     <footer class="px-6 pb-10 text-center text-xs text-muted-foreground">
-      <p>&copy; 2025 刑格 CPTI &middot; 仅供娱乐，不构成任何学术或法律建议</p>
+      <p>&copy; 2026 刑格 CPTI &middot; 仅供娱乐，不构成任何学术或法律建议</p>
     </footer>
   </div>
 
@@ -423,8 +700,8 @@
       </div>
 
       <div class="likert-axis-labels">
-        <span>← 赞同</span>
-        <span>反对 →</span>
+        <span><span class="axis-arrow" aria-hidden="true">← </span>赞同</span>
+        <span>反对<span class="axis-arrow" aria-hidden="true"> →</span></span>
       </div>
       <div id="quiz-options" class="likert-scale mb-10"></div>
 
@@ -827,10 +1104,10 @@ const state = {
 };
 
 const choiceLabels = [
-  { value: 2,  label: '非常赞同' },
-  { value: 1,  label: '赞同' },
-  { value: -1, label: '反对' },
-  { value: -2, label: '非常反对' }
+  { value: 2,  label: '非常赞同', dots: 2 },
+  { value: 1,  label: '赞同',     dots: 1 },
+  { value: -1, label: '反对',     dots: 1 },
+  { value: -2, label: '非常反对', dots: 2 }
 ];
 
 const axisColors = [
@@ -896,8 +1173,11 @@ function renderQuiz(num) {
   var selectedVal = state.answers[num - 1];
   var optionsHtml = '';
   choiceLabels.forEach(function(c) {
-    optionsHtml += '<button onclick="selectOption(' + num + ', ' + c.value + ', this)" data-level="' + c.value + '" class="likert-btn' + (selectedVal === c.value ? ' selected' : '') + '">';
+    optionsHtml += '<button onclick="selectOption(' + num + ', ' + c.value + ', this)" data-level="' + c.value + '" class="likert-btn' + (selectedVal === c.value ? ' selected' : '') + '" aria-label="' + c.label + '">';
     optionsHtml += '<span class="likert-bar"></span>';
+    var dotsHtml = '';
+    for (var d = 0; d < c.dots; d++) dotsHtml += '<span class="dot"></span>';
+    optionsHtml += '<span class="likert-dots" aria-hidden="true">' + dotsHtml + '</span>';
     optionsHtml += '<span class="likert-label">' + c.label + '</span>';
     optionsHtml += '</button>';
   });
@@ -2161,6 +2441,87 @@ function saveAsImage() {
     btn.disabled = false;
     if (typeof lucide !== 'undefined') lucide.createIcons();
     showToast('图片生成失败: ' + (err.message || err));
+  }
+}
+
+/* ===== 17 种人格全览（开始页底部可折叠面板） =====
+   仅在用户首次展开时渲染列表，图片使用 loading="lazy" 懒加载 */
+var ALL_PERSONALITIES_ORDER = [
+  'S-F-R-E', 'S-F-R-Re', 'S-F-P-E', 'S-F-P-Re',
+  'S-M-R-E', 'S-M-R-Re', 'S-M-P-E', 'S-M-P-Re',
+  'O-F-R-E', 'O-F-R-Re', 'O-F-P-E', 'O-F-P-Re',
+  'O-M-R-E', 'O-M-R-Re', 'O-M-P-E', 'O-M-P-Re',
+  'HYBRID'
+];
+var allPersonalitiesRendered = false;
+var allPersonalitiesExpanded = false;
+
+function buildAllPersonalitiesData() {
+  return ALL_PERSONALITIES_ORDER.map(function(key) {
+    if (key === 'HYBRID') {
+      return {
+        typeKey: 'HYBRID',
+        nickname: '终极缝合怪',
+        quote: '我两种观点都认同——这不叫摇摆，这叫辩证法。'
+      };
+    }
+    var p = personalities[key];
+    return {
+      typeKey: key,
+      nickname: p.nickname,
+      quote: p.quote
+    };
+  });
+}
+
+function renderAllPersonalities() {
+  var host = document.getElementById('all-personalities-list');
+  if (!host) return;
+  var data = buildAllPersonalitiesData();
+  var html = data.map(function(item) {
+    var isHybrid = item.typeKey === 'HYBRID';
+    var imgKey = isHybrid ? 'HYBRID' : item.typeKey;
+    var typeKeyCls = isHybrid ? 'ap-typekey hybrid' : 'ap-typekey';
+    return '<li class="ap-row">' +
+      '<div class="ap-avatar">' +
+        '<img class="ap-avatar-img" alt="' + item.typeKey + ' 人物形象" src="./avatars/' + imgKey + '.jpg" loading="lazy" decoding="async">' +
+      '</div>' +
+      '<div class="ap-content">' +
+        '<div class="ap-header">' +
+          '<span class="ap-nickname">' + item.nickname + '</span>' +
+          '<span class="' + typeKeyCls + '">' + item.typeKey + '</span>' +
+        '</div>' +
+        '<p class="ap-quote">「' + item.quote + '」</p>' +
+      '</div>' +
+    '</li>';
+  }).join('');
+  host.innerHTML = html;
+}
+
+function toggleAllPersonalities() {
+  var panel = document.getElementById('all-personalities-panel');
+  var chevron = document.getElementById('all-personalities-chevron');
+  var label = document.getElementById('all-personalities-label');
+  var btn = document.getElementById('all-personalities-toggle');
+  if (!panel) return;
+  // 首次展开时渲染列表（懒加载，避免页面初始加载 17 张图片）
+  if (!allPersonalitiesRendered) {
+    renderAllPersonalities();
+    allPersonalitiesRendered = true;
+  }
+  allPersonalitiesExpanded = !allPersonalitiesExpanded;
+  if (allPersonalitiesExpanded) {
+    panel.classList.add('expanded');
+    panel.setAttribute('aria-hidden', 'false');
+    if (chevron) chevron.classList.add('rotated');
+    if (label) label.textContent = '收起列表';
+    if (btn) btn.setAttribute('aria-expanded', 'true');
+  } else {
+    panel.classList.remove('expanded');
+    panel.setAttribute('aria-hidden', 'true');
+    if (chevron) chevron.classList.remove('rotated');
+    if (label) label.textContent = '展开 17 种人格';
+    if (btn) btn.setAttribute('aria-expanded', 'false');
   }
 }
 
