@@ -77,11 +77,16 @@ test('POST /api/record dual-writes counts and events', async function () {
 
 // ========== 测试 3: /api/visit 不写 events ==========
 test('POST /api/visit only writes visits table, not events', async function () {
-  const beforeEv = await (await mf.getD1Database('CPTI_DB')).prepare("SELECT COUNT(*) AS c FROM events WHERE event_type='page_view' AND page='/'").first();
+  const db = await mf.getD1Database('CPTI_DB');
+  const beforeEv = await db.prepare("SELECT COUNT(*) AS c FROM events").first();
+  const beforeVisit = await db.prepare("SELECT count FROM visits WHERE key='total'").first();
   const r = await fetch('/api/visit', { method: 'POST' });
   assert.strictEqual(r.status, 200);
-  const afterEv = await (await mf.getD1Database('CPTI_DB')).prepare("SELECT COUNT(*) AS c FROM events WHERE event_type='page_view' AND page='/'").first();
-  // events 表中 page='/' 的行数不变（除非 tracking.js 调用 /api/event）
+  const afterEv = await db.prepare("SELECT COUNT(*) AS c FROM events").first();
+  const afterVisit = await db.prepare("SELECT count FROM visits WHERE key='total'").first();
+  // visits 表 total 行 +1（证明确实写入 visits 表）
+  assert.strictEqual((afterVisit?.count || 0), (beforeVisit?.count || 0) + 1);
+  // events 表行数不变（证明未双写 events）
   assert.strictEqual(beforeEv.c, afterEv.c);
 });
 
@@ -139,7 +144,7 @@ test('GET /api/admin/overview without cookie returns 401', async function () {
 
 // ========== 测试 8: admin API 有效 cookie 返回数据 ==========
 test('GET /api/admin/overview with valid cookie returns data', async function () {
-  // 先登录拿 cookie
+  // 用独立 IP（5.6.7.8）避开测试 6 残留的限流累积
   const loginR = await fetch('/api/admin/login', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json', 'CF-Connecting-IP': '5.6.7.8' },
