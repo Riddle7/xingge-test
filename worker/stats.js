@@ -148,21 +148,42 @@ function invalidateStatsCache(ctx) {
 }
 
 // POST /api/record?type=XXX
+// 双写：counts 表 +1（兼容 /api/stats）且 events 表新增 test_completed 行（后台分析）
 async function handleRecord(request, env, ctx) {
   const url = new URL(request.url);
   const rawType = url.searchParams.get('type');
   const type = normalizeType(rawType);
   if (!type) return json({ success: false, error: 'invalid type' }, 400);
 
-  // D1 原子 UPDATE：高并发下不会丢数据（相比 KV 读-改-写）
-  // RETURNING 让我们直接拿到最新 count，无需二次查询
+  // 1. counts 表原子 UPDATE（RETURNING 拿最新 count）
   const stmt = env.CPTI_DB.prepare(
     'UPDATE counts SET count = count + 1 WHERE type = ? RETURNING count'
   ).bind(type);
   const result = await stmt.first();
   const newCount = result ? result.count : 0;
 
-  // 失效 L2：让下一次 GET /api/stats 重新读 D1
+  // 2. events 表追加 test_completed 行（后台分析用）
+  // session_id 从 query 读取（可选，cpti 页面如未传则为 null）
+  const sessionId = url.searchParams.get('sid') || null;
+  const referrer = request.headers.get('Referer') || null;
+  const ua = request.headers.get('User-Agent') || null;
+  const country = request.cf && request.cf.country ? request.cf.country : null;
+  try {
+    ctx.waitUntil(insertEvent(env, ctx, {
+      event_type: 'test_completed',
+      page: '/cpti/',
+      type: type,
+      session_id: sessionId,
+      referrer: referrer,
+      ua: ua,
+      country: country
+    }));
+  } catch (e) {
+    console.error('events insert failed (test_completed):', e);
+    // 静默失败：不影响用户主流程
+  }
+
+  // 3. 失效 L2 缓存（counts 表）
   invalidateStatsCache(ctx);
   return json({ success: true, count: newCount, type: type });
 }
@@ -255,6 +276,42 @@ async function handleVisits(env, ctx) {
   });
 }
 
+// POST /api/event
+// Body: { event_type: 'page_view', page, session_id, referrer }
+// 写入 events 表，供后台分析
+async function handleEvent(request, env, ctx) {
+  let body;
+  try {
+    body = await request.json();
+  } catch (e) {
+    return json({ success: false, error: 'invalid json', code: 'INVALID_PARAMS' }, 400);
+  }
+  if (!body || body.event_type !== 'page_view' || !body.page) {
+    return json({ success: false, error: 'missing required fields', code: 'INVALID_PARAMS' }, 400);
+  }
+  // page 白名单校验：仅允许以 / 开头的路径
+  if (typeof body.page !== 'string' || !body.page.startsWith('/')) {
+    return json({ success: false, error: 'invalid page', code: 'INVALID_PARAMS' }, 400);
+  }
+  const ua = request.headers.get('User-Agent') || null;
+  const country = request.cf && request.cf.country ? request.cf.country : null;
+  try {
+    await insertEvent(env, ctx, {
+      event_type: 'page_view',
+      page: body.page,
+      session_id: body.session_id || null,
+      referrer: body.referrer || null,
+      ua: ua,
+      country: country
+    });
+  } catch (e) {
+    console.error('events insert failed (page_view):', e);
+    // 静默失败：tracking.js 不阻塞用户
+    return json({ success: false, error: 'db error', code: 'DB_ERROR' }, 500);
+  }
+  return json({ success: true });
+}
+
 // GET /api/stats
 async function handleStats(env, ctx) {
   const result = await getStatsCached(env, ctx);
@@ -290,6 +347,9 @@ export default {
     }
     if (url.pathname === '/api/visits' && request.method === 'GET') {
       return handleVisits(env, ctx);
+    }
+    if (url.pathname === '/api/event' && request.method === 'POST') {
+      return handleEvent(request, env, ctx);
     }
 
     // 根路径返回简单状态信息
