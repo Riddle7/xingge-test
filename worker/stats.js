@@ -168,8 +168,8 @@ async function handleRecord(request, env, ctx) {
   const referrer = request.headers.get('Referer') || null;
   const ua = request.headers.get('User-Agent') || null;
   const country = request.cf && request.cf.country ? request.cf.country : null;
-  try {
-    ctx.waitUntil(insertEvent(env, ctx, {
+  ctx.waitUntil(
+    insertEvent(env, ctx, {
       event_type: 'test_completed',
       page: '/cpti/',
       type: type,
@@ -177,11 +177,11 @@ async function handleRecord(request, env, ctx) {
       referrer: referrer,
       ua: ua,
       country: country
-    }));
-  } catch (e) {
-    console.error('events insert failed (test_completed):', e);
-    // 静默失败：不影响用户主流程
-  }
+    }).catch(function (e) {
+      console.error('events insert failed (test_completed):', e);
+      // 静默失败：不影响用户主流程
+    })
+  );
 
   // 3. 失效 L2 缓存（counts 表）
   invalidateStatsCache(ctx);
@@ -802,6 +802,20 @@ async function serveAdminHtml(env) {
   });
 }
 
+async function serveAdminJs(env) {
+  const obj = await env.STATIC_ASSETS.fetch(new Request('https://internal/admin.js'));
+  if (!obj.ok) return new Response('// admin.js not found', { status: 404, headers: { 'Content-Type': 'application/javascript; charset=utf-8' } });
+  const js = await obj.text();
+  return new Response(js, {
+    status: 200,
+    headers: {
+      'Content-Type': 'application/javascript; charset=utf-8',
+      'Cache-Control': 'no-cache',
+      'Access-Control-Allow-Origin': '*'
+    }
+  });
+}
+
 async function serveTrackingJs(env) {
   const obj = await env.STATIC_ASSETS.fetch(new Request('https://internal/tracking.js'));
   if (!obj.ok) return new Response('// tracking.js not found', { status: 404, headers: { 'Content-Type': 'application/javascript; charset=utf-8' } });
@@ -877,6 +891,9 @@ export default {
     // ===== Admin UI + 静态资源 =====
     if (url.pathname === '/admin' || url.pathname === '/admin/') {
       return serveAdminHtml(env);
+    }
+    if (url.pathname === '/admin.js') {
+      return serveAdminJs(env);
     }
     if (url.pathname === '/tracking.js') {
       return serveTrackingJs(env);
