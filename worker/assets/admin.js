@@ -210,7 +210,15 @@ function renderTypesTodayChart(data) {
     options: {
       responsive: true, maintainAspectRatio: false,
       plugins: {
-        legend: { position: 'right', labels: { font: { family: "'DM Sans', sans-serif", size: 11 } } },
+        legend: {
+          position: 'bottom',
+          labels: {
+            font: { family: "'DM Sans', sans-serif", size: 11 },
+            boxWidth: 12, boxHeight: 12,
+            padding: 10,
+            usePointStyle: true
+          }
+        },
         tooltip: {
           callbacks: {
             label: function (ctx) {
