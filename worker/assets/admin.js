@@ -172,8 +172,8 @@ function renderTrendChart(points) {
     data: {
       labels: points.map(function (p) { return p.date.slice(5); }),
       datasets: [
-        { label: '访问', data: points.map(function (p) { return p.visits; }), borderColor: '#007aff', backgroundColor: 'rgba(0,122,255,0.1)', tension: 0.3, fill: true },
-        { label: '测试', data: points.map(function (p) { return p.tests; }), borderColor: '#ff9500', backgroundColor: 'rgba(255,149,0,0.1)', tension: 0.3, fill: true }
+        { label: '访问', data: points.map(function (p) { return p.visits; }), borderColor: '#3B6FB6', backgroundColor: 'rgba(59,111,182,0.12)', tension: 0.3, fill: true },
+        { label: '测试', data: points.map(function (p) { return p.tests; }), borderColor: '#D55E00', backgroundColor: 'rgba(213,94,0,0.12)', tension: 0.3, fill: true }
       ]
     },
     options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'top' } }, scales: { y: { beginAtZero: true } } }
@@ -188,8 +188,8 @@ function renderHourlyChart(data) {
     data: {
       labels: data.hours,
       datasets: [
-        { label: '访问', data: data.visits, backgroundColor: 'rgba(0,122,255,0.6)' },
-        { label: '测试', data: data.tests, backgroundColor: 'rgba(255,149,0,0.6)' }
+        { label: '访问', data: data.visits, backgroundColor: 'rgba(59,111,182,0.7)' },
+        { label: '测试', data: data.tests, backgroundColor: 'rgba(213,94,0,0.7)' }
       ]
     },
     options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'top' } }, scales: { x: { title: { text: '北京时间', display: true } }, y: { beginAtZero: true } } }
@@ -237,7 +237,12 @@ function escapeHtml(s) {
   return String(s).replace(/[&<>"']/g, function (c) { return { '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[c]; });
 }
 function palette(n) {
-  const colors = ['#007aff','#ff9500','#34c759','#af52de','#ff2d55','#5856d6','#5ac8fa','#ffd60a','#30b0c7','#bf5af2','#ff3b30','#a2845e','#8e8e93','#004fad','#ff6480','#8967e8','#f06292'];
+  // Paul Tol bright + muted 混合配色（色盲友好，Nature/Science 期刊常用）
+  const colors = [
+    '#4477AA', '#EE6677', '#228833', '#CCBB44', '#66CCEE', '#AA3377', '#BBBBBB',
+    '#332288', '#117733', '#88CCEE', '#DDCC77', '#882255', '#999933',
+    '#44AA99', '#DDAA33', '#AA4499', '#CC6677'
+  ];
   const out = []; for (let i = 0; i < n; i++) out.push(colors[i % colors.length]); return out;
 }
 
@@ -262,7 +267,7 @@ function renderVisitsTrend(data) {
   const pts = data.points || [];
   charts.visitsTrend = new Chart(ctx, {
     type: 'line',
-    data: { labels: pts.map(function (p) { return p.date.slice(5); }), datasets: [{ label: '访问', data: pts.map(function (p) { return p.visits; }), borderColor: '#007aff', backgroundColor: 'rgba(0,122,255,0.1)', tension: 0.3, fill: true }] },
+    data: { labels: pts.map(function (p) { return p.date.slice(5); }), datasets: [{ label: '访问', data: pts.map(function (p) { return p.visits; }), borderColor: '#3B6FB6', backgroundColor: 'rgba(59,111,182,0.12)', tension: 0.3, fill: true }] },
     options: { responsive: true, maintainAspectRatio: false, scales: { y: { beginAtZero: true } } }
   });
 }
@@ -302,7 +307,7 @@ async function loadTestsTab() {
     const pts = ts.points || [];
     charts.testsTrend = new Chart(ctx, {
       type: 'line',
-      data: { labels: pts.map(function (p) { return p.date.slice(5); }), datasets: [{ label: '测试完成', data: pts.map(function (p) { return p.tests; }), borderColor: '#ff9500', backgroundColor: 'rgba(255,149,0,0.1)', tension: 0.3, fill: true }] },
+      data: { labels: pts.map(function (p) { return p.date.slice(5); }), datasets: [{ label: '测试完成', data: pts.map(function (p) { return p.tests; }), borderColor: '#D55E00', backgroundColor: 'rgba(213,94,0,0.12)', tension: 0.3, fill: true }] },
       options: { responsive: true, maintainAspectRatio: false, scales: { y: { beginAtZero: true } } }
     });
     updateLastUpdate();
@@ -340,7 +345,7 @@ async function loadTypesTab() {
     const cumul = data.cumulative || [];
     charts.typesCumul = new Chart(ctx1, {
       type: 'bar',
-      data: { labels: cumul.map(function (d) { return formatTypeLabel(d.type); }), datasets: [{ label: '累计', data: cumul.map(function (d) { return d.count; }), backgroundColor: 'rgba(0,122,255,0.6)' }] },
+      data: { labels: cumul.map(function (d) { return formatTypeLabel(d.type); }), datasets: [{ label: '累计', data: cumul.map(function (d) { return d.count; }), backgroundColor: 'rgba(59,111,182,0.7)' }] },
       options: buildTypesBarOptions(cumulTotal)
     });
     // 今日横向柱状
@@ -349,7 +354,7 @@ async function loadTypesTab() {
     const today = data.distribution || [];
     charts.typesTodayBar = new Chart(ctx2, {
       type: 'bar',
-      data: { labels: today.map(function (d) { return formatTypeLabel(d.type); }), datasets: [{ label: '今日', data: today.map(function (d) { return d.count; }), backgroundColor: 'rgba(255,149,0,0.6)' }] },
+      data: { labels: today.map(function (d) { return formatTypeLabel(d.type); }), datasets: [{ label: '今日', data: today.map(function (d) { return d.count; }), backgroundColor: 'rgba(213,94,0,0.7)' }] },
       options: buildTypesBarOptions(todayTotal)
     });
     updateLastUpdate();
@@ -398,7 +403,7 @@ function renderHeatmap(data) {
     html += '<div class="heatmap-label">' + label + '</div>';
     row.forEach(function (v) {
       const intensity = v / max;
-      const bg = v === 0 ? 'var(--color-background-100)' : 'rgba(0,122,255,' + (0.15 + intensity * 0.85) + ')';
+      const bg = v === 0 ? 'var(--color-background-100)' : 'rgba(59,111,182,' + (0.15 + intensity * 0.85) + ')';
       html += '<div class="heatmap-cell" style="background:' + bg + '" title="' + v + ' 次">' + v + '</div>';
     });
   });

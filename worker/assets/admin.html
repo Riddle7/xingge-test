@@ -2,7 +2,7 @@
 <html lang="zh-CN" class="light">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
   <meta name="robots" content="noindex,nofollow">
   <title>Generative Jurisprudence · Admin</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -10,18 +10,19 @@
   <link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600;9..40,700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
   <style>
     :root {
-      --color-brand-500: #007aff;
-      --color-brand-700: #004fad;
-      --color-foreground: #1d1d1f;
-      --color-muted: #6e6e73;
-      --color-muted-foreground: #8e8e93;
-      --color-border: #e5e5ea;
-      --color-background: #ffffff;
-      --color-background-100: #f7f7fa;
-      --color-card: #ffffff;
-      --color-success: #34c759;
-      --color-warning: #ff9500;
-      --color-danger: #ff3b30;
+      /* 科研高级配色（Paul Tol + Okabe-Ito 色盲友好方案）*/
+      --color-brand-500: #3B6FB6;
+      --color-brand-700: #2A5285;
+      --color-foreground: #1A1A1A;
+      --color-muted: #555555;
+      --color-muted-foreground: #888888;
+      --color-border: #E0E0E0;
+      --color-background: #FAFAFA;
+      --color-background-100: #F2F2F4;
+      --color-card: #FFFFFF;
+      --color-success: #009E73;
+      --color-warning: #E69F00;
+      --color-danger: #C8553D;
     }
     * { box-sizing: border-box; margin: 0; padding: 0; }
     html, body {
@@ -135,6 +136,74 @@
     .chart-grid.full { grid-template-columns: 1fr; }
     @media (max-width: 768px) {
       .chart-grid { grid-template-columns: 1fr; }
+    }
+
+    /* ===== 移动端适配（手机 ≤640px） ===== */
+    @media (max-width: 640px) {
+      .container { padding: 16px 12px; }
+      .header { padding: 10px 12px; }
+      .header-inner {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 8px;
+      }
+      .header h1 { font-size: 15px; }
+      .header h1 .subtitle { display: none; }
+      .nav-tabs {
+        overflow-x: auto;
+        white-space: nowrap;
+        flex-wrap: nowrap;
+        -webkit-overflow-scrolling: touch;
+        margin: 0 -12px;
+        padding: 0 12px 4px;
+        scrollbar-width: thin;
+      }
+      .nav-tab { flex-shrink: 0; padding: 6px 12px; font-size: 13px; }
+      .header-actions {
+        justify-content: space-between;
+        gap: 8px;
+        flex-wrap: wrap;
+      }
+      .meta-info { font-size: 10px; }
+      .btn { padding: 6px 10px; font-size: 12px; }
+
+      .kpi-grid {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 10px;
+        margin-bottom: 16px;
+      }
+      .kpi-card { padding: 14px; }
+      .kpi-value { font-size: 22px; }
+      .kpi-label { font-size: 10px; letter-spacing: 0.04em; }
+      .kpi-delta { font-size: 11px; }
+
+      .chart-grid { gap: 12px; margin-bottom: 16px; }
+      .chart-card { padding: 14px; }
+      .chart-canvas-wrap { height: 200px; }
+      .chart-title { font-size: 13px; margin-bottom: 12px; }
+      .chart-title .controls button { padding: 3px 8px; font-size: 10px; }
+
+      .table-card { padding: 14px; margin-top: 12px !important; }
+      table { font-size: 12px; }
+      th { padding: 8px 6px; font-size: 10px; }
+      td { padding: 8px 6px; }
+      .mono { font-size: 11px; }
+      .bar-cell { gap: 6px; }
+      .bar { height: 5px; }
+
+      .heatmap-grid { font-size: 9px; min-width: 600px; gap: 1px; }
+      .heatmap-label { padding: 2px; }
+
+      .toast {
+        right: 12px; bottom: 12px; left: 12px;
+        padding: 10px 14px; font-size: 12px;
+      }
+
+      .login-wrap {
+        margin: 24px 16px;
+        padding: 24px 20px;
+        max-width: none;
+      }
     }
     .chart-card {
       background: var(--color-card); padding: 20px;
