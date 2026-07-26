@@ -4,46 +4,168 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
   <meta name="robots" content="noindex,nofollow">
-  <title>Generative Jurisprudence · Admin</title>
+  <title>Generative Jurisprudence · Admin Preview</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <script>
+    // 预览专用：拦截 fetch，返回模拟数据，无需登录即可查看所有 Tab
+    const _originalFetch = window.fetch;
+    window.fetch = async function (url, options) {
+      const urlStr = typeof url === 'string' ? url : (url && url.url ? url.url : String(url));
+      const pathname = urlStr.replace(/^https?:\/\/[^/]+/, '');
+      if (pathname.startsWith('/api/admin/')) {
+        await new Promise(r => setTimeout(r, 120));
+        return mockResponse(pathname);
+      }
+      return _originalFetch.apply(this, arguments);
+    };
+    // 预览模式自动进入 dashboard，避免登录框残留
+    window.addEventListener('load', function () {
+      var attempts = 0;
+      var timer = setInterval(function () {
+        attempts++;
+        if (typeof showDashboard === 'function' && document.getElementById('login-view').hidden === false) {
+          showDashboard();
+        }
+        if (document.getElementById('login-view').hidden === true || attempts > 40) {
+          clearInterval(timer);
+        }
+      }, 100);
+    });
+
+    const TYPE_KEYS = ['S-F-R-E','S-F-R-Re','S-F-P-E','S-F-P-Re','S-M-R-E','S-M-R-Re','S-M-P-E','S-M-P-Re','O-F-R-E','O-F-R-Re','O-F-P-E','O-F-P-Re','O-M-R-E','O-M-R-Re','O-M-P-E','O-M-P-Re','HYBRID'];
+    const PAGES = ['/','/cpti/','/paper','/nebula/2026-06','/share-card','/about','/collision','/reading'];
+    const REFERRERS = ['直接访问','https://weixin110.qq.com/','https://www.google.com/','https://www.bing.com/','https://github.com/','https://www.zhihu.com/','https://mp.weixin.qq.com/'];
+
+    function randInt(min, max) { return Math.floor(Math.random() * (max - min + 1)) + min; }
+    function randomDist(total, n) {
+      const arr = Array(n).fill(0).map(() => Math.random());
+      const sum = arr.reduce((a, b) => a + b, 0);
+      let remaining = total;
+      return arr.map((v, i) => {
+        if (i === n - 1) return remaining;
+        const c = Math.floor(v / sum * total);
+        remaining -= c;
+        return c;
+      });
+    }
+    function makeDates(days) {
+      const arr = [];
+      for (let i = days - 1; i >= 0; i--) {
+        const d = new Date(); d.setDate(d.getDate() - i);
+        arr.push(d.toISOString().slice(0, 10));
+      }
+      return arr;
+    }
+
+    function mockResponse(url) {
+      const body = { status: 200, headers: { 'Content-Type': 'application/json' } };
+      if (url === '/api/admin/overview') {
+        const dates = makeDates(30);
+        return new Response(JSON.stringify({
+          today: { visits: 124, tests: 31 },
+          yesterday: { visits: 98, tests: 22 },
+          total: { visits: 15243, tests: 3871 },
+          trend_30d: dates.map(d => ({ date: d, visits: randInt(60, 180), tests: randInt(10, 45) }))
+        }), body);
+      }
+      if (url.startsWith('/api/admin/hourly')) {
+        return new Response(JSON.stringify({
+          hours: Array.from({ length: 24 }, (_, i) => i + ':00'),
+          visits: Array.from({ length: 24 }, () => randInt(0, 28)),
+          tests: Array.from({ length: 24 }, () => randInt(0, 9))
+        }), body);
+      }
+      if (url.startsWith('/api/admin/types')) {
+        const dist = randomDist(31, 17).map((c, i) => ({ type: TYPE_KEYS[i], count: c }));
+        const cumul = randomDist(3871, 17).map((c, i) => ({ type: TYPE_KEYS[i], count: c })).sort((a, b) => b.count - a.count);
+        return new Response(JSON.stringify({
+          total: 31,
+          cumulative_total: 3871,
+          distribution: dist,
+          cumulative: cumul
+        }), body);
+      }
+      if (url.startsWith('/api/admin/pages')) {
+        const total = 124;
+        const pages = PAGES.map((p, i) => {
+          const visits = randInt(5, 60);
+          return { page: p, visits: visits, percent: Math.round(visits / total * 100) };
+        }).sort((a, b) => b.visits - a.visits);
+        return new Response(JSON.stringify({ total_visits: total, pages: pages }), body);
+      }
+      if (url.startsWith('/api/admin/timeseries')) {
+        const u = new URL('https://x' + url);
+        const days = parseInt(u.searchParams.get('days') || '30', 10);
+        const metric = u.searchParams.get('metric');
+        const dates = makeDates(days);
+        return new Response(JSON.stringify({
+          points: dates.map(d => ({
+            date: d,
+            visits: randInt(60, 180),
+            tests: randInt(10, 45)
+          }))
+        }), body);
+      }
+      if (url.startsWith('/api/admin/referrers')) {
+        const total = 124;
+        const refs = REFERRERS.map(r => {
+          const visits = randInt(3, 40);
+          return { referrer: r, visits: visits, percent: Math.round(visits / total * 100) };
+        }).sort((a, b) => b.visits - a.visits);
+        return new Response(JSON.stringify({ total_visits: total, referrers: refs }), body);
+      }
+      if (url.startsWith('/api/admin/sessions')) {
+        const sessions = Array.from({ length: 12 }, (_, i) => ({
+          session_id: 's_' + Math.random().toString(36).slice(2, 14),
+          first_seen: new Date(Date.now() - randInt(0, 86400000)).toISOString(),
+          last_seen: new Date(Date.now() - randInt(0, 3600000)).toISOString(),
+          duration_sec: randInt(30, 900),
+          page_count: randInt(1, 12)
+        }));
+        return new Response(JSON.stringify({
+          summary: { total_sessions: 87, avg_duration_sec: 246, avg_page_count: 3.2, bounce_rate: 0.34 },
+          sessions: sessions
+        }), body);
+      }
+      if (url.startsWith('/api/admin/heatmap')) {
+        const u = new URL('https://x' + url);
+        const days = parseInt(u.searchParams.get('days') || '7', 10);
+        const matrix = Array.from({ length: days }, () => Array.from({ length: 24 }, () => randInt(0, 12)));
+        return new Response(JSON.stringify({ max: 12, matrix: matrix }), body);
+      }
+      return new Response(JSON.stringify({}), body);
+    }
+  </script>
   <style>
     :root {
       color-scheme: light;
-
-      /* 纯白底色，彻底告别灰蒙蒙 */
+      /* 纯白底色 */
       --bg-base: #FFFFFF;
       --bg-elevated: #FFFFFF;
       --bg-card: #FFFFFF;
       --bg-card-hover: #F8FAFC;
       --bg-input: #FFFFFF;
-
-      /* 边框：清晰但不沉重 */
       --border: rgba(15, 23, 42, 0.10);
       --border-subtle: rgba(15, 23, 42, 0.06);
       --border-focus: #0369A1;
-
       /* 文字：冷调中性灰（slate），不使用莫兰迪色系 */
       --text-primary: #0F172A;
       --text-secondary: #475569;
       --text-tertiary: #94A3B8;
       --text-muted: #CBD5E1;
-
-      /* 强调：明亮学术蓝 + 沙金，替代深炭 */
+      /* 明亮学术蓝 + 金黄 */
       --accent: #0369A1;
       --accent-hover: #075985;
       --accent-pressed: #0C4A6E;
       --accent-glow: rgba(3, 105, 161, 0.12);
       --gold: #C9A227;
       --gold-soft: rgba(201, 162, 39, 0.10);
-
-      /* 语义色 */
       --success: #059669;
       --warning: #B45309;
       --danger: #DC2626;
       --info: #0369A1;
-
       /* 数据可视化颜色：莫兰迪色系（提亮版），保持低饱和高级灰调 */
       --data-0: #7E8FA3;
       --data-1: #C7B292;
@@ -62,19 +184,14 @@
       --data-14: #AD8C93;
       --data-15: #7E9C8F;
       --data-16: #BAAB94;
-
-      /* 形状系统 */
       --radius: 20px;
       --radius-sm: 12px;
       --radius-lg: 24px;
       --radius-pill: 999px;
-
-      /* 阴影：更淡、更通透 */
       --shadow-sm: 0 1px 2px rgba(28, 25, 23, 0.03);
       --shadow-card: 0 2px 12px rgba(28, 25, 23, 0.04);
       --shadow-float: 0 8px 28px rgba(28, 25, 23, 0.07);
       --shadow-glow: 0 0 24px var(--accent-glow);
-
       --header-h: 72px;
     }
 
@@ -84,7 +201,7 @@
     [hidden] { display: none !important; }
 
     html, body {
-      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      font-family: 'DM Sans', -apple-system, BlinkMacSystemFont, sans-serif;
       background: var(--bg-base);
       color: var(--text-primary);
       font-size: 14px;
@@ -101,17 +218,16 @@
       }
     }
 
-    /* body 直接使用纯色底，不加渐变叠加层，避免灰蒙蒙 */
+    /* body 直接纯色底，无渐变叠加 */
 
     .container {
       position: relative;
       z-index: 1;
       max-width: 1440px;
       margin: 0 auto;
-      padding: 32px;
+      padding: 28px;
     }
 
-    /* Header */
     .header {
       position: sticky;
       top: 0;
@@ -124,47 +240,34 @@
       max-width: 1440px;
       height: 100%;
       margin: 0 auto;
-      padding: 0 32px;
+      padding: 0 28px;
       display: flex;
       align-items: center;
       justify-content: space-between;
-      gap: 24px;
+      gap: 20px;
     }
     .brand {
       display: flex;
-      align-items: center;
-      gap: 12px;
+      align-items: baseline;
+      gap: 10px;
       flex-shrink: 0;
     }
-    .brand-mark {
-      width: 32px;
-      height: 32px;
-      border-radius: 10px;
-      background: var(--accent);
-      display: grid;
-      place-items: center;
-      color: #fff;
-      font-family: 'Space Grotesk', sans-serif;
-      font-weight: 700;
-      font-size: 14px;
-    }
     .brand h1 {
-      font-family: 'Space Grotesk', sans-serif;
       font-size: 17px;
       font-weight: 700;
       letter-spacing: -0.02em;
       color: var(--text-primary);
     }
     .brand .subtitle {
-      font-size: 10px;
-      font-weight: 700;
+      font-size: 11px;
+      font-weight: 600;
       color: var(--text-tertiary);
       font-family: 'JetBrains Mono', monospace;
       text-transform: uppercase;
-      letter-spacing: 0.14em;
-      padding: 4px 8px;
+      letter-spacing: 0.1em;
+      padding: 3px 8px;
       background: var(--border-subtle);
-      border-radius: 6px;
+      border-radius: var(--radius-sm);
     }
 
     .nav-tabs {
@@ -172,7 +275,7 @@
       align-items: center;
       gap: 4px;
       padding: 4px;
-      background: #F1F5F9;
+      background: var(--bg-base);
       border: 1px solid var(--border);
       border-radius: var(--radius-pill);
     }
@@ -181,35 +284,29 @@
       border-radius: var(--radius-pill);
       background: transparent;
       border: none;
-      font-family: 'Inter', sans-serif;
+      font-family: inherit;
       font-size: 13px;
       font-weight: 600;
       color: var(--text-secondary);
       cursor: pointer;
       transition: color 0.2s, background 0.2s, transform 0.1s;
       white-space: nowrap;
-      position: relative;
     }
-    .nav-tab:hover { color: var(--text-primary); }
+    .nav-tab:hover {
+      color: var(--text-primary);
+      background: #F1F5F9;
+    }
     .nav-tab:active { transform: scale(0.97); }
     .nav-tab.active {
-      background: var(--bg-elevated);
-      color: var(--text-primary);
-      box-shadow: 0 1px 4px rgba(28, 25, 23, 0.08);
-    }
-    .nav-tab.active::after {
-      content: '';
-      position: absolute;
-      inset: -1px;
-      border-radius: var(--radius-pill);
-      border: 1px solid var(--border);
-      pointer-events: none;
+      background: var(--accent);
+      color: #fff;
+      box-shadow: 0 2px 10px var(--accent-glow);
     }
 
     .header-actions {
       display: flex;
       align-items: center;
-      gap: 14px;
+      gap: 12px;
       flex-shrink: 0;
     }
     .meta-info {
@@ -225,7 +322,7 @@
       justify-content: center;
       gap: 6px;
       padding: 8px 14px;
-      border-radius: 10px;
+      border-radius: var(--radius-sm);
       border: 1px solid var(--border);
       background: var(--bg-card);
       color: var(--text-secondary);
@@ -233,21 +330,20 @@
       font-size: 13px;
       font-weight: 600;
       cursor: pointer;
-      transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+      transition: all 0.15s ease;
       box-shadow: var(--shadow-sm);
     }
     .btn:hover {
       background: var(--bg-card-hover);
       color: var(--text-primary);
-      border-color: rgba(28, 25, 23, 0.12);
-      transform: translateY(-1px);
-      box-shadow: var(--shadow-card);
+      border-color: #CBD5E1;
     }
-    .btn:active { transform: translateY(0); }
+    .btn:active { transform: translateY(1px); }
     .btn-primary {
       background: var(--accent);
       color: #fff;
       border-color: var(--accent);
+      box-shadow: 0 1px 2px var(--accent-glow);
     }
     .btn-primary:hover {
       background: var(--accent-hover);
@@ -255,16 +351,15 @@
     }
     .btn-danger {
       color: var(--danger);
-      border-color: rgba(220, 38, 38, 0.15);
-      background: rgba(220, 38, 38, 0.04);
+      border-color: rgba(190, 18, 60, 0.18);
+      background: rgba(190, 18, 60, 0.04);
       box-shadow: none;
     }
     .btn-danger:hover {
-      background: rgba(220, 38, 38, 0.08);
-      border-color: rgba(220, 38, 38, 0.25);
+      background: rgba(190, 18, 60, 0.08);
+      border-color: rgba(190, 18, 60, 0.3);
     }
 
-    /* Login */
     .login-viewport {
       min-height: 100dvh;
       display: flex;
@@ -275,16 +370,13 @@
       overflow: hidden;
       background: var(--bg-base);
     }
-    /* 学术方格纸网格 + 点阵装饰 */
     .login-viewport::before {
       content: '';
       position: absolute;
       inset: 0;
       background-image:
-        /* 细方格 */
         linear-gradient(rgba(28, 25, 23, 0.022) 1px, transparent 1px),
         linear-gradient(90deg, rgba(28, 25, 23, 0.022) 1px, transparent 1px),
-        /* 点阵（每 4 格一个点） */
         radial-gradient(circle, rgba(201, 162, 39, 0.22) 1px, transparent 1.5px);
       background-size: 32px 32px, 32px 32px, 128px 128px;
       background-position: 0 0, 0 0, 16px 16px;
@@ -292,7 +384,6 @@
       -webkit-mask-image: radial-gradient(ellipse 70% 60% at 50% 50%, #000 30%, transparent 90%);
       pointer-events: none;
     }
-    /* 左右垂直装饰线 + 顶部底部刻度 */
     .login-viewport::after {
       content: '';
       position: absolute;
@@ -305,7 +396,6 @@
       background-repeat: no-repeat;
       pointer-events: none;
     }
-    /* 角落坐标刻度装饰 */
     .login-corners {
       position: absolute;
       inset: 0;
@@ -329,14 +419,13 @@
       background: #FFFFFF;
       border: 1px solid var(--border);
       border-radius: var(--radius-lg);
-      box-shadow: var(--shadow-float);
+      box-shadow: 0 12px 40px rgba(28, 25, 23, 0.10);
       overflow: hidden;
     }
-    /* 顶部品牌色块条 */
     .login-wrap::before {
       content: '';
       height: 4px;
-      background: linear-gradient(90deg, var(--accent), var(--gold));
+      background: linear-gradient(90deg, var(--accent), #C9A227);
     }
     .login-brand {
       padding: 40px 40px 0;
@@ -365,12 +454,10 @@
       position: absolute;
       inset: -2px;
       border-radius: 18px;
-      border: 1px solid var(--gold);
-      opacity: 0.4;
+      border: 1px solid #C9A227;
+      opacity: 0.3;
     }
-    .login-brand-text {
-      text-align: center;
-    }
+    .login-brand-text { text-align: center; }
     .login-brand-text h2 {
       font-family: 'Space Grotesk', sans-serif;
       font-weight: 700;
@@ -386,9 +473,7 @@
       text-transform: uppercase;
       letter-spacing: 0.14em;
     }
-    .login-form {
-      padding: 32px 40px 36px;
-    }
+    .login-form { padding: 32px 40px 36px; }
     .login-field {
       position: relative;
       margin-bottom: 20px;
@@ -419,10 +504,7 @@
       border-color: var(--border-focus);
       box-shadow: 0 0 0 3px rgba(3, 105, 161, 0.10);
     }
-    .login-field input:focus + .login-field-icon,
-    .login-field input:focus ~ .login-field-icon {
-      color: var(--accent);
-    }
+    .login-field input:focus + .login-field-icon { color: var(--accent); }
     .login-error {
       color: var(--danger);
       font-size: 12px;
@@ -462,7 +544,7 @@
     }
     .login-submit:hover {
       background: var(--accent-hover);
-      box-shadow: 0 8px 24px rgba(3, 105, 161, 0.20);
+      box-shadow: 0 8px 24px rgba(3, 105, 161, 0.22);
     }
     .login-submit:active { transform: scale(0.98); }
     .login-footer {
@@ -478,25 +560,20 @@
       border-top: 1px solid var(--border-subtle);
     }
 
-    /* KPI Bento Grid */
     .kpi-grid {
       display: grid;
-      grid-template-columns: repeat(4, 1fr);
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
       gap: 20px;
       margin-bottom: 28px;
     }
-    .kpi-grid .kpi-card:first-child,
-    .kpi-grid .kpi-card:nth-child(2) {
-      grid-column: span 1;
-    }
     .kpi-card {
       position: relative;
-      background: #FFFFFF;
+      background: var(--bg-card);
       padding: 24px;
       border-radius: var(--radius);
       border: 1px solid var(--border);
       box-shadow: var(--shadow-sm);
-      transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1), border-color 0.25s, box-shadow 0.25s;
+      transition: transform 0.2s, border-color 0.2s, box-shadow 0.2s;
       overflow: hidden;
     }
     .kpi-card::before {
@@ -504,71 +581,58 @@
       position: absolute;
       top: 0;
       left: 0;
-      right: 0;
-      height: 2px;
-      background: linear-gradient(90deg, var(--accent), var(--gold));
+      bottom: 0;
+      width: 3px;
+      background: var(--accent);
       opacity: 0;
-      transition: opacity 0.25s;
+      transition: opacity 0.2s;
     }
     .kpi-card:hover {
-      transform: translateY(-3px);
-      border-color: rgba(28, 25, 23, 0.12);
-      box-shadow: var(--shadow-float);
+      transform: translateY(-2px);
+      border-color: #CBD5E1;
+      box-shadow: var(--shadow-card);
     }
     .kpi-card:hover::before { opacity: 1; }
     .kpi-label {
       font-size: 11px;
       color: var(--text-secondary);
       text-transform: uppercase;
-      letter-spacing: 0.12em;
-      margin-bottom: 14px;
-      font-weight: 700;
-      display: flex;
-      align-items: center;
-      gap: 8px;
+      letter-spacing: 0.1em;
+      margin-bottom: 12px;
+      font-weight: 600;
     }
     .kpi-value {
-      font-size: 38px;
+      font-size: 36px;
       font-weight: 700;
       font-family: 'JetBrains Mono', monospace;
-      letter-spacing: -0.04em;
+      letter-spacing: -0.03em;
       color: var(--text-primary);
-      line-height: 1;
+      line-height: 1.05;
     }
     .kpi-delta {
       font-size: 12px;
-      margin-top: 14px;
+      margin-top: 12px;
       display: inline-flex;
       align-items: center;
       gap: 4px;
       padding: 4px 10px;
       border-radius: var(--radius-pill);
-      font-weight: 700;
+      font-weight: 600;
       font-family: 'JetBrains Mono', monospace;
     }
     .kpi-delta.up {
       color: var(--success);
-      background: rgba(5, 150, 105, 0.08);
+      background: rgba(4, 120, 87, 0.08);
     }
     .kpi-delta.down {
       color: var(--danger);
-      background: rgba(220, 38, 38, 0.08);
+      background: rgba(190, 18, 60, 0.08);
     }
     .kpi-delta.flat {
       color: var(--text-tertiary);
       background: var(--border-subtle);
     }
-    .kpi-icon {
-      width: 20px;
-      height: 20px;
-      border-radius: 6px;
-      display: grid;
-      place-items: center;
-      background: var(--gold-soft);
-      color: var(--gold);
-    }
 
-    /* Chart Cards */
     .chart-grid {
       display: grid;
       grid-template-columns: 1fr 1fr;
@@ -578,44 +642,38 @@
     .chart-grid.full { grid-template-columns: 1fr; }
 
     .card {
-      background: #FFFFFF;
+      background: var(--bg-card);
       border: 1px solid var(--border);
       border-radius: var(--radius);
       box-shadow: var(--shadow-sm);
       overflow: hidden;
-      transition: box-shadow 0.25s, border-color 0.25s;
-    }
-    .card:hover {
-      box-shadow: var(--shadow-card);
-      border-color: rgba(28, 25, 23, 0.1);
     }
     .card-header {
       display: flex;
       align-items: center;
       justify-content: space-between;
       gap: 12px;
-      padding: 22px 24px;
+      padding: 20px 22px;
       border-bottom: 1px solid var(--border-subtle);
     }
     .card-title {
-      font-family: 'Space Grotesk', sans-serif;
       font-size: 15px;
       font-weight: 700;
       color: var(--text-primary);
       letter-spacing: -0.01em;
     }
-    .card-body { padding: 24px; }
+    .card-body { padding: 22px; }
     .chart-canvas-wrap {
       position: relative;
       height: 260px;
     }
-    .chart-canvas-wrap.tall { height: 380px; }
+    .chart-canvas-wrap.tall { height: 360px; }
 
     .controls {
       display: flex;
       gap: 4px;
       padding: 3px;
-      background: #F1F5F9;
+      background: var(--bg-base);
       border: 1px solid var(--border);
       border-radius: var(--radius-pill);
     }
@@ -633,24 +691,20 @@
     }
     .controls button:hover { color: var(--text-primary); }
     .controls button.active {
-      background: var(--bg-elevated);
-      color: var(--text-primary);
-      box-shadow: 0 1px 4px rgba(28, 25, 23, 0.08);
+      background: var(--accent);
+      color: #fff;
+      box-shadow: 0 2px 8px var(--accent-glow);
     }
 
-    /* Table */
-    .table-body {
-      overflow-x: auto;
-    }
+    .table-body { overflow-x: auto; }
     table {
       width: 100%;
-      border-collapse: separate;
-      border-spacing: 0;
+      border-collapse: collapse;
       font-size: 13px;
     }
     th {
       text-align: left;
-      padding: 14px 20px;
+      padding: 14px 18px;
       border-bottom: 1px solid var(--border);
       font-weight: 700;
       color: var(--text-tertiary);
@@ -658,17 +712,17 @@
       text-transform: uppercase;
       letter-spacing: 0.1em;
       white-space: nowrap;
-      background: #F8FAFC;
+      background: var(--bg-base);
     }
     td {
-      padding: 14px 20px;
+      padding: 14px 18px;
       border-bottom: 1px solid var(--border-subtle);
       color: var(--text-secondary);
       transition: background 0.15s, color 0.15s;
     }
     tr:hover td {
       color: var(--text-primary);
-      background: #F8FAFC;
+      background: var(--bg-base);
     }
     tr:last-child td { border-bottom: none; }
     .mono {
@@ -684,34 +738,33 @@
       gap: 12px;
     }
     .bar {
-      height: 5px;
+      height: 6px;
       background: var(--data-0);
       border-radius: var(--radius-pill);
       min-width: 4px;
     }
     .bar-track {
       flex: 1;
-      height: 5px;
+      height: 6px;
       background: var(--border-subtle);
       border-radius: var(--radius-pill);
       overflow: hidden;
     }
 
-    /* Heatmap */
     .heatmap-wrap {
       overflow-x: auto;
       padding-bottom: 8px;
     }
     .heatmap-grid {
       display: grid;
-      grid-template-columns: 50px repeat(24, 1fr);
+      grid-template-columns: 46px repeat(24, 1fr);
       gap: 3px;
       font-size: 10px;
-      min-width: 760px;
+      min-width: 720px;
     }
     .heatmap-cell {
       aspect-ratio: 1;
-      border-radius: 6px;
+      border-radius: 5px;
       background: var(--border-subtle);
       display: flex;
       align-items: center;
@@ -722,9 +775,9 @@
     }
     .heatmap-cell:hover {
       color: var(--text-primary);
-      transform: scale(1.2);
+      transform: scale(1.18);
       z-index: 2;
-      box-shadow: 0 4px 14px rgba(28, 25, 23, 0.14);
+      box-shadow: 0 4px 12px rgba(28, 25, 23, 0.12);
       border: 1px solid rgba(3, 105, 161, 0.25);
     }
     .heatmap-label {
@@ -735,12 +788,11 @@
       font-size: 10px;
     }
 
-    /* Section visibility */
-    section.tab-content { display: none; animation: fadeIn 0.4s cubic-bezier(0.16, 1, 0.3, 1); }
+    section.tab-content { display: none; animation: fadeIn 0.35s ease; }
     section.tab-content.active { display: block; }
 
     @keyframes fadeIn {
-      from { opacity: 0; transform: translateY(10px); }
+      from { opacity: 0; transform: translateY(8px); }
       to { opacity: 1; transform: translateY(0); }
     }
 
@@ -749,7 +801,7 @@
       bottom: 24px;
       right: 24px;
       padding: 12px 18px;
-      border-radius: 14px;
+      border-radius: var(--radius-sm);
       background: var(--bg-card);
       color: var(--text-primary);
       font-size: 13px;
@@ -758,31 +810,21 @@
       transition: opacity 0.3s, transform 0.3s;
       z-index: 100;
       border: 1px solid var(--border);
-      box-shadow: var(--shadow-float);
+      box-shadow: var(--shadow-card);
       pointer-events: none;
     }
     .toast.show { opacity: 1; transform: translateY(0); }
     .toast.error {
-      border-color: rgba(220, 38, 38, 0.2);
+      border-color: rgba(190, 18, 60, 0.25);
       color: var(--danger);
-      background: rgba(220, 38, 38, 0.03);
+      background: rgba(190, 18, 60, 0.03);
     }
 
-    /* Scrollbar */
     ::-webkit-scrollbar { width: 8px; height: 8px; }
     ::-webkit-scrollbar-track { background: var(--bg-base); }
     ::-webkit-scrollbar-thumb { background: #CBD5E1; border-radius: var(--radius-pill); }
     ::-webkit-scrollbar-thumb:hover { background: #94A3B8; }
 
-    /* Responsive */
-    /* 平板及以下：KPI 4 列 → 2 列 */
-    @media (max-width: 1024px) {
-      .kpi-grid { grid-template-columns: repeat(2, 1fr); }
-      .kpi-grid .kpi-card:first-child,
-      .kpi-grid .kpi-card:nth-child(2) { grid-column: span 1; }
-    }
-
-    /* 768px 以下：图表单列、卡片紧凑、padding 收缩 */
     @media (max-width: 768px) {
       .chart-grid { grid-template-columns: 1fr; }
       .container {
@@ -794,7 +836,6 @@
       .card-body { padding: 20px; }
     }
 
-    /* 640px 以下：移动端核心布局 - 双行 Header、横向 Nav、紧凑 KPI 2 列 */
     @media (max-width: 640px) {
       :root { --header-h: 100px; }
       .container {
@@ -963,7 +1004,6 @@
   </style>
 </head>
 <body>
-  <!-- Login View -->
   <div id="login-view" class="login-viewport" hidden>
     <div class="login-corners">
       <span class="login-corner tl"></span>
@@ -993,12 +1033,10 @@
     </div>
   </div>
 
-  <!-- Main Dashboard -->
-  <div id="dashboard" hidden>
+  <div id="dashboard">
     <header class="header">
       <div class="header-inner">
         <div class="brand">
-          <div class="brand-mark">GJ</div>
           <h1>Generative Jurisprudence</h1>
           <span class="subtitle">Admin</span>
         </div>
@@ -1019,7 +1057,6 @@
     </header>
 
     <main class="container">
-      <!-- Overview Tab -->
       <section id="tab-overview" class="tab-content active">
         <div class="kpi-grid" id="overview-kpis"></div>
         <div class="chart-grid full">
@@ -1059,7 +1096,6 @@
         </div>
       </section>
 
-      <!-- Visits Tab -->
       <section id="tab-visits" class="tab-content">
         <div class="chart-grid full">
           <div class="card">
@@ -1092,7 +1128,6 @@
         </div>
       </section>
 
-      <!-- Tests Tab -->
       <section id="tab-tests" class="tab-content">
         <div class="kpi-grid" id="tests-kpis"></div>
         <div class="chart-grid full">
@@ -1105,7 +1140,6 @@
         </div>
       </section>
 
-      <!-- Types Tab -->
       <section id="tab-types" class="tab-content">
         <div class="chart-grid">
           <div class="card">
@@ -1123,7 +1157,6 @@
         </div>
       </section>
 
-      <!-- Sessions Tab -->
       <section id="tab-sessions" class="tab-content">
         <div class="kpi-grid" id="sessions-kpis"></div>
         <div class="card" style="margin-top:20px">
@@ -1135,7 +1168,6 @@
         </div>
       </section>
 
-      <!-- Heatmap Tab -->
       <section id="tab-heatmap" class="tab-content">
         <div class="card">
           <div class="card-header">
@@ -1158,5 +1190,22 @@
 
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js" defer></script>
   <script src="admin.js" defer></script>
+  <script>
+    // 预览模式：强制进入 dashboard，并屏蔽后续 showLogin 回退
+    (function forcePreviewDashboard() {
+      var attempts = 0;
+      var timer = setInterval(function () {
+        attempts++;
+        if (typeof showDashboard === 'function') {
+          showDashboard();
+          if (typeof showLogin === 'function') {
+            showLogin = function () { console.log('[preview] showLogin suppressed'); };
+          }
+          clearInterval(timer);
+        }
+        if (attempts > 60) clearInterval(timer);
+      }, 50);
+    })();
+  </script>
 </body>
 </html>
