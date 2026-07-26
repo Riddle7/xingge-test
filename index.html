@@ -579,6 +579,185 @@
         transition: color 0.1s linear, background-color 0.1s linear, border-color 0.1s linear;
       }
     }
+
+    /* ============ Hero CTA 按钮（赛博朋克学术风 + Matrix pill 灵感） ============
+       设计原则：
+       - 与 manifesto-expand-btn 同语言（pill 999px + cubic-bezier(0.16, 1, 0.3, 1)）
+       - 白色副按钮：克制阅读路径，纯白底 + 灰边框 + 深色字
+       - 蓝色主按钮：渐变底 + 1px 内描边 + 蓝色染色阴影 + 周期性微光扫掠
+       - 完整支持 prefers-reduced-motion 与 dark theme
+    */
+    .hero-cta {
+      display: inline-flex;
+      align-items: center;
+      padding: 0.75rem 1.5rem;
+      border-radius: 999px; /* Matrix pill */
+      font-size: 14px;
+      font-weight: 600;
+      line-height: 1;
+      letter-spacing: 0.01em;
+      cursor: pointer;
+      position: relative;
+      isolation: isolate;
+      overflow: hidden;
+      transition:
+        transform 0.25s cubic-bezier(0.16, 1, 0.3, 1),
+        box-shadow 0.3s cubic-bezier(0.16, 1, 0.3, 1),
+        background-color 0.3s cubic-bezier(0.16, 1, 0.3, 1),
+        border-color 0.3s cubic-bezier(0.16, 1, 0.3, 1),
+        color 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    .hero-cta__inner {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      position: relative;
+      z-index: 1;
+    }
+    .hero-cta__inner svg {
+      width: 16px;
+      height: 16px;
+      stroke: currentColor;
+      stroke-width: 2;
+      fill: none;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+    }
+
+    /* 白色副按钮 - 阅读宣言 */
+    .hero-cta-white {
+      background: var(--color-background-50);
+      color: var(--color-text-800);
+      border: 1px solid var(--color-background-300);
+      box-shadow:
+        0 1px 2px rgba(0, 0, 0, 0.04),
+        inset 0 1px 0 rgba(255, 255, 255, 0.6);
+    }
+    .hero-cta-white:hover {
+      background: var(--color-background);
+      border-color: var(--color-brand-300);
+      color: var(--color-brand-600);
+      transform: translateY(-1px);
+      box-shadow:
+        0 4px 12px rgba(0, 122, 255, 0.08),
+        inset 0 1px 0 rgba(255, 255, 255, 0.8);
+    }
+    .hero-cta-white:active {
+      transform: translateY(0);
+      box-shadow:
+        0 1px 2px rgba(0, 0, 0, 0.04),
+        inset 0 1px 0 rgba(255, 255, 255, 0.6);
+    }
+
+    /* 蓝色主按钮 - 进入刑格测试（带质感与动效） */
+    .hero-cta-blue {
+      background: linear-gradient(180deg, var(--color-brand-500) 0%, var(--color-brand-600) 100%);
+      color: #ffffff;
+      border: 1px solid var(--color-brand-600);
+      box-shadow:
+        0 1px 2px rgba(0, 80, 180, 0.16),
+        0 4px 12px rgba(0, 122, 255, 0.18),
+        inset 0 1px 0 rgba(255, 255, 255, 0.24),   /* 上沿高光：质感 */
+        inset 0 -1px 0 rgba(0, 0, 0, 0.08);         /* 下沿暗角：立体 */
+    }
+    .hero-cta-blue::before {
+      /* 微光扫掠：hover 时启动，对角光带 */
+      content: '';
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      z-index: 0;
+      background: linear-gradient(
+        115deg,
+        transparent 0%,
+        transparent 35%,
+        rgba(255, 255, 255, 0.22) 50%,
+        transparent 65%,
+        transparent 100%
+      );
+      background-size: 250% 100%;
+      background-position: 150% 0;
+      opacity: 0;
+      transition: opacity 0.3s ease;
+    }
+    .hero-cta-blue:hover::before {
+      opacity: 1;
+      animation: hero-cta-shimmer 2.4s ease-in-out infinite;
+    }
+    .hero-cta-blue:hover {
+      background: linear-gradient(180deg, var(--color-brand-400) 0%, var(--color-brand-600) 100%);
+      transform: translateY(-1px);
+      box-shadow:
+        0 2px 4px rgba(0, 80, 180, 0.2),
+        0 8px 20px rgba(0, 122, 255, 0.28),
+        inset 0 1px 0 rgba(255, 255, 255, 0.32),
+        inset 0 -1px 0 rgba(0, 0, 0, 0.08);
+    }
+    .hero-cta-blue:active {
+      transform: translateY(0);
+      box-shadow:
+        0 1px 2px rgba(0, 80, 180, 0.16),
+        0 2px 6px rgba(0, 122, 255, 0.14),
+        inset 0 1px 0 rgba(255, 255, 255, 0.18),
+        inset 0 -1px 0 rgba(0, 0, 0, 0.12);
+    }
+    @keyframes hero-cta-shimmer {
+      0% { background-position: 150% 0; }
+      100% { background-position: -50% 0; }
+    }
+
+    /* 深色模式适配：保持品牌蓝识别度，调整底色与阴影。
+       注意：深色模式下 token 反转，--color-text-100 实为深色字（不可用于深底）。
+       白色副按钮转为"克制深灰按钮"：深底 + 浅字，与蓝色主按钮形成视觉层级，
+       与 manifesto-expand-btn 深色模式处理同语言。 */
+    [data-theme="dark"] .hero-cta-white {
+      background: var(--color-background-100);   /* #1c1c1e 卡片底 */
+      color: var(--color-text-900);              /* #f5f5f7 浅字 - 修复可见性 */
+      border-color: var(--color-background-400);
+      box-shadow:
+        0 1px 2px rgba(0, 0, 0, 0.3),
+        inset 0 1px 0 rgba(255, 255, 255, 0.04);
+    }
+    [data-theme="dark"] .hero-cta-white:hover {
+      background: var(--color-background-200);   /* #2c2c2e 稍亮 */
+      border-color: var(--color-brand-400);
+      color: var(--color-brand-300);             /* 浅蓝字 */
+      box-shadow:
+        0 4px 12px rgba(46, 141, 255, 0.18),
+        inset 0 1px 0 rgba(255, 255, 255, 0.06);
+    }
+    [data-theme="dark"] .hero-cta-blue {
+      background: linear-gradient(180deg, var(--color-brand-400) 0%, var(--color-brand-600) 100%);
+      border-color: var(--color-brand-500);
+      box-shadow:
+        0 1px 2px rgba(0, 0, 0, 0.4),
+        0 4px 12px rgba(46, 141, 255, 0.22),
+        inset 0 1px 0 rgba(255, 255, 255, 0.16),
+        inset 0 -1px 0 rgba(0, 0, 0, 0.2);
+    }
+    [data-theme="dark"] .hero-cta-blue:hover {
+      background: linear-gradient(180deg, var(--color-brand-300) 0%, var(--color-brand-500) 100%);
+      box-shadow:
+        0 2px 4px rgba(0, 0, 0, 0.5),
+        0 8px 20px rgba(46, 141, 255, 0.32),
+        inset 0 1px 0 rgba(255, 255, 255, 0.2),
+        inset 0 -1px 0 rgba(0, 0, 0, 0.2);
+    }
+
+    /* reduced motion：禁用扫掠动画与位移，仅保留基础颜色过渡 */
+    @media (prefers-reduced-motion: reduce) {
+      .hero-cta,
+      .hero-cta-white,
+      .hero-cta-blue {
+        transition: background-color 0.2s ease, color 0.2s ease, border-color 0.2s ease;
+      }
+      .hero-cta-white:hover,
+      .hero-cta-blue:hover {
+        transform: none;
+      }
+      .hero-cta-blue::before { display: none; }
+    }
+
     /* ============ 刑法学术月报：文献星云背景层 ============
        设计原则：
        - 星云装饰作为卡片的背景层（绝对定位 + z-index: 0）
@@ -1028,13 +1207,17 @@
 
           <!-- CTAs -->
           <div class="flex flex-wrap items-center gap-3 reveal">
-            <a href="#manifesto" data-dom-id="cta-manifesto" class="inline-flex items-center gap-2 px-6 py-3 rounded-[12px] bg-[var(--color-brand-500)] text-white text-[14px] font-semibold hover:bg-[var(--color-brand-600)] active:bg-[var(--color-brand-700)] active:translate-y-[1px] transition-all shadow-sm">
-              阅读宣言
-              <i data-lucide="arrow-right" class="w-4 h-4"></i>
+            <a href="#manifesto" data-dom-id="cta-manifesto" class="hero-cta hero-cta-white">
+              <span class="hero-cta__inner">
+                阅读宣言
+                <i data-lucide="arrow-right" class="w-4 h-4"></i>
+              </span>
             </a>
-            <a href="#lab" data-dom-id="cta-lab" class="inline-flex items-center gap-2 px-6 py-3 rounded-[12px] bg-transparent text-[var(--color-text-800)] text-[14px] font-semibold border border-[var(--color-background-400)] hover:border-[var(--color-brand-400)] hover:text-[var(--color-brand-600)] active:translate-y-[1px] transition-all">
-              <i data-lucide="flask-conical" class="w-4 h-4"></i>
-              进入实验室
+            <a href="#lab" data-dom-id="cta-lab" class="hero-cta hero-cta-blue">
+              <span class="hero-cta__inner">
+                <i data-lucide="flask-conical" class="w-4 h-4"></i>
+                进入刑格测试
+              </span>
             </a>
           </div>
         </div>
