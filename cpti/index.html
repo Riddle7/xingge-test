@@ -1733,7 +1733,12 @@ function submitAndRenderStats(typeKey) {
 }
 
 function fetchRecord(statsKey) {
-  return fetch(STATS_API_BASE + '/api/record?type=' + encodeURIComponent(statsKey), {
+  // 复用 tracking.js 存在 localStorage 的 gj_sid，让后台能把测试完成归属到会话
+  var sid = null;
+  try { sid = localStorage.getItem('gj_sid') || null; } catch (e) {}
+  var url = STATS_API_BASE + '/api/record?type=' + encodeURIComponent(statsKey);
+  if (sid) url += '&sid=' + encodeURIComponent(sid);
+  return fetch(url, {
     method: 'POST'
   }).then(function (r) { return r.json(); });
 }

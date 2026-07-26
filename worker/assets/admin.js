@@ -299,16 +299,20 @@ document.addEventListener('click', function (e) {
 // ===== Tests Tab =====
 async function loadTestsTab() {
   try {
-    const [ts, today] = await Promise.all([
+    const [ts, today, hourly] = await Promise.all([
       api('/api/admin/timeseries?days=30&metric=tests'),
-      api('/api/admin/types?date=today')
+      api('/api/admin/types?date=today'),
+      api('/api/admin/hourly?date=today')
     ]);
     const total = today.cumulative_total || 0;
     const todayTotal = today.total || 0;
+    // 今日访问 PV = 24 小时 visits 之和；独立计算，不依赖概览 Tab 的 charts.hourly
+    const todayVisits = (hourly && Array.isArray(hourly.visits)) ? hourly.visits.reduce((a, b) => a + b, 0) : 0;
+    const conversion = (todayTotal > 0 && todayVisits > 0) ? (Math.round(todayTotal / todayVisits * 1000) / 10) + '%' : '—';
     document.getElementById('tests-kpis').innerHTML = [
       kpiCard('今日完成', fmt(todayTotal), null),
       kpiCard('累计完成', fmt(total), null),
-      kpiCard('转化率（今日）', todayTotal > 0 && charts.hourly ? (Math.round(todayTotal / (charts.hourly.data.datasets[0].data.reduce((a,b)=>a+b,0)) * 1000) / 10) + '%' : '—', null)
+      kpiCard('转化率（今日）', conversion, null)
     ].join('');
     const ctx = document.getElementById('chart-tests-trend');
     if (charts.testsTrend) charts.testsTrend.destroy();
