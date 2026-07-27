@@ -1144,10 +1144,102 @@
       td { padding: 11px 12px; }
       .mono { font-size: 11px; }
 
-      /* 热力图：横滚、紧凑 */
-      .heatmap-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; padding-bottom: 12px; }
-      .heatmap-grid { min-width: 580px; gap: 2px; font-size: 10px; }
-      .heatmap-label { padding: 2px; font-size: 10px; }
+      /* 热力图：移动端专用转置布局 */
+      .heatmap-wrap { padding-bottom: 4px; }
+      .heatmap-grid { min-width: 0; gap: 2px; font-size: 10px; }
+
+      /* 洞察摘要卡片：2×2 网格，即时呈现关键指标 */
+      .heat-insight {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 1px;
+        margin-bottom: 16px;
+        background: var(--border-subtle);
+        border: 1px solid var(--border-subtle);
+        border-radius: 12px;
+        overflow: hidden;
+      }
+      .heat-insight-item {
+        background: var(--bg-card);
+        padding: 12px 14px;
+        display: flex;
+        flex-direction: column;
+        gap: 3px;
+      }
+      .heat-insight-label {
+        font-size: 10px;
+        color: var(--text-tertiary);
+        font-family: 'JetBrains Mono', monospace;
+        letter-spacing: 0.06em;
+        text-transform: uppercase;
+      }
+      .heat-insight-value {
+        font-size: 17px;
+        font-weight: 700;
+        color: var(--text-primary);
+        letter-spacing: -0.01em;
+      }
+
+      /* 转置热力图网格：24 行 × N 列，原生纵向滚动 */
+      .heatmap-grid.mobile {
+        gap: 2px;
+        font-family: 'JetBrains Mono', monospace;
+      }
+      .heat-corner { height: 18px; }
+      .heat-day-label {
+        text-align: center;
+        color: var(--text-tertiary);
+        font-size: 9px;
+        padding: 3px 0 5px;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        font-weight: 600;
+      }
+      .heat-hour-label {
+        text-align: right;
+        color: var(--text-tertiary);
+        font-size: 10px;
+        padding-right: 5px;
+        display: flex;
+        align-items: center;
+        justify-content: flex-end;
+        font-weight: 500;
+      }
+      .heat-cell {
+        aspect-ratio: 1.15;
+        min-height: 16px;
+        border-radius: 3px;
+        cursor: pointer;
+        transition: transform 0.1s ease;
+      }
+      .heat-cell:active { transform: scale(0.9); }
+
+      /* tap 提示条：底部浮现 */
+      .heat-tooltip {
+        position: fixed;
+        bottom: max(20px, env(safe-area-inset-bottom));
+        left: 50%;
+        transform: translateX(-50%) translateY(10px);
+        background: var(--text-primary);
+        color: #fff;
+        padding: 9px 16px;
+        border-radius: 999px;
+        font-size: 12px;
+        font-weight: 600;
+        font-family: 'JetBrains Mono', monospace;
+        letter-spacing: 0.01em;
+        pointer-events: none;
+        opacity: 0;
+        transition: opacity 0.2s ease, transform 0.2s ease;
+        z-index: 100;
+        white-space: nowrap;
+        box-shadow: 0 6px 20px rgba(15, 23, 42, 0.22);
+      }
+      .heat-tooltip.show {
+        opacity: 1;
+        transform: translateX(-50%) translateY(0);
+      }
 
       /* 控件按钮触摸目标 */
       .controls button { padding: 7px 14px; font-size: 11px; min-height: 32px; }
@@ -1208,8 +1300,14 @@
       td { padding: 9px 10px; }
       .mono { font-size: 10px; }
 
-      .heatmap-grid { min-width: 520px; gap: 1px; font-size: 9px; }
-      .heatmap-cell { border-radius: 3px; }
+      /* 超小屏热力图：进一步紧凑 */
+      .heat-insight { gap: 1px; }
+      .heat-insight-item { padding: 10px 12px; }
+      .heat-insight-label { font-size: 9px; }
+      .heat-insight-value { font-size: 15px; }
+      .heat-cell { min-height: 14px; border-radius: 2px; }
+      .heat-day-label { font-size: 8px; padding: 2px 0 4px; }
+      .heat-hour-label { font-size: 9px; padding-right: 4px; }
 
       /* 人格分布超小屏 */
       .dist-row { grid-template-columns: 96px 1fr 72px; gap: 6px; }

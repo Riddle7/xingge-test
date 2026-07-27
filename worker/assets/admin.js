@@ -571,6 +571,11 @@ function renderHeatmap(data) {
     [109, 168, 201],  // #6DA8C9 中青（中值）
     [12, 74, 110]     // #0C4A6E 深青蓝（峰值）
   ];
+  // 移动端：转置布局（24 小时为行 × N 天为列）+ 洞察摘要
+  if (window.matchMedia('(max-width: 768px)').matches) {
+    renderHeatmapMobile(wrap, data, max, stops);
+    return;
+  }
   let html = '<div class="heatmap-grid"><div></div>';
   for (let h = 0; h < 24; h++) {
     html += '<div class="heatmap-label" style="text-align:center">' + h + '</div>';
@@ -588,6 +593,128 @@ function renderHeatmap(data) {
   });
   html += '</div>';
   wrap.innerHTML = html;
+}
+
+// 移动端热力图：转置矩阵 + 洞察摘要 + tap 交互
+function renderHeatmapMobile(wrap, data, max, stops) {
+  const matrix = data.matrix;
+  const days = matrix.length;
+
+  // 1. 计算洞察：峰值时段、谷值时段、最活跃日、日均访问
+  const hourSums = new Array(24).fill(0);
+  const daySums = new Array(days).fill(0);
+  let totalSum = 0;
+  matrix.forEach(function (row, d) {
+    row.forEach(function (v, h) {
+      hourSums[h] += v;
+      daySums[d] += v;
+      totalSum += v;
+    });
+  });
+  let peakHour = 0, peakHourV = -1;
+  let valleyHour = 0, valleyHourV = Infinity;
+  for (let h = 0; h < 24; h++) {
+    if (hourSums[h] > peakHourV) { peakHourV = hourSums[h]; peakHour = h; }
+    if (hourSums[h] < valleyHourV) { valleyHourV = hourSums[h]; valleyHour = h; }
+  }
+  let peakDay = 0, peakDayV = -1;
+  for (let d = 0; d < days; d++) {
+    if (daySums[d] > peakDayV) { peakDayV = daySums[d]; peakDay = d; }
+  }
+  const peakDate = new Date(Date.now() - (days - 1 - peakDay) * 86400000);
+  const peakDateLabel = (peakDate.getMonth() + 1) + '/' + peakDate.getDate();
+  const avgPerDay = days > 0 ? Math.round(totalSum / days) : 0;
+
+  // 2. 渲染洞察摘要卡片
+  let html = '<div class="heat-insight">' +
+    '<div class="heat-insight-item">' +
+      '<div class="heat-insight-label">峰值时段</div>' +
+      '<div class="heat-insight-value">' + peakHour + ':00</div>' +
+    '</div>' +
+    '<div class="heat-insight-item">' +
+      '<div class="heat-insight-label">谷值时段</div>' +
+      '<div class="heat-insight-value">' + valleyHour + ':00</div>' +
+    '</div>' +
+    '<div class="heat-insight-item">' +
+      '<div class="heat-insight-label">最活跃日</div>' +
+      '<div class="heat-insight-value">' + peakDateLabel + '</div>' +
+    '</div>' +
+    '<div class="heat-insight-item">' +
+      '<div class="heat-insight-label">日均访问</div>' +
+      '<div class="heat-insight-value">' + fmt(avgPerDay) + '</div>' +
+    '</div>' +
+  '</div>';
+
+  // 3. 渲染转置热力图（24 行 × N 列）
+  const labelCol = days <= 7 ? '36px' : '30px';
+  html += '<div class="heatmap-grid mobile" style="grid-template-columns:' + labelCol + ' repeat(' + days + ', 1fr)">';
+
+  // 表头：空角 + 日期标签（智能间隔）
+  html += '<div class="heat-corner"></div>';
+  const dayLabelStep = days <= 7 ? 1 : (days <= 14 ? 2 : 5);
+  const weekdayNames = ['日', '一', '二', '三', '四', '五', '六'];
+  for (let d = 0; d < days; d++) {
+    const daysAgo = days - 1 - d;
+    const date = new Date(Date.now() - daysAgo * 86400000);
+    const showLabel = d % dayLabelStep === 0;
+    let label = '';
+    if (showLabel) {
+      if (days <= 7) {
+        label = '周' + weekdayNames[date.getDay()];
+      } else {
+        label = (date.getMonth() + 1) + '/' + date.getDate();
+      }
+    }
+    html += '<div class="heat-day-label"' + (showLabel ? '' : ' aria-hidden="true"') + '>' + label + '</div>';
+  }
+
+  // 24 行：时间标签（每 3 小时显示）+ N 个 cell
+  for (let h = 0; h < 24; h++) {
+    const showHourLabel = h % 3 === 0;
+    html += '<div class="heat-hour-label"' + (showHourLabel ? '' : ' aria-hidden="true"') + '>' +
+      (showHourLabel ? h + ':00' : '') + '</div>';
+    for (let d = 0; d < days; d++) {
+      const v = matrix[d][h];
+      const intensity = max > 0 ? v / max : 0;
+      const bg = v === 0 ? 'var(--border-subtle)' : heatmapColor(stops, intensity);
+      const daysAgo = days - 1 - d;
+      const date = new Date(Date.now() - daysAgo * 86400000);
+      const dateStr = (date.getMonth() + 1) + '/' + date.getDate();
+      const cellLabel = dateStr + ' ' + h + ':00 · ' + v + ' 次';
+      html += '<div class="heat-cell" style="background:' + bg + '" data-label="' + cellLabel + '"' +
+        (v > 0 ? '' : ' aria-hidden="true"') + '></div>';
+    }
+  }
+
+  html += '</div>';
+
+  // 4. tap tooltip 提示条
+  html += '<div class="heat-tooltip" id="heat-tooltip" role="status" aria-live="polite"></div>';
+
+  wrap.innerHTML = html;
+
+  // 5. 绑定 tap 交互（移动端无 hover）
+  bindHeatTooltip();
+}
+
+// 移动端热力图 tap 交互：点击 cell 显示信息条
+let heatTooltipTimer = null;
+function bindHeatTooltip() {
+  const grid = document.querySelector('.heatmap-grid.mobile');
+  if (!grid) return;
+  const tooltip = document.getElementById('heat-tooltip');
+  grid.addEventListener('click', function (e) {
+    const cell = e.target.closest('.heat-cell');
+    if (!cell || !cell.dataset.label) return;
+    if (tooltip) {
+      tooltip.textContent = cell.dataset.label;
+      tooltip.classList.add('show');
+      clearTimeout(heatTooltipTimer);
+      heatTooltipTimer = setTimeout(function () {
+        tooltip.classList.remove('show');
+      }, 2200);
+    }
+  });
 }
 // 三段插值：低值偏暖、高值偏冷，层次分明
 function heatmapColor(stops, t) {
