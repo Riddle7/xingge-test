@@ -1,11 +1,26 @@
 'use strict';
 const API_BASE = '';
 const REFRESH_INTERVAL = 30 * 1000;
+const API_TIMEOUT = 15000; // 单请求 15 秒超时,避免 Worker 冷启动 / D1 慢查询时无限挂起
 let refreshTimer = null;
 let lastUpdateTime = 0;
 let countdownTimer = null;
 let countdown = REFRESH_INTERVAL / 1000;
 const charts = {};
+
+// 在途请求跟踪:页面卸载 / tab 切换时统一 abort,避免浏览器抛 "Failed to fetch"
+const inflight = new Set();
+function abortAllInflight() {
+  inflight.forEach(function (c) { try { c.abort(); } catch (e) {} });
+  inflight.clear();
+}
+// 识别瞬时网络错误:fetch 网络层失败抛 TypeError("Failed to fetch"),
+// 超时 / 卸载 abort 抛 AbortError —— 这些都不应弹 toast 打扰用户
+function isTransientNetworkError(e) {
+  if (e && e.name === 'AbortError') return true;
+  if (e instanceof TypeError && /fetch|network|load/i.test(e.message || '')) return true;
+  return false;
+}
 
 // ===== Chart.js 全局浅色主题配置 =====
 (function configureChartDefaults() {
@@ -113,12 +128,20 @@ function toast(msg, isErr) {
   setTimeout(function () { el.className = 'toast'; }, 3000);
 }
 async function api(path) {
-  const r = await fetch(API_BASE + path);
-  if (r.status === 401) {
-    showLogin(); throw new Error('unauthorized');
+  const ctrl = new AbortController();
+  inflight.add(ctrl);
+  const timer = setTimeout(function () { ctrl.abort(); }, API_TIMEOUT);
+  try {
+    const r = await fetch(API_BASE + path, { signal: ctrl.signal });
+    if (r.status === 401) {
+      showLogin(); throw new Error('unauthorized');
+    }
+    if (!r.ok) throw new Error('HTTP ' + r.status);
+    return await r.json();
+  } finally {
+    clearTimeout(timer);
+    inflight.delete(ctrl);
   }
-  if (!r.ok) throw new Error('HTTP ' + r.status);
-  return r.json();
 }
 
 // ===== Login =====
@@ -194,7 +217,9 @@ async function loadOverview() {
     renderTopPages(pages, 'top-pages-body');
     updateLastUpdate();
   } catch (e) {
-    if (e.message !== 'unauthorized') toast('加载失败: ' + e.message, true);
+    if (e && e.message === 'unauthorized') return;
+    if (isTransientNetworkError(e)) return; // 网络抖动 / 超时 / 页面卸载:静默降级,不打扰用户
+    toast('加载失败: ' + (e && e.message ? e.message : e), true);
   }
 }
 function renderOverviewKPIs(data) {
@@ -296,44 +321,68 @@ function renderHourlyChart(data) {
   });
 }
 
+function renderDistWidget(containerId, title, subtitle, items, total) {
+  const el = document.getElementById(containerId);
+  if (!el) return;
+
+  const sorted = items.slice().sort(function (a, b) { return b.count - a.count; });
+  const maxCount = sorted.length > 0 ? sorted[0].count : 1;
+
+  let rowsHtml = '';
+  sorted.forEach(function (item, idx) {
+    const type = item.type;
+    const count = item.count;
+    const percent = (item.percent != null && !isNaN(item.percent)) ? item.percent : 0;
+
+    let groupClass = '';
+    if (type === 'HYBRID') groupClass = 'hybrid';
+    else if (type.startsWith('S-')) groupClass = 's-group';
+    else if (type.startsWith('O-')) groupClass = 'o-group';
+
+    const isFocal = idx === 0;
+    const widthPct = maxCount > 0 ? (count / maxCount * 100) : 0;
+
+    const cnName = TYPE_LABELS[type] || '';
+    let labelText = type;
+    let hybridTag = '';
+    if (type === 'HYBRID') {
+      hybridTag = '<span class="hybrid-tag">缝合怪</span>';
+    }
+
+    rowsHtml += '<div class="dist-row">' +
+      '<div class="row-label' + (isFocal ? ' focal' : '') + '">' +
+        '<span class="row-label-code">' + labelText + hybridTag + '</span>' +
+        (cnName ? '<span class="row-label-cn">' + cnName + '</span>' : '') +
+      '</div>' +
+      '<div class="bar-track"><div class="bar-fill ' + groupClass + (isFocal ? ' focal' : '') + '" style="width: ' + widthPct + '%"></div></div>' +
+      '<div class="row-value' + (isFocal ? ' focal' : '') + '">' + fmt(count) + '<span class="pct">' + percent.toFixed(1) + '%</span></div>' +
+    '</div>';
+  });
+
+  const totalLabel = title === '今日分布' ? '今日测试' : '累计测试';
+
+  el.innerHTML =
+    '<div class="dist-header">' +
+      '<div class="dist-title">' + title + '</div>' +
+      '<div class="dist-total">' + totalLabel + ' <strong>' + fmt(total) + '</strong> 次</div>' +
+    '</div>' +
+    '<div class="dist-sub">' + subtitle + '</div>' +
+    '<div class="dist-legend">' +
+      '<span class="legend-item"><span class="legend-dot legend-s"></span>主观主义阵营 (S)</span>' +
+      '<span class="legend-item"><span class="legend-dot legend-o"></span>客观主义阵营 (O)</span>' +
+      '<span class="legend-item"><span class="legend-dot legend-h"></span>HYBRID 缝合怪</span>' +
+    '</div>' +
+    '<div class="dist-rows">' + rowsHtml + '</div>' +
+    '<div class="dist-footer">' +
+      '<span>四维代号：S/O · F/M · R/P · E/Re</span>' +
+      '<span>占比 ≈ 计数 / ' + fmt(total) + '</span>' +
+    '</div>';
+}
+
 function renderTypesTodayChart(data) {
-  const ctx = document.getElementById('chart-types-today');
-  if (charts.typesToday) charts.typesToday.destroy();
   const dist = data.distribution || [];
   const todayTotal = (data.total || 0) || dist.reduce(function (s, d) { return s + d.count; }, 0);
-  charts.typesToday = new Chart(ctx, {
-    type: 'doughnut',
-    data: {
-      labels: dist.map(function (d) { return formatTypeLabel(d.type); }),
-      datasets: [{
-        data: dist.map(function (d) { return d.count; }),
-        backgroundColor: palette(dist.length),
-        borderWidth: 2,
-        borderColor: '#F4F4F1',
-        hoverOffset: 8
-      }]
-    },
-    options: {
-      responsive: true,
-      maintainAspectRatio: false,
-      cutout: '58%',
-      plugins: {
-        legend: {
-          position: 'bottom',
-          labels: { font: { size: 11, weight: '500' }, padding: 14, usePointStyle: true }
-        },
-        tooltip: {
-          callbacks: {
-            label: function (ctx) {
-              const c = ctx.parsed;
-              const pct = todayTotal > 0 ? (Math.round(c / todayTotal * 1000) / 10) : 0;
-              return ' ' + fmt(c) + ' 人 · ' + pct + '%';
-            }
-          }
-        }
-      }
-    }
-  });
+  renderDistWidget('dist-overview-today', '当日人格分布', '数据源：当日测试记录（实时）', dist, todayTotal);
 }
 
 function renderTopPages(data, tbodyId) {
@@ -372,7 +421,11 @@ async function loadVisitsTab() {
     renderTopPages(pages, 'visits-pages-body');
     renderReferrers(refs);
     updateLastUpdate();
-  } catch (e) { if (e.message !== 'unauthorized') toast('加载失败: ' + e.message, true); }
+  } catch (e) {
+    if (e && e.message === 'unauthorized') return;
+    if (isTransientNetworkError(e)) return; // 网络抖动 / 超时 / 页面卸载:静默降级,不打扰用户
+    toast('加载失败: ' + (e && e.message ? e.message : e), true);
+  }
 }
 function renderVisitsTrend(data) {
   const ctx = document.getElementById('chart-visits-trend');
@@ -445,76 +498,32 @@ async function loadTestsTab() {
       }
     });
     updateLastUpdate();
-  } catch (e) { if (e.message !== 'unauthorized') toast('加载失败: ' + e.message, true); }
+  } catch (e) {
+    if (e && e.message === 'unauthorized') return;
+    if (isTransientNetworkError(e)) return; // 网络抖动 / 超时 / 页面卸载:静默降级,不打扰用户
+    toast('加载失败: ' + (e && e.message ? e.message : e), true);
+  }
 }
 
 // ===== Types Tab =====
-function buildTypesBarOptions(total) {
-  return {
-    indexAxis: 'y',
-    responsive: true,
-    maintainAspectRatio: false,
-    plugins: {
-      legend: { display: false },
-      tooltip: {
-        callbacks: {
-          label: function (ctx) {
-            const c = ctx.parsed.x;
-            const pct = total > 0 ? (Math.round(c / total * 1000) / 10) : 0;
-            return ' ' + fmt(c) + ' 人 · ' + pct + '%';
-          }
-        }
-      }
-    },
-    scales: {
-      x: { beginAtZero: true, grid: { borderDash: [4, 4] } },
-      y: { grid: { display: false } }
-    }
-  };
-}
 async function loadTypesTab() {
   try {
     const data = await api('/api/admin/types?date=today');
     const cumulTotal = data.cumulative_total || 0;
     const todayTotal = data.total || 0;
 
-    const ctx1 = document.getElementById('chart-types-cumulative');
-    if (charts.typesCumul) charts.typesCumul.destroy();
     const cumul = data.cumulative || [];
-    charts.typesCumul = new Chart(ctx1, {
-      type: 'bar',
-      data: {
-        labels: cumul.map(function (d) { return formatTypeLabel(d.type); }),
-        datasets: [{
-          label: '累计',
-          data: cumul.map(function (d) { return d.count; }),
-          backgroundColor: palette(cumul.length),
-          borderRadius: 6,
-          barPercentage: 0.62
-        }]
-      },
-      options: buildTypesBarOptions(cumulTotal)
-    });
-
-    const ctx2 = document.getElementById('chart-types-today-bar');
-    if (charts.typesTodayBar) charts.typesTodayBar.destroy();
     const today = data.distribution || [];
-    charts.typesTodayBar = new Chart(ctx2, {
-      type: 'bar',
-      data: {
-        labels: today.map(function (d) { return formatTypeLabel(d.type); }),
-        datasets: [{
-          label: '今日',
-          data: today.map(function (d) { return d.count; }),
-          backgroundColor: palette(today.length),
-          borderRadius: 6,
-          barPercentage: 0.62
-        }]
-      },
-      options: buildTypesBarOptions(todayTotal)
-    });
+
+    renderDistWidget('dist-types-cumulative', '累计分布', '数据源：counts 表（全历史累计）', cumul, cumulTotal);
+    renderDistWidget('dist-types-today', '今日分布', '数据源：当日测试记录（实时）', today, todayTotal);
+
     updateLastUpdate();
-  } catch (e) { if (e.message !== 'unauthorized') toast('加载失败: ' + e.message, true); }
+  } catch (e) {
+    if (e && e.message === 'unauthorized') return;
+    if (isTransientNetworkError(e)) return; // 网络抖动 / 超时 / 页面卸载:静默降级,不打扰用户
+    toast('加载失败: ' + (e && e.message ? e.message : e), true);
+  }
 }
 
 // ===== Sessions Tab =====
@@ -533,7 +542,11 @@ async function loadSessionsTab() {
       return '<tr><td class="mono">' + escapeHtml(x.session_id.slice(0, 16)) + '…</td><td>' + fmtTime(x.first_seen) + '</td><td>' + fmtTime(x.last_seen) + '</td><td>' + fmtDuration(x.duration_sec) + '</td><td>' + x.page_count + '</td></tr>';
     }).join('');
     updateLastUpdate();
-  } catch (e) { if (e.message !== 'unauthorized') toast('加载失败: ' + e.message, true); }
+  } catch (e) {
+    if (e && e.message === 'unauthorized') return;
+    if (isTransientNetworkError(e)) return; // 网络抖动 / 超时 / 页面卸载:静默降级,不打扰用户
+    toast('加载失败: ' + (e && e.message ? e.message : e), true);
+  }
 }
 
 // ===== Heatmap Tab =====
@@ -543,7 +556,11 @@ async function loadHeatmapTab() {
     const data = await api('/api/admin/heatmap?days=' + heatDays);
     renderHeatmap(data);
     updateLastUpdate();
-  } catch (e) { if (e.message !== 'unauthorized') toast('加载失败: ' + e.message, true); }
+  } catch (e) {
+    if (e && e.message === 'unauthorized') return;
+    if (isTransientNetworkError(e)) return; // 网络抖动 / 超时 / 页面卸载:静默降级,不打扰用户
+    toast('加载失败: ' + (e && e.message ? e.message : e), true);
+  }
 }
 function renderHeatmap(data) {
   const wrap = document.getElementById('heatmap-wrap');
@@ -608,19 +625,20 @@ document.addEventListener('click', function (e) {
 });
 
 // ===== 刷新逻辑 =====
+function reloadActiveTab() {
+  const active = document.querySelector('.tab-content.active');
+  if (!active) return;
+  const id = active.id.replace('tab-', '');
+  if (id === 'overview') loadOverview();
+  else if (id === 'visits') loadVisitsTab();
+  else if (id === 'tests') loadTestsTab();
+  else if (id === 'types') loadTypesTab();
+  else if (id === 'sessions') loadSessionsTab();
+  else if (id === 'heatmap') loadHeatmapTab();
+}
 function startRefresh() {
   stopRefresh();
-  refreshTimer = setInterval(function () {
-    const active = document.querySelector('.tab-content.active');
-    if (!active) return;
-    const id = active.id.replace('tab-', '');
-    if (id === 'overview') loadOverview();
-    else if (id === 'visits') loadVisitsTab();
-    else if (id === 'tests') loadTestsTab();
-    else if (id === 'types') loadTypesTab();
-    else if (id === 'sessions') loadSessionsTab();
-    else if (id === 'heatmap') loadHeatmapTab();
-  }, REFRESH_INTERVAL);
+  refreshTimer = setInterval(reloadActiveTab, REFRESH_INTERVAL);
   countdown = REFRESH_INTERVAL / 1000;
   countdownTimer = setInterval(function () {
     countdown--;
@@ -639,17 +657,24 @@ document.getElementById('login-btn').addEventListener('click', doLogin);
 document.getElementById('password-input').addEventListener('keydown', function (e) { if (e.key === 'Enter') doLogin(); });
 document.getElementById('logout-btn').addEventListener('click', doLogout);
 document.getElementById('refresh-btn').addEventListener('click', function () {
-  const active = document.querySelector('.tab-content.active');
-  if (!active) return;
-  const id = active.id.replace('tab-', '');
-  if (id === 'overview') loadOverview();
-  else if (id === 'visits') loadVisitsTab();
-  else if (id === 'tests') loadTestsTab();
-  else if (id === 'types') loadTypesTab();
-  else if (id === 'sessions') loadSessionsTab();
-  else if (id === 'heatmap') loadHeatmapTab();
+  reloadActiveTab();
   toast('已刷新');
 });
+
+// 页面可见性:隐藏时停止 30 秒轮询(避免后台 tab 累积请求 / 浏览器节流导致连接中止),
+// 重新可见时恢复轮询并立即刷新一次,保证数据新鲜
+document.addEventListener('visibilitychange', function () {
+  if (document.hidden) {
+    stopRefresh();
+  } else if (!document.getElementById('dashboard').hidden) {
+    startRefresh();
+    reloadActiveTab();
+  }
+});
+// 页面卸载 / 刷新:中止所有在途请求,避免浏览器抛 "Failed to fetch" 被 catch 块捕获后弹 toast
+// pagehide 比 beforeunload 更可靠(覆盖移动端切换、bfcache 等),同时监听作为兜底
+window.addEventListener('pagehide', abortAllInflight);
+window.addEventListener('beforeunload', abortAllInflight);
 
 // ===== 初始化：检查是否已登录 =====
 (async function init() {

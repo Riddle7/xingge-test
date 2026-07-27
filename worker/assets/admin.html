@@ -611,6 +611,23 @@
     }
     .chart-canvas-wrap.tall { height: 380px; }
 
+    /* 概览页：让 24 小时分布图表填充卡片可用高度，消除与人格分布卡片的高度差导致的空白 */
+    .card-chart-fill {
+      display: flex;
+      flex-direction: column;
+    }
+    .card-chart-fill .card-body {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      min-height: 0;
+    }
+    .card-chart-fill .chart-canvas-wrap {
+      flex: 1;
+      min-height: 260px;
+      height: auto;
+    }
+
     .controls {
       display: flex;
       gap: 4px;
@@ -774,6 +791,208 @@
     ::-webkit-scrollbar-thumb { background: #CBD5E1; border-radius: var(--radius-pill); }
     ::-webkit-scrollbar-thumb:hover { background: #94A3B8; }
 
+    /* ===== 人格分布：CSS 横条图（设计风格：动态 UI 数据可视化） ===== */
+    .dist-widget {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      background: transparent;
+      border: none;
+      border-radius: 0;
+      padding: 0;
+      color: var(--text-primary);
+    }
+    .dist-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      margin-bottom: 4px;
+    }
+    .dist-title {
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 15px;
+      font-weight: 700;
+      color: var(--text-primary);
+      letter-spacing: -0.01em;
+    }
+    .dist-total {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 12px;
+      color: var(--text-tertiary);
+      font-weight: 500;
+    }
+    .dist-total strong {
+      color: var(--accent);
+      font-weight: 700;
+      letter-spacing: -0.02em;
+    }
+    .dist-sub {
+      font-size: 11px;
+      color: var(--text-tertiary);
+      margin-bottom: 16px;
+      font-weight: 500;
+    }
+    .dist-legend {
+      display: flex;
+      gap: 16px;
+      margin-bottom: 14px;
+      flex-wrap: wrap;
+      font-size: 11px;
+      color: var(--text-tertiary);
+      font-weight: 500;
+    }
+    .legend-item {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .legend-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 999px;
+      display: inline-block;
+      flex-shrink: 0;
+    }
+    .legend-s { background: var(--dist-s, #6366f1); }
+    .legend-o { background: var(--dist-o, #14b8a6); }
+    .legend-h { background: var(--dist-hybrid, #f43f5e); }
+
+    .dist-rows {
+      display: flex;
+      flex-direction: column;
+      gap: 7px;
+    }
+    .dist-row {
+      display: grid;
+      grid-template-columns: 120px 1fr 100px;
+      align-items: center;
+      gap: 12px;
+      padding: 4px 8px;
+      margin: 0 -8px;
+      border-radius: 6px;
+      transition: background-color 200ms cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    .row-label {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--text-primary);
+      letter-spacing: 0.02em;
+      text-align: right;
+      white-space: nowrap;
+      display: flex;
+      flex-direction: column;
+      align-items: flex-end;
+      gap: 1px;
+      line-height: 1.2;
+    }
+    .row-label-code {
+      font-family: inherit;
+      font-size: inherit;
+      font-weight: inherit;
+      color: inherit;
+      letter-spacing: inherit;
+    }
+    .row-label-cn {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      font-size: 10px;
+      font-weight: 500;
+      color: var(--text-muted);
+      letter-spacing: 0.01em;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      max-width: 100%;
+      transition: color 200ms cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    .row-label.focal .row-label-code { color: var(--accent); }
+    .row-label.focal .row-label-cn { color: var(--text-tertiary); }
+    .row-label .hybrid-tag {
+      font-family: 'Inter', sans-serif;
+      font-weight: 600;
+      color: var(--text-tertiary);
+      font-size: 10px;
+      margin-left: 2px;
+      letter-spacing: 0.02em;
+    }
+    .bar-track {
+      height: 18px;
+      background: #F1F5F9;
+      border-radius: 4px;
+      position: relative;
+      overflow: hidden;
+      transition: background-color 200ms cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    .bar-fill {
+      height: 100%;
+      border-radius: 4px;
+      transition: width 280ms cubic-bezier(0.16, 1, 0.3, 1),
+                  filter 200ms cubic-bezier(0.16, 1, 0.3, 1),
+                  transform 200ms cubic-bezier(0.16, 1, 0.3, 1);
+      background: var(--dist-s, #6366f1);
+      transform-origin: center;
+    }
+    .bar-fill.s-group { background: var(--dist-s, #6366f1); }
+    .bar-fill.o-group { background: var(--dist-o, #14b8a6); }
+    .bar-fill.hybrid { background: var(--dist-hybrid, #f43f5e); }
+    .bar-fill.focal {
+      background: linear-gradient(90deg, var(--accent), #075985);
+    }
+    .row-value {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 12px;
+      color: var(--text-primary);
+      text-align: right;
+      white-space: nowrap;
+      font-weight: 500;
+      transition: color 200ms cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    .row-value .pct {
+      color: var(--text-tertiary);
+      margin-left: 4px;
+      font-size: 11px;
+      font-weight: 500;
+    }
+    .row-value.focal .pct { color: var(--accent); font-weight: 700; }
+
+    /* 悬停效果：克制的基础反馈，仅在支持 hover 的设备上启用 */
+    @media (hover: hover) {
+      .dist-row:hover {
+        background: rgba(15, 23, 42, 0.025);
+      }
+      .dist-row:hover .bar-track {
+        background: #E8EEF4;
+      }
+      .dist-row:hover .bar-fill {
+        filter: brightness(1.06);
+        transform: scaleY(1.08);
+      }
+      .dist-row:hover .row-label-cn {
+        color: var(--text-secondary);
+      }
+      .dist-row:hover .row-label.focal .row-label-cn {
+        color: var(--accent-hover);
+      }
+      .dist-row:hover .row-value {
+        color: var(--text-primary);
+      }
+    }
+    .dist-footer {
+      margin-top: 14px;
+      padding-top: 12px;
+      border-top: 1px solid var(--border-subtle);
+      display: flex;
+      justify-content: space-between;
+      font-size: 11px;
+      color: var(--text-muted);
+      font-weight: 500;
+    }
+
+    /* 人格分布组颜色变量 —— 莫兰迪色系（提亮版） */
+    .dist-widget {
+      --dist-s: #7E8FA3;
+      --dist-o: #8EAC9F;
+      --dist-hybrid: #B8958F;
+    }
+
     /* Responsive */
     /* 平板及以下：KPI 4 列 → 2 列 */
     @media (max-width: 1024px) {
@@ -882,6 +1101,7 @@
       .card-body { padding: 14px 16px; }
       .chart-canvas-wrap { height: 220px; }
       .chart-canvas-wrap.tall { height: 300px; }
+      .card-chart-fill .chart-canvas-wrap { min-height: 220px; }
       .card-title { font-size: 14px; }
 
       /* 表格：紧凑、可横滚 */
@@ -897,6 +1117,14 @@
       .heatmap-label { padding: 2px; font-size: 10px; }
 
       /* 控件按钮触摸目标 */
+      /* 人格分布移动端 */
+      .dist-row { grid-template-columns: 108px 1fr 82px; gap: 8px; }
+      .row-label { font-size: 11px; }
+      .row-label-cn { font-size: 10px; }
+      .row-value { font-size: 11px; }
+      .bar-track { height: 16px; }
+      .dist-footer { font-size: 10px; flex-wrap: wrap; gap: 4px; }
+
       .controls button { padding: 7px 14px; font-size: 11px; min-height: 32px; }
 
       /* Toast 避开底部 Home Bar */
@@ -940,6 +1168,7 @@
       .card-body { padding: 12px 14px; }
       .chart-canvas-wrap { height: 200px; }
       .chart-canvas-wrap.tall { height: 260px; }
+      .card-chart-fill .chart-canvas-wrap { min-height: 200px; }
       .card-title { font-size: 13px; }
 
       table { font-size: 11px; }
@@ -949,6 +1178,14 @@
 
       .heatmap-grid { min-width: 520px; gap: 1px; font-size: 9px; }
       .heatmap-cell { border-radius: 3px; }
+
+      /* 人格分布超小屏 */
+      .dist-row { grid-template-columns: 96px 1fr 72px; gap: 6px; }
+      .row-label { font-size: 10px; letter-spacing: 0.01em; }
+      .row-label-cn { font-size: 9px; }
+      .row-value { font-size: 10px; }
+      .row-value .pct { font-size: 10px; }
+      .bar-track { height: 14px; }
 
       .controls button { padding: 7px 12px; font-size: 10px; }
     }
@@ -1037,7 +1274,7 @@
           </div>
         </div>
         <div class="chart-grid">
-          <div class="card">
+          <div class="card card-chart-fill">
             <div class="card-header"><div class="card-title">24 小时分布（今日）</div></div>
             <div class="card-body">
               <div class="chart-canvas-wrap"><canvas id="chart-hourly"></canvas></div>
@@ -1046,7 +1283,7 @@
           <div class="card">
             <div class="card-header"><div class="card-title">当日人格分布</div></div>
             <div class="card-body">
-              <div class="chart-canvas-wrap tall"><canvas id="chart-types-today"></canvas></div>
+              <div id="dist-overview-today" class="dist-widget"></div>
             </div>
           </div>
         </div>
@@ -1111,13 +1348,13 @@
           <div class="card">
             <div class="card-header"><div class="card-title">累计分布</div></div>
             <div class="card-body">
-              <div class="chart-canvas-wrap tall"><canvas id="chart-types-cumulative"></canvas></div>
+              <div id="dist-types-cumulative" class="dist-widget"></div>
             </div>
           </div>
           <div class="card">
             <div class="card-header"><div class="card-title">今日分布</div></div>
             <div class="card-body">
-              <div class="chart-canvas-wrap tall"><canvas id="chart-types-today-bar"></canvas></div>
+              <div id="dist-types-today" class="dist-widget"></div>
             </div>
           </div>
         </div>
