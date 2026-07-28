@@ -20,6 +20,36 @@ const COMPACT_MAP = {
   'OMRRe':'O-M-R-Re','OMRE':'O-M-R-E','OMPRe':'O-M-P-Re','OMPE':'O-M-P-E'
 };
 
+// 中国省份英文→中文映射表（Cloudflare request.cf.region 对中国返回英文/拼音）
+// 映射值与 DataV china.json GeoJSON 的 properties.name 完全一致（带后缀"省/市/自治区"）
+// 映射失败兜底：保留原英文值（地图可能渲染为该省"未匹配"，但表格照常显示）
+const REGION_CN_MAP = {
+  'Beijing': '北京市', 'Tianjin': '天津市', 'Shanghai': '上海市', 'Chongqing': '重庆市',
+  'Guangdong': '广东省', 'Jiangsu': '江苏省', 'Zhejiang': '浙江省', 'Shandong': '山东省',
+  'Henan': '河南省', 'Sichuan': '四川省', 'Hubei': '湖北省', 'Hunan': '湖南省',
+  'Hebei': '河北省', 'Fujian': '福建省', 'Anhui': '安徽省', 'Jiangxi': '江西省',
+  'Shaanxi': '陕西省', 'Shanxi': '山西省', 'Liaoning': '辽宁省', 'Jilin': '吉林省',
+  'Heilongjiang': '黑龙江省', 'Yunnan': '云南省', 'Guizhou': '贵州省', 'Gansu': '甘肃省',
+  'Qinghai': '青海省', 'Hainan': '海南省', 'Taiwan': '台湾省',
+  'Inner Mongolia': '内蒙古自治区', 'Guangxi': '广西壮族自治区', 'Tibet': '西藏自治区',
+  'Ningxia': '宁夏回族自治区', 'Xinjiang': '新疆维吾尔自治区',
+  'Hong Kong': '香港特别行政区', 'Macau': '澳门特别行政区'
+};
+
+// 国内 country code 集合（含港澳台，与 echarts 中国地图范围一致）
+const DOMESTIC_COUNTRIES = ['CN', 'HK', 'TW', 'MO'];
+
+// 把 request.cf.region 归一化：
+// - 国内（CN/HK/TW/MO）：尝试中文映射，失败兜底原值
+// - 海外：保留英文原值
+function normalizeRegion(rawRegion, country) {
+  if (!rawRegion) return null;
+  if (DOMESTIC_COUNTRIES.includes(country)) {
+    return REGION_CN_MAP[rawRegion] || rawRegion;
+  }
+  return rawRegion;
+}
+
 // CORS 头
 const CORS_HEADERS = {
   'Access-Control-Allow-Origin': '*',
@@ -54,14 +84,14 @@ function bjHourFromIso(isoTs) {
 
 // ============ events 表写入辅助 ============
 // 写入一条事件到 events 表；调用方负责事务/缓存失效
+// payload: { event_type, page, type?, session_id?, referrer?, ua?, country?, region?, city? }
 async function insertEvent(env, ctx, payload) {
-  // payload: { event_type, page, type?, session_id?, referrer?, ua?, country? }
   const now = new Date();
   const ts = now.toISOString();
   const tsHour = bjHourFromIso(ts);
   const tsDateBj = bjDateFromIso(ts);
   await env.CPTI_DB.prepare(
-    'INSERT INTO events (ts, ts_hour, ts_date_bj, event_type, page, type, session_id, referrer, ua, country) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)'
+    'INSERT INTO events (ts, ts_hour, ts_date_bj, event_type, page, type, session_id, referrer, ua, country, region, city) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)'
   ).bind(
     ts, tsHour, tsDateBj,
     payload.event_type,
@@ -70,7 +100,9 @@ async function insertEvent(env, ctx, payload) {
     payload.session_id || null,
     payload.referrer || null,
     payload.ua || null,
-    payload.country || null
+    payload.country || null,
+    payload.region || null,
+    payload.city || null
   ).run();
 }
 
@@ -163,11 +195,14 @@ async function handleRecord(request, env, ctx) {
   const newCount = result ? result.count : 0;
 
   // 2. events 表追加 test_completed 行（后台分析用）
-  // session_id 从 query 读取（可选，cpti 页面如未传则为 null）
   const sessionId = url.searchParams.get('sid') || null;
   const referrer = request.headers.get('Referer') || null;
   const ua = request.headers.get('User-Agent') || null;
-  const country = request.cf && request.cf.country ? request.cf.country : null;
+  const country = (request.cf && request.cf.country) ? request.cf.country : null;
+  const region = (request.cf && request.cf.region)
+    ? normalizeRegion(request.cf.region, country)
+    : null;
+  const city = (request.cf && request.cf.city) ? request.cf.city : null;
   ctx.waitUntil(
     insertEvent(env, ctx, {
       event_type: 'test_completed',
@@ -176,7 +211,9 @@ async function handleRecord(request, env, ctx) {
       session_id: sessionId,
       referrer: referrer,
       ua: ua,
-      country: country
+      country: country,
+      region: region,
+      city: city
     }).catch(function (e) {
       console.error('events insert failed (test_completed):', e);
       // 静默失败：不影响用户主流程
@@ -294,7 +331,11 @@ async function handleEvent(request, env, ctx) {
     return json({ success: false, error: 'invalid page', code: 'INVALID_PARAMS' }, 400);
   }
   const ua = request.headers.get('User-Agent') || null;
-  const country = request.cf && request.cf.country ? request.cf.country : null;
+  const country = (request.cf && request.cf.country) ? request.cf.country : null;
+  const region = (request.cf && request.cf.region)
+    ? normalizeRegion(request.cf.region, country)
+    : null;
+  const city = (request.cf && request.cf.city) ? request.cf.city : null;
   try {
     await insertEvent(env, ctx, {
       event_type: 'page_view',
@@ -302,7 +343,9 @@ async function handleEvent(request, env, ctx) {
       session_id: body.session_id || null,
       referrer: body.referrer || null,
       ua: ua,
-      country: country
+      country: country,
+      region: region,
+      city: city
     });
   } catch (e) {
     console.error('events insert failed (page_view):', e);
@@ -787,6 +830,82 @@ async function handleAdminReferrers(request, env, ctx) {
   return json({ referrers: finalList.slice(0, limit), total_visits: total });
 }
 
+// GET /api/admin/regions?scope=today|cumulative&days=30
+// 返回国内省份/国内城市/海外三组排行 + 总数 summary
+// 统计口径：COUNT(DISTINCT session_id)，与 /api/admin/pages 一致
+async function handleAdminRegions(request, env, ctx) {
+  const url = new URL(request.url);
+  const scope = url.searchParams.get('scope') === 'cumulative' ? 'cumulative' : 'today';
+  const days = Math.min(Math.max(parseInt(url.searchParams.get('days') || '30', 10), 1), 90);
+
+  const today = bjDateNow();
+  let dateFrom, dateTo;
+  if (scope === 'today') {
+    dateFrom = today;
+    dateTo = today;
+  } else {
+    dateFrom = bjDateFromIso(new Date(Date.now() - days * 24 * 60 * 60 * 1000).toISOString());
+    dateTo = today;
+  }
+
+  const domesticList = DOMESTIC_COUNTRIES.map(function (c) { return "'" + c + "'"; }).join(',');
+
+  const [provRows, cityRows, overseasRows, summaryRow] = await Promise.all([
+    // 国内省份
+    env.CPTI_DB.prepare(
+      "SELECT region, COUNT(DISTINCT session_id) AS v FROM events WHERE event_type='page_view' AND session_id IS NOT NULL AND country IN (" + domesticList + ") AND region IS NOT NULL AND ts_date_bj >= ? AND ts_date_bj <= ? GROUP BY region ORDER BY v DESC LIMIT 50"
+    ).bind(dateFrom, dateTo).all(),
+    // 国内城市
+    env.CPTI_DB.prepare(
+      "SELECT region, city, COUNT(DISTINCT session_id) AS v FROM events WHERE event_type='page_view' AND session_id IS NOT NULL AND country IN (" + domesticList + ") AND city IS NOT NULL AND ts_date_bj >= ? AND ts_date_bj <= ? GROUP BY region, city ORDER BY v DESC LIMIT 100"
+    ).bind(dateFrom, dateTo).all(),
+    // 海外
+    env.CPTI_DB.prepare(
+      "SELECT country, region, COUNT(DISTINCT session_id) AS v FROM events WHERE event_type='page_view' AND session_id IS NOT NULL AND country NOT IN (" + domesticList + ") AND country IS NOT NULL AND ts_date_bj >= ? AND ts_date_bj <= ? GROUP BY country, region ORDER BY v DESC LIMIT 50"
+    ).bind(dateFrom, dateTo).all(),
+    // 总数（用于 summary）
+    env.CPTI_DB.prepare(
+      "SELECT " +
+      "SUM(CASE WHEN country IN (" + domesticList + ") THEN 1 ELSE 0 END) AS domestic, " +
+      "SUM(CASE WHEN country NOT IN (" + domesticList + ") AND country IS NOT NULL THEN 1 ELSE 0 END) AS overseas, " +
+      "SUM(CASE WHEN country IS NULL OR session_id IS NULL THEN 1 ELSE 0 END) AS unknown " +
+      "FROM events WHERE event_type='page_view' AND ts_date_bj >= ? AND ts_date_bj <= ?"
+    ).bind(dateFrom, dateTo).first()
+  ]);
+
+  const domesticTotal = summaryRow?.domestic || 0;
+  const overseasTotal = summaryRow?.overseas || 0;
+  const knownTotal = domesticTotal + overseasTotal;  // 排除 unknown
+
+  const pct = function (v) {
+    return knownTotal > 0 ? Math.round((v / knownTotal) * 1000) / 10 : 0;
+  };
+
+  const provinces = (provRows.results || []).map(function (r) {
+    return { region: r.region, visits: r.v, percent: pct(r.v) };
+  });
+  const cities = (cityRows.results || []).map(function (r) {
+    return { region: r.region, city: r.city, visits: r.v, percent: pct(r.v) };
+  });
+  const overseas = (overseasRows.results || []).map(function (r) {
+    return { country: r.country, region: r.region, visits: r.v, percent: pct(r.v) };
+  });
+
+  return json({
+    scope: scope,
+    date: today,
+    date_range: [dateFrom, dateTo],
+    provinces: provinces,
+    cities: cities,
+    overseas: overseas,
+    summary: {
+      domestic_total: domesticTotal,
+      overseas_total: overseasTotal,
+      unknown_total: summaryRow?.unknown || 0
+    }
+  });
+}
+
 // 静态资源：通过 env.STATIC_ASSETS 读取
 async function serveAdminHtml(env) {
   const obj = await env.STATIC_ASSETS.fetch(new Request('https://internal/admin.html'));
@@ -797,7 +916,7 @@ async function serveAdminHtml(env) {
     headers: {
       'Content-Type': 'text/html; charset=utf-8',
       'Cache-Control': 'no-cache',
-      'Content-Security-Policy': "default-src 'self'; script-src 'self' https://cdn.jsdelivr.net; style-src 'self' https://fonts.googleapis.com 'unsafe-inline'; font-src 'self' https://fonts.gstatic.com; img-src 'self' data:;"
+      'Content-Security-Policy': "default-src 'self'; script-src 'self' https://cdn.jsdelivr.net; style-src 'self' https://fonts.googleapis.com 'unsafe-inline'; font-src 'self' https://fonts.gstatic.com; img-src 'self' data:; connect-src 'self';"
     }
   });
 }
@@ -825,6 +944,21 @@ async function serveTrackingJs(env) {
     headers: {
       'Content-Type': 'application/javascript; charset=utf-8',
       'Cache-Control': 'public, max-age=3600',
+      'Access-Control-Allow-Origin': '*'
+    }
+  });
+}
+
+// 静态资源：中国地图 GeoJSON，供 admin 页 echarts registerMap 使用
+async function serveChinaJson(env) {
+  const obj = await env.STATIC_ASSETS.fetch(new Request('https://internal/china.json'));
+  if (!obj.ok) return new Response('{}', { status: 404, headers: { 'Content-Type': 'application/json; charset=utf-8' } });
+  const js = await obj.text();
+  return new Response(js, {
+    status: 200,
+    headers: {
+      'Content-Type': 'application/json; charset=utf-8',
+      'Cache-Control': 'public, max-age=86400',
       'Access-Control-Allow-Origin': '*'
     }
   });
@@ -887,6 +1021,9 @@ export default {
     if (url.pathname === '/api/admin/referrers' && request.method === 'GET') {
       return withAuth(request, env, ctx, handleAdminReferrers);
     }
+    if (url.pathname === '/api/admin/regions' && request.method === 'GET') {
+      return withAuth(request, env, ctx, handleAdminRegions);
+    }
 
     // ===== Admin UI + 静态资源 =====
     if (url.pathname === '/admin' || url.pathname === '/admin/') {
@@ -897,6 +1034,9 @@ export default {
     }
     if (url.pathname === '/tracking.js') {
       return serveTrackingJs(env);
+    }
+    if (url.pathname === '/china.json') {
+      return serveChinaJson(env);
     }
 
     // 根路径返回简单状态信息

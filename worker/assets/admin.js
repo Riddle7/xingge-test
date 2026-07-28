@@ -199,6 +199,7 @@ document.getElementById('nav-tabs').addEventListener('click', function (e) {
   else if (tab === 'types') loadTypesTab();
   else if (tab === 'sessions') loadSessionsTab();
   else if (tab === 'heatmap') loadHeatmapTab();
+  else if (tab === 'regions') loadRegionsTab();
 });
 
 // ===== Overview =====
@@ -762,6 +763,7 @@ function reloadActiveTab() {
   else if (id === 'types') loadTypesTab();
   else if (id === 'sessions') loadSessionsTab();
   else if (id === 'heatmap') loadHeatmapTab();
+  else if (id === 'regions') loadRegionsTab();
 }
 function startRefresh() {
   stopRefresh();
@@ -802,6 +804,123 @@ document.addEventListener('visibilitychange', function () {
 // pagehide 比 beforeunload 更可靠(覆盖移动端切换、bfcache 等),同时监听作为兜底
 window.addEventListener('pagehide', abortAllInflight);
 window.addEventListener('beforeunload', abortAllInflight);
+
+// ===== Regions Tab =====
+let regionsScope = 'today';
+let regionsDays = 30;
+let chinaMapRegistered = false;
+let chinaMapChart = null;
+
+async function ensureChinaMap() {
+  if (chinaMapRegistered) return true;
+  try {
+    const r = await fetch('/china.json');
+    if (!r.ok) {
+      console.warn('china.json fetch failed:', r.status);
+      return false;
+    }
+    const geo = await r.json();
+    echarts.registerMap('china', geo);
+    chinaMapRegistered = true;
+    return true;
+  } catch (e) {
+    console.warn('china.json load error:', e);
+    return false;
+  }
+}
+
+async function loadRegionsTab() {
+  try {
+    const params = '?scope=' + regionsScope + (regionsScope === 'cumulative' ? '&days=' + regionsDays : '');
+    const data = await api('/api/admin/regions' + params);
+    const s = data.summary || {};
+    document.getElementById('regions-kpis').innerHTML = [
+      kpiCard('国内访问', fmt(s.domestic_total), null),
+      kpiCard('海外访问', fmt(s.overseas_total), null),
+      kpiCard('未知地域', fmt(s.unknown_total), null)
+    ].join('');
+    renderRegionTables(data);
+    const ok = await ensureChinaMap();
+    if (ok) {
+      renderChinaMap(data);
+    } else {
+      const el = document.getElementById('china-map');
+      if (el) el.innerHTML = '<div style="padding:40px;text-align:center;color:var(--text-tertiary)">地图加载失败，请查看下方表格</div>';
+    }
+    updateLastUpdate();
+  } catch (e) {
+    if (e.message !== 'unauthorized') toast('加载失败: ' + e.message, true);
+  }
+}
+
+function renderRegionTables(data) {
+  const total = (data.summary && data.summary.domestic_total || 0) + (data.summary && data.summary.overseas_total || 0) || 1;
+  // 国内省份
+  const provTb = document.getElementById('regions-provinces-body');
+  provTb.innerHTML = (data.provinces || []).slice(0, 20).map(function (r) {
+    const w = Math.max(2, (r.visits / total) * 100);
+    return '<tr><td>' + escapeHtml(r.region) + '</td><td>' + fmt(r.visits) + '</td><td><div class="bar-cell"><div class="bar" style="width:' + w + '%"></div><span>' + r.percent + '%</span></div></td></tr>';
+  }).join('') || '<tr><td colspan="3" class="muted" style="text-align:center;padding:20px">暂无数据</td></tr>';
+  // 国内城市
+  const cityTb = document.getElementById('regions-cities-body');
+  cityTb.innerHTML = (data.cities || []).slice(0, 30).map(function (r) {
+    const w = Math.max(2, (r.visits / total) * 100);
+    return '<tr><td class="mono">' + escapeHtml(r.region) + '·' + escapeHtml(r.city) + '</td><td>' + fmt(r.visits) + '</td><td><div class="bar-cell"><div class="bar" style="width:' + w + '%"></div><span>' + r.percent + '%</span></div></td></tr>';
+  }).join('') || '<tr><td colspan="3" class="muted" style="text-align:center;padding:20px">暂无数据</td></tr>';
+  // 海外
+  const ovrTb = document.getElementById('regions-overseas-body');
+  ovrTb.innerHTML = (data.overseas || []).slice(0, 20).map(function (r) {
+    const w = Math.max(2, (r.visits / total) * 100);
+    const label = escapeHtml(r.country) + '·' + escapeHtml(r.region || '—');
+    return '<tr><td class="mono">' + label + '</td><td>' + fmt(r.visits) + '</td><td><div class="bar-cell"><div class="bar" style="width:' + w + '%"></div><span>' + r.percent + '%</span></div></td></tr>';
+  }).join('') || '<tr><td colspan="3" class="muted" style="text-align:center;padding:20px">暂无数据</td></tr>';
+}
+
+function renderChinaMap(data) {
+  const el = document.getElementById('china-map');
+  if (!el) return;
+  if (!chinaMapChart) {
+    chinaMapChart = echarts.init(el);
+  }
+  const provinces = data.provinces || [];
+  const maxVisits = provinces.length > 0 ? provinces[0].visits : 1;
+  chinaMapChart.setOption({
+    tooltip: {
+      trigger: 'item',
+      formatter: function (p) {
+        return p.name + ': ' + (p.value || 0) + ' 次访问';
+      }
+    },
+    visualMap: {
+      min: 0,
+      max: maxVisits,
+      left: 'left', top: 'bottom',
+      text: ['高', '低'],
+      inRange: { color: ['#f5f0e8', '#e8c5a0', '#d99860', '#c97b4a'] },
+      calculable: true
+    },
+    series: [{
+      type: 'map',
+      map: 'china',
+      roam: false,
+      label: { show: false },
+      emphasis: { label: { show: true } },
+      data: provinces.map(function (p) {
+        return { name: p.region, value: p.visits };
+      })
+    }]
+  });
+}
+
+// scope 切换按钮
+document.addEventListener('click', function (e) {
+  if (e.target.dataset.regionsScope) {
+    regionsScope = e.target.dataset.regionsScope;
+    document.querySelectorAll('[data-regions-scope]').forEach(function (b) { b.classList.remove('active'); });
+    e.target.classList.add('active');
+    loadRegionsTab();
+  }
+});
 
 // ===== 初始化：检查是否已登录 =====
 (async function init() {

@@ -10,9 +10,13 @@ const SCHEMA_STATEMENTS = [
   "CREATE TABLE IF NOT EXISTS visits (key TEXT PRIMARY KEY, count INTEGER NOT NULL DEFAULT 0, updated_at TEXT)",
   "INSERT OR IGNORE INTO visits (key, count, updated_at) VALUES ('total', 0, datetime('now'))",
   "INSERT OR IGNORE INTO visits (key, count, updated_at) VALUES ('admin_pw_version', 0, datetime('now'))",
-  "CREATE TABLE IF NOT EXISTS events (id INTEGER PRIMARY KEY AUTOINCREMENT, ts TEXT NOT NULL, ts_hour TEXT NOT NULL, ts_date_bj TEXT NOT NULL, event_type TEXT NOT NULL, page TEXT NOT NULL, type TEXT, session_id TEXT, referrer TEXT, ua TEXT, country TEXT)",
+  // events 表含 region/city 列（与 worker/schema-regions.sql 对齐）
+  "CREATE TABLE IF NOT EXISTS events (id INTEGER PRIMARY KEY AUTOINCREMENT, ts TEXT NOT NULL, ts_hour TEXT NOT NULL, ts_date_bj TEXT NOT NULL, event_type TEXT NOT NULL, page TEXT NOT NULL, type TEXT, session_id TEXT, referrer TEXT, ua TEXT, country TEXT, region TEXT, city TEXT)",
   "CREATE INDEX IF NOT EXISTS idx_events_type_date ON events(event_type, ts_date_bj)",
-  "CREATE INDEX IF NOT EXISTS idx_events_session ON events(session_id)"
+  "CREATE INDEX IF NOT EXISTS idx_events_session ON events(session_id)",
+  // 地域查询索引
+  "CREATE INDEX IF NOT EXISTS idx_events_region_date ON events(region, ts_date_bj)",
+  "CREATE INDEX IF NOT EXISTS idx_events_city_date ON events(city, ts_date_bj)"
 ];
 
 let mf;
@@ -180,4 +184,238 @@ test('POST /api/event with missing fields returns 400', async function () {
 test('POST /api/record with invalid type returns 400', async function () {
   const r = await fetch('/api/record?type=INVALID', { method: 'POST' });
   assert.strictEqual(r.status, 400);
+});
+
+// ========== 测试 11: /api/event 带 cf 写入 region/city ==========
+test('POST /api/event with cf writes region/city', async function () {
+  const r = await fetch('/api/event', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ event_type: 'page_view', page: '/', session_id: 's_region1', referrer: '' }),
+    cf: { country: 'CN', region: 'Guangdong', city: 'Shenzhen' }
+  });
+  assert.strictEqual(r.status, 200);
+  const db = await mf.getD1Database('CPTI_DB');
+  const rows = await db.prepare("SELECT country, region, city FROM events WHERE session_id='s_region1'").all();
+  assert.strictEqual(rows.results.length, 1);
+  assert.strictEqual(rows.results[0].country, 'CN');
+  assert.strictEqual(rows.results[0].region, '广东省');  // 映射后带后缀
+  assert.strictEqual(rows.results[0].city, 'Shenzhen');
+});
+
+// ========== 测试 12: 中文映射失败兜底 ==========
+test('POST /api/event with unknown CN region falls back to raw', async function () {
+  const r = await fetch('/api/event', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ event_type: 'page_view', page: '/', session_id: 's_region2', referrer: '' }),
+    cf: { country: 'CN', region: 'UnknownProvince', city: 'TestCity' }
+  });
+  assert.strictEqual(r.status, 200);
+  const db = await mf.getD1Database('CPTI_DB');
+  const rows = await db.prepare("SELECT region FROM events WHERE session_id='s_region2'").all();
+  assert.strictEqual(rows.results.length, 1);
+  assert.strictEqual(rows.results[0].region, 'UnknownProvince');  // 兜底原值
+});
+
+// ========== 测试 13: 海外 region 不映射 ==========
+test('POST /api/event with US region keeps English', async function () {
+  const r = await fetch('/api/event', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ event_type: 'page_view', page: '/', session_id: 's_region3', referrer: '' }),
+    cf: { country: 'US', region: 'California', city: 'San Francisco' }
+  });
+  assert.strictEqual(r.status, 200);
+  const db = await mf.getD1Database('CPTI_DB');
+  const rows = await db.prepare("SELECT region, city FROM events WHERE session_id='s_region3'").all();
+  assert.strictEqual(rows.results.length, 1);
+  assert.strictEqual(rows.results[0].region, 'California');
+  assert.strictEqual(rows.results[0].city, 'San Francisco');
+});
+
+// ========== 测试 14: 港澳台计入国内分组 ==========
+test('POST /api/event with HK country treated as domestic', async function () {
+  // 清空 events，避免此前测试写入的 CN/US 事件影响 summary 计数
+  const db = await mf.getD1Database('CPTI_DB');
+  await db.prepare("DELETE FROM events").run();
+  await fetch('/api/event', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ event_type: 'page_view', page: '/', session_id: 's_hk', referrer: '' }),
+    cf: { country: 'HK', region: 'Hong Kong', city: 'Hong Kong' }
+  });
+  // 登录拿 cookie
+  const loginR = await fetch('/api/admin/login', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', 'CF-Connecting-IP': '9.9.9.9' },
+    body: JSON.stringify({ password: 'test-pwd-123' })
+  });
+  const token = loginR.headers.get('Set-Cookie').match(/admin_session=([^;]+)/)[1];
+  const r = await fetch('/api/admin/regions?scope=today', {
+    headers: { 'Cookie': 'admin_session=' + token }
+  });
+  assert.strictEqual(r.status, 200);
+  const data = await r.json();
+  assert.strictEqual(data.summary.domestic_total, 1);  // HK 计入国内
+  assert.strictEqual(data.summary.overseas_total, 0);
+});
+
+// ========== 测试 15: /api/admin/regions 返回结构正确 ==========
+test('GET /api/admin/regions?scope=today returns correct structure', async function () {
+  // 清空 events，确保本测试的省份排行结果可预测
+  const db = await mf.getD1Database('CPTI_DB');
+  await db.prepare("DELETE FROM events").run();
+  // 先准备数据：3 个国内 session + 1 个海外 session
+  await fetch('/api/event', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ event_type: 'page_view', page: '/', session_id: 's_a', referrer: '' }),
+    cf: { country: 'CN', region: 'Beijing', city: 'Beijing' }
+  });
+  await fetch('/api/event', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ event_type: 'page_view', page: '/', session_id: 's_b', referrer: '' }),
+    cf: { country: 'CN', region: 'Beijing', city: 'Beijing' }
+  });
+  await fetch('/api/event', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ event_type: 'page_view', page: '/', session_id: 's_c', referrer: '' }),
+    cf: { country: 'CN', region: 'Shanghai', city: 'Shanghai' }
+  });
+  await fetch('/api/event', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ event_type: 'page_view', page: '/', session_id: 's_d', referrer: '' }),
+    cf: { country: 'US', region: 'California', city: 'San Francisco' }
+  });
+  // 登录
+  const loginR = await fetch('/api/admin/login', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', 'CF-Connecting-IP': '8.8.8.8' },
+    body: JSON.stringify({ password: 'test-pwd-123' })
+  });
+  const token = loginR.headers.get('Set-Cookie').match(/admin_session=([^;]+)/)[1];
+  const r = await fetch('/api/admin/regions?scope=today', {
+    headers: { 'Cookie': 'admin_session=' + token }
+  });
+  assert.strictEqual(r.status, 200);
+  const data = await r.json();
+  assert.strictEqual(data.scope, 'today');
+  assert.ok(Array.isArray(data.provinces));
+  assert.ok(Array.isArray(data.cities));
+  assert.ok(Array.isArray(data.overseas));
+  assert.ok(data.summary);
+  // 北京应排第一（2 个 session）
+  assert.strictEqual(data.provinces[0].region, '北京市');
+  assert.strictEqual(data.provinces[0].visits, 2);
+});
+
+// ========== 测试 16: session 去重 - 同 session 多次访问只算 1 次 ==========
+test('regions ranking deduplicates by session_id', async function () {
+  // 清空 events，确保只有本测试的 s_dedup 影响 天津市 计数
+  const db = await mf.getD1Database('CPTI_DB');
+  await db.prepare("DELETE FROM events").run();
+  // 同一 session 发 3 次 page_view
+  for (let i = 0; i < 3; i++) {
+    await fetch('/api/event', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ event_type: 'page_view', page: '/page' + i, session_id: 's_dedup', referrer: '' }),
+      cf: { country: 'CN', region: 'Tianjin', city: 'Tianjin' }
+    });
+  }
+  const loginR = await fetch('/api/admin/login', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', 'CF-Connecting-IP': '7.7.7.7' },
+    body: JSON.stringify({ password: 'test-pwd-123' })
+  });
+  const token = loginR.headers.get('Set-Cookie').match(/admin_session=([^;]+)/)[1];
+  const r = await fetch('/api/admin/regions?scope=today', {
+    headers: { 'Cookie': 'admin_session=' + token }
+  });
+  const data = await r.json();
+  const tj = data.provinces.find(function (p) { return p.region === '天津市'; });
+  assert.ok(tj, 'should have 天津市 in provinces');
+  assert.strictEqual(tj.visits, 1, 'should count as 1 despite 3 page_views');  // 去重
+});
+
+// ========== 测试 17: scope=cumulative&days=7 范围正确 ==========
+test('GET /api/admin/regions?scope=cumulative&days=7 returns range', async function () {
+  const loginR = await fetch('/api/admin/login', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', 'CF-Connecting-IP': '6.6.6.6' },
+    body: JSON.stringify({ password: 'test-pwd-123' })
+  });
+  const token = loginR.headers.get('Set-Cookie').match(/admin_session=([^;]+)/)[1];
+  const r = await fetch('/api/admin/regions?scope=cumulative&days=7', {
+    headers: { 'Cookie': 'admin_session=' + token }
+  });
+  assert.strictEqual(r.status, 200);
+  const data = await r.json();
+  assert.strictEqual(data.scope, 'cumulative');
+  assert.ok(Array.isArray(data.date_range));
+  assert.strictEqual(data.date_range.length, 2);
+});
+
+// ========== 测试 18: 无 cf 对象时 region/city 为 NULL ==========
+test('POST /api/event without cf writes NULL region/city', async function () {
+  // Miniflare v4 即使不传 cf 也会注入默认的 request.cf（country='CN' 等），
+  // 这里显式传空字符串模拟 cf 字段缺失；worker 用 truthy 判定，空串会被归一化为 NULL
+  const r = await fetch('/api/event', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ event_type: 'page_view', page: '/', session_id: 's_nocf', referrer: '' }),
+    cf: { country: '', region: '', city: '' }
+  });
+  assert.strictEqual(r.status, 200);
+  const db = await mf.getD1Database('CPTI_DB');
+  const rows = await db.prepare("SELECT country, region, city FROM events WHERE session_id='s_nocf'").all();
+  assert.strictEqual(rows.results.length, 1);
+  assert.strictEqual(rows.results[0].country, null);
+  assert.strictEqual(rows.results[0].region, null);
+  assert.strictEqual(rows.results[0].city, null);
+});
+
+// ========== 测试 19: NULL country 计入 unknown_total ==========
+test('events with NULL country counted in unknown_total', async function () {
+  // 清空 events，确保 unknown_total 主要来自本测试写入的 NULL country 事件
+  const db = await mf.getD1Database('CPTI_DB');
+  await db.prepare("DELETE FROM events").run();
+  // 显式传空字符串 cf 模拟 country 缺失（Miniflare 默认会注入 'CN'）
+  await fetch('/api/event', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ event_type: 'page_view', page: '/', session_id: 's_unknown_country', referrer: '' }),
+    cf: { country: '', region: '', city: '' }
+  });
+  const loginR = await fetch('/api/admin/login', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', 'CF-Connecting-IP': '5.5.5.5' },
+    body: JSON.stringify({ password: 'test-pwd-123' })
+  });
+  const token = loginR.headers.get('Set-Cookie').match(/admin_session=([^;]+)/)[1];
+  const r = await fetch('/api/admin/regions?scope=today', {
+    headers: { 'Cookie': 'admin_session=' + token }
+  });
+  const data = await r.json();
+  assert.ok(data.summary.unknown_total >= 1, 'unknown_total should be >= 1');
+});
+
+// ========== 测试 20: /api/record 也写入 region/city ==========
+test('POST /api/record writes region/city to events', async function () {
+  const r = await fetch('/api/record?type=HYBRID', {
+    method: 'POST',
+    cf: { country: 'CN', region: 'Zhejiang', city: 'Hangzhou' }
+  });
+  assert.strictEqual(r.status, 200);
+  const db = await mf.getD1Database('CPTI_DB');
+  const rows = await db.prepare("SELECT country, region, city FROM events WHERE event_type='test_completed' AND type='HYBRID' AND region IS NOT NULL ORDER BY id DESC LIMIT 1").all();
+  assert.ok(rows.results.length >= 1);
+  const last = rows.results[0];
+  assert.strictEqual(last.country, 'CN');
+  assert.strictEqual(last.region, '浙江省');
+  assert.strictEqual(last.city, 'Hangzhou');
 });

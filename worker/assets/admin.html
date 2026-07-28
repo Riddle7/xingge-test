@@ -769,6 +769,23 @@
       background: rgba(220, 38, 38, 0.03);
     }
 
+    /* Regions Tab */
+    .regions-layout {
+      display: grid; grid-template-columns: 1.4fr 1fr;
+      gap: 16px; align-items: start;
+    }
+    @media (max-width: 768px) {
+      .regions-layout { grid-template-columns: 1fr; }
+    }
+    .china-map-wrap {
+      background: #F8FAFC;
+      border-radius: 8px; padding: 8px;
+      min-height: 520px;
+    }
+    .region-table-wrap { max-height: 520px; overflow-y: auto; }
+    .region-table-wrap table { font-size: 12px; }
+    .region-table-wrap th, .region-table-wrap td { padding: 6px 8px; }
+
     /* Scrollbar */
     ::-webkit-scrollbar { width: 8px; height: 8px; }
     ::-webkit-scrollbar-track { background: var(--bg-base); }
@@ -1330,6 +1347,7 @@
           <button class="nav-tab" data-tab="types">人格</button>
           <button class="nav-tab" data-tab="sessions">会话</button>
           <button class="nav-tab" data-tab="heatmap">热力图</button>
+          <button class="nav-tab" data-tab="regions">地域</button>
         </nav>
         <div class="header-actions">
           <span class="meta-info" id="last-update">最后更新：-</span>
@@ -1472,11 +1490,50 @@
           </div>
         </div>
       </section>
+
+      <!-- Regions Tab -->
+      <section id="tab-regions" class="tab-content">
+        <div class="kpi-grid" id="regions-kpis"></div>
+        <div class="card" style="margin-top:20px">
+          <div class="card-header">
+            <div class="card-title">访问地域分布</div>
+            <div class="controls">
+              <button data-regions-scope="today" class="active">今日</button>
+              <button data-regions-scope="cumulative">累计（30 天）</button>
+            </div>
+          </div>
+          <div class="card-body">
+            <div class="regions-layout">
+              <div class="china-map-wrap"><div id="china-map" style="width:100%;height:520px"></div></div>
+              <div class="region-table-wrap">
+                <div class="card-title" style="font-size:13px;margin-bottom:8px">国内省份 Top 20</div>
+                <table><thead><tr><th>省份</th><th>访问</th><th>占比</th></tr></thead>
+                  <tbody id="regions-provinces-body"></tbody></table>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="card" style="margin-top:20px">
+          <div class="card-header"><div class="card-title">国内城市 Top 30</div></div>
+          <div class="card-body table-body">
+            <table><thead><tr><th>省·市</th><th>访问</th><th>占比</th></tr></thead>
+              <tbody id="regions-cities-body"></tbody></table>
+          </div>
+        </div>
+        <div class="card" style="margin-top:20px">
+          <div class="card-header"><div class="card-title">海外国家/地区 Top 20</div></div>
+          <div class="card-body table-body">
+            <table><thead><tr><th>国家·地区</th><th>访问</th><th>占比</th></tr></thead>
+              <tbody id="regions-overseas-body"></tbody></table>
+          </div>
+        </div>
+      </section>
     </main>
   </div>
 
   <div id="toast" class="toast"></div>
 
+  <script src="https://cdn.jsdelivr.net/npm/echarts@5.5.0/dist/echarts.min.js" defer></script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js" defer></script>
   <script src="admin.js" defer></script>
 </body>
