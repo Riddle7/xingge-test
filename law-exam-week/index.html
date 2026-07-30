@@ -1710,34 +1710,34 @@ const ENDING_SCENE = {
   end_23: 'book', end_24: 'bank', end_25: 'pencil', end_28: 'coin'
 };
 
-/* 结局 → PNG 插图文件名映射 */
+/* 结局 → 插图文件名映射（已压缩为 JPG） */
 const ENDING_PNG = {
-  'end_01': 'clean_ending-01-baoyan-qingbei.png',
-  'end_02': 'clean_ending-02-baoyan-benxiao.png',
-  'end_03': 'clean_ending-03-kaoyan-erzhan.png',
-  'end_04': 'clean_ending-04-chuguo-llm.png',
-  'end_05': 'clean_ending-05-zhibo.png',
-  'end_06': 'clean_ending-06-hongquansuo.png',
-  'end_07': 'clean_ending-07-jingpinsuo.png',
-  'end_08': 'clean_ending-08-kaogong.png',
-  'end_09': 'clean_ending-09-qiye-fawu.png',
-  'end_10': 'clean_ending-10-zhuanxing-hulianwang.png',
-  'end_11': 'clean_ending-11-zhuanxing-jinrong.png',
-  'end_12': 'clean_ending-12-keguan-yiciguo.png',
-  'end_13': 'clean_ending-13-zhuguanti-gua.png',
-  'end_14': 'clean_ending-14-fakao-erzhan.png',
-  'end_15': 'clean_ending-15-fangqi-fakao.png',
-  'end_16': 'clean_ending-16-faxue-wanghong.png',
-  'end_17': 'clean_ending-17-yanbi.png',
-  'end_18': 'clean_ending-18-cusi.png',
-  'end_19': 'clean_ending-19-chujia.png',
-  'end_20': 'clean_ending-20-kuaile-putongren.png',
-  'end_21': 'clean_ending-21-tuixue.png',
-  'end_22': 'clean_ending-22-bei-fumu-anpai.png',
-  'end_23': 'clean_ending-23-putong-yanjiusheng.png',
-  'end_24': 'clean_ending-24-jiceng-fayuan.png',
-  'end_25': 'clean_ending-25-shixi-lvshi.png',
-  'end_28': 'clean_ending-28-shuangkao-zhanshi.png'
+  'end_01': 'clean_ending-01-baoyan-qingbei.jpg',
+  'end_02': 'clean_ending-02-baoyan-benxiao.jpg',
+  'end_03': 'clean_ending-03-kaoyan-erzhan.jpg',
+  'end_04': 'clean_ending-04-chuguo-llm.jpg',
+  'end_05': 'clean_ending-05-zhibo.jpg',
+  'end_06': 'clean_ending-06-hongquansuo.jpg',
+  'end_07': 'clean_ending-07-jingpinsuo.jpg',
+  'end_08': 'clean_ending-08-kaogong.jpg',
+  'end_09': 'clean_ending-09-qiye-fawu.jpg',
+  'end_10': 'clean_ending-10-zhuanxing-hulianwang.jpg',
+  'end_11': 'clean_ending-11-zhuanxing-jinrong.jpg',
+  'end_12': 'clean_ending-12-keguan-yiciguo.jpg',
+  'end_13': 'clean_ending-13-zhuguanti-gua.jpg',
+  'end_14': 'clean_ending-14-fakao-erzhan.jpg',
+  'end_15': 'clean_ending-15-fangqi-fakao.jpg',
+  'end_16': 'clean_ending-16-faxue-wanghong.jpg',
+  'end_17': 'clean_ending-17-yanbi.jpg',
+  'end_18': 'clean_ending-18-cusi.jpg',
+  'end_19': 'clean_ending-19-chujia.jpg',
+  'end_20': 'clean_ending-20-kuaile-putongren.jpg',
+  'end_21': 'clean_ending-21-tuixue.jpg',
+  'end_22': 'clean_ending-22-bei-fumu-anpai.jpg',
+  'end_23': 'clean_ending-23-putong-yanjiusheng.jpg',
+  'end_24': 'clean_ending-24-jiceng-fayuan.jpg',
+  'end_25': 'clean_ending-25-shixi-lvshi.jpg',
+  'end_28': 'clean_ending-28-shuangkao-zhanshi.jpg'
 };
 function ico(name, cls = 'ico') {
   return `<svg class="${cls}" aria-hidden="true"><use href="#i-${name}"></use></svg>`;
@@ -2281,7 +2281,7 @@ class Renderer {
         <div class="float-deco" style="top:56%;left:6%;width:26px;height:26px;animation-delay:2.6s">${ico('coffee')}</div>
         <div class="float-deco" style="bottom:14%;right:8%;width:32px;height:32px;animation-delay:0.9s">${ico('doc')}</div>
         <div class="title-poster">
-          <img src="assets/endings/title-poster.png" alt="法学院：期末周 主题海报" loading="eager">
+          <img src="assets/endings/title-poster.jpg" alt="法学院：期末周 主题海报" loading="eager">
         </div>
         <div class="game-title">法学院：期末周</div>
         <div class="game-subtitle">
@@ -2344,7 +2344,7 @@ class Renderer {
       <div class="event-area">
         <div class="event-card">
           <div class="event-art-wrap">
-            <img class="event-art" src="assets/events/${event.id}.png" alt="${event.title}" loading="lazy" onerror="this.style.display='none'">
+            <img class="event-art" src="assets/events/${event.id}.jpg" alt="${event.title}" loading="lazy" onerror="this.style.display='none'">
             <div class="scene-badge${event.chain ? ' chain-scene' : ''}${isExam ? ' exam-scene' : ''}">${ico(EVENT_SCENE[event.id] || 'book')}</div>
           </div>
           ${event.tags.includes('class') ? '<span class="event-tag">课堂</span>' : ''}
