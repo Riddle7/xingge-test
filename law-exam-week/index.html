@@ -2281,7 +2281,7 @@ class Renderer {
         <div class="float-deco" style="top:56%;left:6%;width:26px;height:26px;animation-delay:2.6s">${ico('coffee')}</div>
         <div class="float-deco" style="bottom:14%;right:8%;width:32px;height:32px;animation-delay:0.9s">${ico('doc')}</div>
         <div class="title-poster">
-          <img src="assets/endings/title-poster.jpg" alt="法学院：期末周 主题海报" loading="eager">
+          <img src="assets/endings/title-poster.jpg?v=20260731" alt="法学院：期末周 主题海报" loading="eager">
         </div>
         <div class="game-title">法学院：期末周</div>
         <div class="game-subtitle">
@@ -2344,7 +2344,7 @@ class Renderer {
       <div class="event-area">
         <div class="event-card">
           <div class="event-art-wrap">
-            <img class="event-art" src="assets/events/${event.id}.jpg" alt="${event.title}" loading="lazy" onerror="this.style.display='none'">
+            <img class="event-art" src="assets/events/${event.id}.jpg?v=20260731" alt="${event.title}" loading="lazy" onerror="this.style.display='none'">
             <div class="scene-badge${event.chain ? ' chain-scene' : ''}${isExam ? ' exam-scene' : ''}">${ico(EVENT_SCENE[event.id] || 'book')}</div>
           </div>
           ${event.tags.includes('class') ? '<span class="event-tag">课堂</span>' : ''}
@@ -2749,7 +2749,7 @@ function saveEndingImage(ending, overlayEl) {
   var artImg = new Image();
   artImg.onload = function() { try { renderAndSave(artImg); } catch (err) { fail(err); } };
   artImg.onerror = function() { try { renderAndSave(null); } catch (err) { fail(err); } };
-  artImg.src = 'assets/endings/' + pngFile;
+  artImg.src = 'assets/endings/' + pngFile + '?v=20260731';
 
   function fail(err) {
     console.error('saveEndingImage 失败：', err);
