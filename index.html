@@ -591,6 +591,7 @@
       display: inline-flex;
       align-items: center;
       padding: 0.75rem 1.5rem;
+      min-height: 44px; /* WCAG 2.5.5 触摸目标：移动端至少 44px 高 */
       border-radius: 999px; /* Matrix pill */
       font-size: 14px;
       font-weight: 600;
@@ -647,6 +648,42 @@
       box-shadow:
         0 1px 2px rgba(0, 0, 0, 0.04),
         inset 0 1px 0 rgba(255, 255, 255, 0.6);
+    }
+
+    /* 像素游戏风格按钮 - 进入法学院：期末周（ghost-outline pill）
+       设计原则：降级为"支线发现"语义——
+       - 透明背景 + 琥珀描边，视觉权重低于蓝主/白次按钮
+       - 保留像素风味：等宽字体 + 琥珀色 + gamepad 图标
+       - hover 时填充琥珀色 + 反转深色文字，保留 8-bit 反转效果
+       - 移除硬阴影与扫描线（最大冲突源），与 Apple-clean 主按钮和谐共存 */
+    .hero-cta-pixel {
+      background: transparent;
+      color: #b45309; /* amber-700，AA 对比度 ≥ 4.5:1 on white */
+      border: 1.5px solid #f59e0b;
+      font-family: 'JetBrains Mono', ui-monospace, 'SF Mono', Consolas, monospace;
+      font-size: 14px;
+      font-weight: 600;
+      letter-spacing: 0.02em;
+      box-shadow: none;
+    }
+    .hero-cta-pixel:hover {
+      background: #f59e0b;
+      color: #0f172a;
+      border-color: #f59e0b;
+      transform: translateY(-1px);
+      box-shadow: 0 4px 12px rgba(245, 158, 11, 0.25);
+    }
+    .hero-cta-pixel:active {
+      transform: translateY(0);
+      box-shadow: none;
+    }
+    [data-theme="dark"] .hero-cta-pixel {
+      color: #fbbf24; /* amber-400，深色背景下提高对比度 */
+      border-color: #f59e0b;
+    }
+    [data-theme="dark"] .hero-cta-pixel:hover {
+      background: #f59e0b;
+      color: #0f172a;
     }
 
     /* 蓝色主按钮 - 进入刑格测试（带质感与动效） */
@@ -1205,7 +1242,7 @@
             The future of law is generated, not discovered.
           </p>
 
-          <!-- CTAs -->
+          <!-- CTAs：三按钮同行，视觉层级 蓝主 > 白次 > 琥珀描边（支线/发现） -->
           <div class="flex flex-wrap items-center gap-3 reveal">
             <a href="#manifesto" data-dom-id="cta-manifesto" class="hero-cta hero-cta-white">
               <span class="hero-cta__inner">
@@ -1217,6 +1254,12 @@
               <span class="hero-cta__inner">
                 <i data-lucide="flask-conical" class="w-4 h-4"></i>
                 进入刑格测试
+              </span>
+            </a>
+            <a href="#lab-lawexam" data-dom-id="cta-lawexam" class="hero-cta hero-cta-pixel" title="进入法学院：期末周">
+              <span class="hero-cta__inner">
+                <i data-lucide="gamepad-2" class="w-4 h-4"></i>
+                进入法学院：期末周
               </span>
             </a>
           </div>
@@ -1345,6 +1388,34 @@
               <span class="inline-flex items-center gap-2 px-5 py-3 rounded-[12px] bg-white text-[var(--color-brand-900)] text-[14px] font-semibold group-hover:bg-white/90 group-hover:gap-3 active:translate-y-[1px] transition-all">
                 开始测试
                 <i data-lucide="arrow-right" class="w-4 h-4"></i>
+              </span>
+            </div>
+          </div>
+        </a>
+
+        <!-- Feature card: 法学院期末周入口（retro pixel game style，链接到 law-exam-week/index.html） -->
+        <a href="law-exam-week/index.html" id="lab-lawexam" data-dom-id="lab-lawexam" class="lab-pixel-card scroll-reveal group relative overflow-hidden rounded-[19px] block transition-all" style="background: #0f172a; border: 1.5px solid #f59e0b; margin-top: 20px;">
+          <!-- CRT 扫描线纹理背景（细微） -->
+          <div class="absolute inset-0 pointer-events-none" style="background-image: repeating-linear-gradient(0deg, transparent 0, transparent 2px, rgba(245, 158, 11, 0.03) 2px, rgba(245, 158, 11, 0.03) 3px); opacity: 0.6;"></div>
+          <!-- 像素网格装饰（右上角） -->
+          <div class="absolute top-0 right-0 w-32 h-32 pointer-events-none opacity-[0.15]" style="background-image: linear-gradient(90deg, #f59e0b 1px, transparent 1px), linear-gradient(0deg, #f59e0b 1px, transparent 1px); background-size: 8px 8px;"></div>
+          <div class="relative z-10 flex flex-col lg:flex-row lg:items-end lg:justify-between gap-8 p-8 sm:p-12">
+            <div class="max-w-xl">
+              <!-- 像素风状态徽章：双斜杠 // 表示"新关卡" -->
+              <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-[4px] mb-5" style="background: rgba(245, 158, 11, 0.12); border: 1px solid rgba(245, 158, 11, 0.4); color: #fbbf24; font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 11px; font-weight: 600; letter-spacing: 0.08em;">
+                <span style="color: #f59e0b;">//</span>
+                NEW GAME
+              </span>
+              <h3 class="font-bold tracking-tight mb-3" style="color: #fbbf24; font-family: 'JetBrains Mono', ui-monospace, 'SF Mono', Consolas, monospace; font-size: 22px; letter-spacing: 0.01em; font-weight: 700;">法学院：期末周</h3>
+              <p class="text-base font-medium text-white/60 mb-3" style="font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 13px; letter-spacing: 0.02em;">7 DAYS · 26 ENDINGS · 5 RESOURCES</p>
+              <p class="text-[14.5px] leading-[1.75] text-white/60 max-w-lg">
+                绩点、精力、San值、社交、法考进度。五维资源在七天的期末周里相互拉扯，每一次选择都可能通向不同的人生轨迹。一场像素风格的法律学院生存模拟。
+              </p>
+            </div>
+            <div class="flex-shrink-0">
+              <span class="inline-flex items-center gap-2 group-hover:gap-3 active:translate-y-[1px] transition-all" style="background: #f59e0b; color: #0f172a; border: 1.5px solid #f59e0b; border-radius: 6px; padding: 12px 20px; font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 13px; font-weight: 700; letter-spacing: 0.03em; box-shadow: 3px 3px 0 0 rgba(15, 23, 42, 0.6);">
+                <i data-lucide="play" class="w-4 h-4" style="fill: currentColor;"></i>
+                PRESS START
               </span>
             </div>
           </div>
