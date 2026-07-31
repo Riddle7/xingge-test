@@ -1117,7 +1117,7 @@ html, body { min-height: 100vh; min-height: 100dvh; }
       <rect y="150" width="320" height="30" fill="#0a0f1e"/>
     </symbol>
 
-    <symbol id="art-12" viewBox="0 0 320 180"><!-- 客观题一次过：靶心与烟花 -->
+    <symbol id="art-12" viewBox="0 0 320 180"><!-- 法考一次过/状元：靶心与烟花 -->
       <rect width="320" height="180" fill="url(#artSkyG)"/><use href="#sc-stars"/>
       <g stroke="#f59e0b" stroke-width="2" stroke-linecap="round" opacity=".85">
         <path d="M70,32 V24 M70,56 V64 M58,44 H50 M82,44 H90 M61,35 L55,29 M79,35 L85,29 M61,53 L55,59 M79,53 L85,59"/>
@@ -1671,21 +1671,21 @@ const EVENTS = [
 
 /* ---------------- 知识卡（15 张） ---------------- */
 const CARDS = [
-{ id: 'card_civil',    name: '请求权基础',     icon: '⚖️', rarity: '稀有', desc: 'GPA 增加时 +5；触发民法相关事件时额外 +10' },
-{ id: 'card_crim',     name: '构成要件该当性', icon: '🔨', rarity: '稀有', desc: '法考进度增加时，额外 +10' },
-{ id: 'card_bolang',   name: '柏浪涛刑法观',   icon: '🎓', rarity: '史诗', desc: '所有选择后，若法考进度增加，则额外 +20' },
+{ id: 'card_civil',    name: '请求权基础',     icon: '⚖️', rarity: '稀有', desc: 'GPA 增加时 +5；触发民法相关事件时额外 +5' },
+{ id: 'card_crim',     name: '构成要件该当性', icon: '🔨', rarity: '稀有', desc: '法考进度增加时，额外 +5' },
+{ id: 'card_bolang',   name: '柏浪涛刑法观',   icon: '🎓', rarity: '史诗', desc: '所有选择后，若法考进度增加，则额外 +10' },
 { id: 'card_wang',     name: '王泽鉴民法思维', icon: '📜', rarity: '史诗', desc: 'GPA 上限突破至 120，获得时 GPA +20' },
 { id: 'card_speed',    name: '三天速成法',     icon: '⏩', rarity: '普通', desc: '获得时立即精力 +25；下一天开始时 San值 -20' },
-{ id: 'card_past',     name: '往年真题',       icon: '📝', rarity: '稀有', desc: '获得时 GPA 和法考 +10；持有时抵消下一个对 GPA 或法考进度的负面效果一次' },
-{ id: 'card_notes',    name: '重点笔记',       icon: '📒', rarity: '普通', desc: '获得时立即 GPA +15' },
+{ id: 'card_past',     name: '往年真题',       icon: '📝', rarity: '稀有', desc: '获得时 GPA 和法考 +5；持有时抵消下一个对 GPA 或法考进度的负面效果一次' },
+{ id: 'card_notes',    name: '重点笔记',       icon: '📒', rarity: '普通', desc: '获得时立即 GPA +10' },
 { id: 'card_coffee',   name: '咖啡续命',       icon: '☕', rarity: '普通', desc: '持有时每天开始精力 +10；San值上限 -5（入手时超出部分会被削减）' },
 { id: 'card_roommate', name: '室友的笔记',     icon: '🤝', rarity: '普通', desc: '获得时随机再抽一张卡' },
 { id: 'card_prof',     name: '老师的好感',     icon: '😊', rarity: '稀有', desc: '触发事件时，所有负面效果消失' },
-{ id: 'card_mem',      name: '法考刷题',       icon: '🧾', rarity: '普通', desc: '获得时法考进度 +15' },
+{ id: 'card_mem',      name: '法考刷题',       icon: '🧾', rarity: '普通', desc: '获得时法考进度 +10' },
 { id: 'card_mind',     name: '思维导图',       icon: '🗺️', rarity: '普通', desc: '获得时 San值 +15' },
-{ id: 'card_2x',       name: '网课倍速',       icon: '💻', rarity: '普通', desc: '持有时法考增速 +100%，精力消耗 +20%' },
+{ id: 'card_2x',       name: '网课倍速',       icon: '💻', rarity: '普通', desc: '持有时法考增速 +50%，精力消耗 +20%' },
 { id: 'card_luck',     name: '锦鲤转发',       icon: '🐟', rarity: '普通', desc: '获得时随机两项资源 +10' },
-{ id: 'card_genius',   name: '学霸附体',   icon: '🌟', rarity: '史诗', desc: '接下来 6 天内，所有正面效果 +100%' }
+{ id: 'card_genius',   name: '学霸附体',   icon: '🌟', rarity: '史诗', desc: '接下来 6 天内，所有正面效果 +50%' }
 ];
 
 /* ---------------- 结局（26 个） ---------------- */
@@ -1701,7 +1701,7 @@ const ENDINGS = [
 { id: 'end_09', name: '企业法务',     icon: '🖇️', desc: '你成了某大厂法务部的一颗螺丝钉。合同审到第 100 份时，你梦见了请求权基础。' },
 { id: 'end_10', name: '转行互联网',   icon: '📱', desc: '你投了产品经理岗。面试官问你优势，你说："我学过逻辑，能吵架，还熬得了夜。"' },
 { id: 'end_11', name: '转行金融',     icon: '📈', desc: '你去了券商合规部。发现这里的人也在背法条，只是背的是《证券法》。' },
-{ id: 'end_12', name: '客观题一次过', icon: '🎯', desc: '你客观题考了 210 分。查成绩那天，你把《三大本》扔进了垃圾桶，又捡了回来——主观题还要用。' },
+{ id: 'end_12', name: '法考一次过', icon: '🎯', desc: '客观题210、主观题115，A证一次到手。你把《三大本》整齐收好，留给师弟师妹——他们比你更需要这份参考。', nameZY: '法考状元', descZY: '客观题210、主观题115，A证一次到手。你把《三大本》整齐收好，留给师弟师妹——法考的苦，他们比你更需要这份参考。' },
 { id: 'end_13', name: '主观题挂',     icon: '💔', desc: '客观题过了，主观题差 5 分。你成了"二战主观题"群的资深成员。' },
 { id: 'end_14', name: '法考二战',     icon: '🔁', desc: '你决定明年再来。书架上那套法考教材，你舍不得扔，毕竟上面写满了字。' },
 { id: 'end_15', name: '放弃法考',     icon: '🕊️', desc: '你意识到自己的人生不需要 A 证也能展开。这不是认输，是战略转移。' },
@@ -1953,12 +1953,12 @@ class GameEngine {
       let delta = effects[key] || 0;
       if (delta === 0) continue;
 
-      // 学霸附体：正面效果 +100%
-      if (delta > 0 && s.geniusDays > 0) delta = Math.ceil(delta * 2.0);
-      // 网课倍速：BAR+100%/张 / ENG消耗+20%/张（叠加：3张=+300%增速、+60%消耗）
+      // 学霸附体：正面效果 +50%
+      if (delta > 0 && s.geniusDays > 0) delta = Math.ceil(delta * 1.5);
+      // 网课倍速：BAR+50%/张 / ENG消耗+20%/张（叠加：3张=+150%增速、+60%消耗）
       const x2cnt = s.countCard('card_2x');
       if (x2cnt > 0) {
-        if (key === 'bar' && delta > 0) delta = Math.ceil(delta * (1 + 1.0 * x2cnt));
+        if (key === 'bar' && delta > 0) delta = Math.ceil(delta * (1 + 0.5 * x2cnt));
         if (key === 'eng' && delta < 0) delta = Math.round(delta * (1 + 0.2 * x2cnt));
       }
       // 社交隔离：正面社交归零
@@ -1982,9 +1982,9 @@ class GameEngine {
     // 学科联动卡（每次事件一次，roll 分支跳过避免重复触发）
     // fromGainCard: 入手效果也触发联动卡（修复 Bug1：入手效果不触发联动卡）
     if ((event || opts.fromGainCard) && !opts.skipLinkCards) {
-      // 请求权基础：GPA 增加时 +5/张；civil 标签事件额外 +10/张（可叠加）
+      // 请求权基础：GPA 增加时 +5/张；civil 标签事件额外 +5/张（可叠加）
       // 修复：原仅 civil 标签事件触发，浪费率 71.2%。现扩展为"任何 GPA 增加时"触发 +5，
-      //       civil 事件再叠加 +10，与 card_crim 修复思路一致。
+      //       civil 事件再叠加 +5，与 card_crim 修复思路一致。
       const civilCnt = s.countCard('card_civil');
       if (civilCnt > 0) {
         if ((deltas.gpa || 0) > 0) {
@@ -1993,24 +1993,24 @@ class GameEngine {
           notes.push(`⚖️ 请求权基础发动：GPA +${bonus}`);
         }
         if (event && event.tags && event.tags.includes('civil')) {
-          const bonus = 10 * civilCnt;
+          const bonus = 5 * civilCnt;
           deltas.gpa = (deltas.gpa || 0) + s.addResource('gpa', bonus);
           notes.push(`⚖️ 请求权基础（民法联动）：GPA +${bonus}`);
         }
       }
-      // 构成要件该当性：法考进度增加时额外 +10/张
+      // 构成要件该当性：法考进度增加时额外 +5/张
       // 修复：原仅 crim 标签事件触发，但全游戏仅 EVT_011 有 crim 标签且平均每局触发 0.2 次，
       //       导致 93.9% 的 card_crim 抽到后永远无法发挥效果。现扩展为"任何法考进度增加时"触发。
       const crimCnt = s.countCard('card_crim');
       if (crimCnt > 0 && (deltas.bar || 0) > 0) {
-        const bonus = 10 * crimCnt;
+        const bonus = 5 * crimCnt;
         deltas.bar = (deltas.bar || 0) + s.addResource('bar', bonus);
         notes.push(`🔨 构成要件该当性发动：法考 +${bonus}`);
       }
-      // 柏浪涛：BAR 增加则额外 +20/张（在所有 BAR 加成之后触发）
+      // 柏浪涛：BAR 增加则额外 +10/张（在所有 BAR 加成之后触发）
       const bolangCnt = s.countCard('card_bolang');
       if (bolangCnt > 0 && (deltas.bar || 0) > 0) {
-        const bonus = 20 * bolangCnt;
+        const bonus = 10 * bolangCnt;
         deltas.bar += s.addResource('bar', bonus);
         notes.push(`🎓 柏浪涛刑法观发动：法考 +${bonus}`);
       }
@@ -2058,9 +2058,9 @@ class GameEngine {
     let effects = {};
     switch (cardId) {
       case 'card_speed': effects.eng = 25; s.speedPenalty = (s.speedPenalty || 0) + 1; break;
-      case 'card_past':  effects.gpa = 10; effects.bar = 10; break;
-      case 'card_notes': effects.gpa = 15; break;
-      case 'card_mem':   effects.bar = 15; break;
+      case 'card_past':  effects.gpa = 5; effects.bar = 5; break;
+      case 'card_notes': effects.gpa = 10; break;
+      case 'card_mem':   effects.bar = 10; break;
       case 'card_mind':  effects.san = 15; break;
       case 'card_wang':  s.wangBoost = true; effects.gpa = 20; break;
       case 'card_genius': s.geniusDays = 6; break;
@@ -2272,14 +2272,17 @@ class GameEngine {
 
   /* 结局判定：致命结局优先，再按优先级判定
    * 法考（bar）阈值体系：
-   *   ≥75 高分通过 | [60,75) 通过(A证) | [50,60) 主观题挂
-   *   [40,50) 法考二战 | [25,40) 律师助理 | <25 放弃法考
+   *   ≥90 法考状元（双高分A证）| [75,90) 法考一次过（双过A证）| [60,75) 通过(A证基础)
+   *   [50,60) 主观题挂（客观过主观未过）| [40,50) 法考二战 | [25,40) 律师助理 | <25 放弃法考
    * 要求 A 证的结局（律所/法院/检察院/法务）统一门槛 bar≥60 */
   calculateEnding() {
     const fatal = this.checkFatalEnding();
     if (fatal) return fatal;
 
     const s = this.state, r = s.resources;
+
+    // === 法考状元：bar≥90 且 san>20（极高评价，无视 gpa/soc）===
+    if (r.bar >= 90 && r.san > 20) return 'end_12';
 
     // === 学业顶端（保研/出国，不看法考）===
     if (r.gpa >= 88 && r.san >= 50) return 'end_01';                       // 保研清北
@@ -2293,8 +2296,8 @@ class GameEngine {
     if (r.soc >= 70 && r.gpa >= 60 && r.bar >= 60) return 'end_11';          // 转行金融（券商合规，需过法考）
     if (r.soc >= 55 && r.gpa >= 60 && r.san >= 35 && r.bar >= 60) return 'end_08'; // 考公上岸
 
-    // === 法考高分通过 ===
-    if (r.bar >= 75 && r.san > 10) return 'end_12';                        // 客观题一次过（高分）
+    // === 法考高分通过（双过 A 证，非状元）===
+    if (r.bar >= 75 && r.bar < 90 && r.san > 10) return 'end_12';           // 法考一次过（客观+主观双过）
 
     // === 双考战士：过了法考但精力耗尽 ===
     if (r.bar >= 60 && r.bar < 75 && r.gpa >= 60 && r.eng < 40) return 'end_28';
@@ -2613,7 +2616,11 @@ class Renderer {
 
   /* ---------- 结局页 ---------- */
   renderEnding(endingId) {
-    const e = ENDINGS.find(x => x.id === endingId);
+    const origin = ENDINGS.find(x => x.id === endingId);
+    // 法考状元分支：end_12 且 bar≥90 时切换为状元素材（克隆副本避免污染全局 ENDINGS）
+    const e = (endingId === 'end_12' && game.resources.bar >= 90 && origin.nameZY)
+      ? Object.assign({}, origin, { name: origin.nameZY, desc: origin.descZY, icon: '🏆' })
+      : origin;
     game.unlockedEndings.add(endingId);
     game.saveEndings();
     game.clearRun();
@@ -2902,7 +2909,10 @@ function saveEndingImage(ending, overlayEl) {
   var originalHtml = btn ? btn.innerHTML : '';
   if (btn) { btn.innerHTML = '正在生成图片...'; btn.disabled = true; }
 
-  var e = ending;
+  // 法考状元分支：end_12 且 bar≥90 时切换为状元素材（克隆副本避免污染全局 ENDINGS）
+  var e = (ending.id === 'end_12' && game.resources.bar >= 90 && ending.nameZY)
+    ? Object.assign({}, ending, { name: ending.nameZY, desc: ending.descZY, icon: '🏆' })
+    : ending;
   var r = game.resources;
   var unlocked = game.unlockedEndings.size;
   var total = ENDINGS.length;
