@@ -1671,16 +1671,16 @@ const EVENTS = [
 
 /* ---------------- 知识卡（15 张） ---------------- */
 const CARDS = [
-{ id: 'card_civil',    name: '请求权基础',     icon: '⚖️', rarity: '稀有', desc: '触发民法相关事件时，GPA 额外 +10' },
-{ id: 'card_crim',     name: '构成要件该当性', icon: '🔨', rarity: '稀有', desc: '触发刑法相关事件时，法考进度额外 +10' },
+{ id: 'card_civil',    name: '请求权基础',     icon: '⚖️', rarity: '稀有', desc: 'GPA 增加时 +5；触发民法相关事件时额外 +10' },
+{ id: 'card_crim',     name: '构成要件该当性', icon: '🔨', rarity: '稀有', desc: '法考进度增加时，额外 +10' },
 { id: 'card_bolang',   name: '柏浪涛刑法观',   icon: '🎓', rarity: '史诗', desc: '所有选择后，若法考进度增加，则额外 +20' },
 { id: 'card_wang',     name: '王泽鉴民法思维', icon: '📜', rarity: '史诗', desc: 'GPA 上限突破至 120，获得时 GPA +20' },
 { id: 'card_speed',    name: '三天速成法',     icon: '⏩', rarity: '普通', desc: '获得时立即精力 +25；下一天开始时 San值 -20' },
-{ id: 'card_past',     name: '往年真题',       icon: '📝', rarity: '稀有', desc: '抵消下一个对 GPA 或法考进度的负面效果一次' },
+{ id: 'card_past',     name: '往年真题',       icon: '📝', rarity: '稀有', desc: '获得时 GPA 和法考 +10；持有时抵消下一个对 GPA 或法考进度的负面效果一次' },
 { id: 'card_notes',    name: '重点笔记',       icon: '📒', rarity: '普通', desc: '获得时立即 GPA +15' },
 { id: 'card_coffee',   name: '咖啡续命',       icon: '☕', rarity: '普通', desc: '持有时每天开始精力 +10；San值上限 -5（入手时超出部分会被削减）' },
 { id: 'card_roommate', name: '室友的笔记',     icon: '🤝', rarity: '普通', desc: '获得时随机再抽一张卡' },
-{ id: 'card_prof',     name: '老师的好感',     icon: '😊', rarity: '稀有', desc: '触发"点名/划重点"类事件时，负面效果消失' },
+{ id: 'card_prof',     name: '老师的好感',     icon: '😊', rarity: '稀有', desc: '触发事件时，所有负面效果消失' },
 { id: 'card_mem',      name: '法考刷题',       icon: '🧾', rarity: '普通', desc: '获得时法考进度 +15' },
 { id: 'card_mind',     name: '思维导图',       icon: '🗺️', rarity: '普通', desc: '获得时 San值 +15' },
 { id: 'card_2x',       name: '网课倍速',       icon: '💻', rarity: '普通', desc: '持有时法考增速 +100%，精力消耗 +20%' },
@@ -1965,9 +1965,10 @@ class GameEngine {
       if (key === 'soc' && delta > 0 && s.isolationDays > 0) {
         delta = 0; notes.push('社交隔离中，社交收益无效');
       }
-      // 老师的好感：课堂类事件负面消失（1张及以上即完全抵消）
+      // 老师的好感：任意事件负面消失（1张及以上即完全抵消）
+      // 修复：原仅 class 标签事件触发，浪费率 62.4%。现扩展为任意事件负面消失。
       const profCnt = s.countCard('card_prof');
-      if (delta < 0 && profCnt > 0 && event && event.tags.includes('class')) {
+      if (delta < 0 && profCnt > 0 && event) {
         delta = 0;
       }
       // 往年真题：抵消一次 GPA/BAR 负面
@@ -1979,15 +1980,29 @@ class GameEngine {
       if (actual !== 0) deltas[key] = (deltas[key] || 0) + actual;
     }
     // 学科联动卡（每次事件一次，roll 分支跳过避免重复触发）
-    if (event && !opts.skipLinkCards) {
+    // fromGainCard: 入手效果也触发联动卡（修复 Bug1：入手效果不触发联动卡）
+    if ((event || opts.fromGainCard) && !opts.skipLinkCards) {
+      // 请求权基础：GPA 增加时 +5/张；civil 标签事件额外 +10/张（可叠加）
+      // 修复：原仅 civil 标签事件触发，浪费率 71.2%。现扩展为"任何 GPA 增加时"触发 +5，
+      //       civil 事件再叠加 +10，与 card_crim 修复思路一致。
       const civilCnt = s.countCard('card_civil');
-      if (civilCnt > 0 && event.tags.includes('civil')) {
-        const bonus = 10 * civilCnt;
-        deltas.gpa = (deltas.gpa || 0) + s.addResource('gpa', bonus);
-        notes.push(`⚖️ 请求权基础发动：GPA +${bonus}`);
+      if (civilCnt > 0) {
+        if ((deltas.gpa || 0) > 0) {
+          const bonus = 5 * civilCnt;
+          deltas.gpa = (deltas.gpa || 0) + s.addResource('gpa', bonus);
+          notes.push(`⚖️ 请求权基础发动：GPA +${bonus}`);
+        }
+        if (event && event.tags && event.tags.includes('civil')) {
+          const bonus = 10 * civilCnt;
+          deltas.gpa = (deltas.gpa || 0) + s.addResource('gpa', bonus);
+          notes.push(`⚖️ 请求权基础（民法联动）：GPA +${bonus}`);
+        }
       }
+      // 构成要件该当性：法考进度增加时额外 +10/张
+      // 修复：原仅 crim 标签事件触发，但全游戏仅 EVT_011 有 crim 标签且平均每局触发 0.2 次，
+      //       导致 93.9% 的 card_crim 抽到后永远无法发挥效果。现扩展为"任何法考进度增加时"触发。
       const crimCnt = s.countCard('card_crim');
-      if (crimCnt > 0 && event.tags.includes('crim')) {
+      if (crimCnt > 0 && (deltas.bar || 0) > 0) {
         const bonus = 10 * crimCnt;
         deltas.bar = (deltas.bar || 0) + s.addResource('bar', bonus);
         notes.push(`🔨 构成要件该当性发动：法考 +${bonus}`);
@@ -1997,9 +2012,11 @@ class GameEngine {
       if (bolangCnt > 0 && (deltas.bar || 0) > 0) {
         const bonus = 20 * bolangCnt;
         deltas.bar += s.addResource('bar', bonus);
+        notes.push(`🎓 柏浪涛刑法观发动：法考 +${bonus}`);
       }
     }
-    s.lastDeltas = deltas;
+    // fromGainCard 时跳过 lastDeltas 设置（由 gainCard 统一更新，避免重复累加）
+    if (!opts.fromGainCard) s.lastDeltas = deltas;
     return { deltas, notes };
   }
 
@@ -2033,15 +2050,19 @@ class GameEngine {
     return CARDS.find(c => c.id === cardId);
   }
 
-  /* 知识卡入手效果（拆分出来，便于 card_roommate 递归调用） */
+  /* 知识卡入手效果（拆分出来，便于 card_roommate 递归调用）
+   * 修复 Bug1+Bug2：资源加成统一通过 applyEffects 管道处理，
+   * 自然触发 genius 翻倍（Bug2）和学科联动卡（Bug1），无需修改卡牌效果本身。 */
   applyCardEffect(cardId, depth = 0) {
     const s = this.state;
+    let effects = {};
     switch (cardId) {
-      case 'card_speed': s.addResource('eng', 25); s.speedPenalty = (s.speedPenalty || 0) + 1; break;
-      case 'card_notes': s.addResource('gpa', 15); break;
-      case 'card_mem':   s.addResource('bar', 15); break;
-      case 'card_mind':  s.addResource('san', 15); break;
-      case 'card_wang':  s.wangBoost = true; s.addResource('gpa', 20); break;
+      case 'card_speed': effects.eng = 25; s.speedPenalty = (s.speedPenalty || 0) + 1; break;
+      case 'card_past':  effects.gpa = 10; effects.bar = 10; break;
+      case 'card_notes': effects.gpa = 15; break;
+      case 'card_mem':   effects.bar = 15; break;
+      case 'card_mind':  effects.san = 15; break;
+      case 'card_wang':  s.wangBoost = true; effects.gpa = 20; break;
       case 'card_genius': s.geniusDays = 6; break;
       case 'card_luck': {
         // Fisher-Yates 均匀洗牌取前 2 个
@@ -2054,7 +2075,7 @@ class GameEngine {
         // 社交隔离期 soc 正向收益归零（与 applyEffects 行为一致）
         keys.forEach(k => {
           if (k === 'soc' && s.isolationDays > 0) return;
-          s.addResource(k, 10);
+          effects[k] = (effects[k] || 0) + 10;
         });
         break;
       }
@@ -2088,12 +2109,23 @@ class GameEngine {
         }
         break;
     }
+    // 统一通过 applyEffects 处理资源加成（触发 genius 翻倍 + 学科联动卡）
+    if (Object.keys(effects).length > 0) {
+      this.applyEffects(effects, null, { fromGainCard: true });
+    }
   }
 
-  /* 每日开始时结算（咖啡/速成反噬/学业警告/法考狂热/昏睡） */
+  /* 每日开始时结算（咖啡/速成反噬/学业警告/法考狂热/昏睡）
+   * 修复 Bug4：每日结算也算"触发事件"，card_prof 抵消所有结算负面 */
   dayStartSettlement() {
     const s = this.state;
     const messages = [];
+    // 老师的好感：每日结算负面也算"触发事件"，1张及以上即完全抵消
+    const profCnt = s.countCard('card_prof');
+    const addSettle = (key, delta) => {
+      if (delta < 0 && profCnt > 0) return 0; // prof 抵消负面
+      return s.addResource(key, delta);
+    };
     if (s.sleepCrash) {
       s.sleepCrash = false;
       s.sleepCrashes = (s.sleepCrashes || 0) + 1;
@@ -2102,7 +2134,7 @@ class GameEngine {
         messages.push('🕯️ 你再次昏睡过去，这一次再也没能醒来……');
         return { messages, over: true, dying: true };
       }
-      for (const k of Object.keys(RES_META)) s.addResource(k, -5);
+      for (const k of Object.keys(RES_META)) addSettle(k, -5);
       s.addResource('eng', 25); // 睡醒恢复，避免死循环
       s.day++;
       messages.push('😴 你昏睡了一整天……所有资源 -5，但精力恢复了一些。');
@@ -2110,9 +2142,9 @@ class GameEngine {
     if (s.day > s.maxDay) return { messages, over: true };
     const coffeeCnt = s.countCard('card_coffee');
     if (coffeeCnt > 0) { const bonus = 10 * coffeeCnt; s.addResource('eng', bonus); messages.push(`☕ 咖啡续命：精力 +${bonus}（${coffeeCnt}张）`); }
-    if (s.speedPenalty > 0) { const cnt = s.speedPenalty; s.speedPenalty = 0; s.addResource('san', -20 * cnt); messages.push(`⏩ 速成反噬：San值 -${20 * cnt}`); }
-    if (s.resources.gpa <= 20) { s.addResource('san', -5); messages.push('⚠️ 学业警告：焦虑蔓延，San值 -5'); }
-    if (s.resources.bar >= 100) { s.addResource('eng', -5); messages.push('📖 法考狂热：过度复习，精力 -5'); }
+    if (s.speedPenalty > 0) { const cnt = s.speedPenalty; s.speedPenalty = 0; addSettle('san', -20 * cnt); messages.push(`⏩ 速成反噬：San值 -${20 * cnt}`); }
+    if (s.resources.gpa <= 20) { addSettle('san', -5); messages.push('⚠️ 学业警告：焦虑蔓延，San值 -5'); }
+    if (s.resources.bar >= 100) { addSettle('eng', -5); messages.push('📖 法考狂热：过度复习，精力 -5'); }
     if (s.resources.eng <= 0) { s.sleepCrash = true; messages.push('💤 精力枯竭，你感觉自己随时会昏过去……'); }
     if (s.geniusDays > 0) s.geniusDays--;
     if (s.isolationDays > 0) s.isolationDays--;
