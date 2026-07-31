@@ -1653,19 +1653,19 @@ const EVENTS = [
 
 /* ---------------- 知识卡（15 张） ---------------- */
 const CARDS = [
-{ id: 'card_civil',    name: '请求权基础',     icon: '⚖️', rarity: '稀有', desc: '触发民法相关事件时，GPA 额外 +5' },
-{ id: 'card_crim',     name: '构成要件该当性', icon: '🔨', rarity: '稀有', desc: '触发刑法相关事件时，法考进度额外 +5' },
+{ id: 'card_civil',    name: '请求权基础',     icon: '⚖️', rarity: '稀有', desc: '触发民法相关事件时，GPA 额外 +10' },
+{ id: 'card_crim',     name: '构成要件该当性', icon: '🔨', rarity: '稀有', desc: '触发刑法相关事件时，法考进度额外 +10' },
 { id: 'card_bolang',   name: '柏浪涛刑法观',   icon: '🎓', rarity: '史诗', desc: '所有选择后，若法考进度增加，则额外 +20' },
 { id: 'card_wang',     name: '王泽鉴民法思维', icon: '📜', rarity: '史诗', desc: 'GPA 上限突破至 120，获得时 GPA +20' },
 { id: 'card_speed',    name: '三天速成法',     icon: '⏩', rarity: '普通', desc: '获得时立即精力 +25；下一天开始时 San值 -20' },
 { id: 'card_past',     name: '往年真题',       icon: '📝', rarity: '稀有', desc: '抵消下一个对 GPA 或法考进度的负面效果一次' },
-{ id: 'card_notes',    name: '重点笔记',       icon: '📒', rarity: '普通', desc: '获得时立即 GPA +10' },
-{ id: 'card_coffee',   name: '咖啡续命',       icon: '☕', rarity: '普通', desc: '持有时每天开始精力 +5；San值上限 -5（入手时超出部分会被削减）' },
+{ id: 'card_notes',    name: '重点笔记',       icon: '📒', rarity: '普通', desc: '获得时立即 GPA +15' },
+{ id: 'card_coffee',   name: '咖啡续命',       icon: '☕', rarity: '普通', desc: '持有时每天开始精力 +10；San值上限 -5（入手时超出部分会被削减）' },
 { id: 'card_roommate', name: '室友的笔记',     icon: '🤝', rarity: '普通', desc: '获得时随机再抽一张卡' },
-{ id: 'card_prof',     name: '老师的好感',     icon: '😊', rarity: '稀有', desc: '触发"点名/划重点"类事件时，负面效果减半' },
-{ id: 'card_mem',      name: '法条速记',       icon: '🧾', rarity: '普通', desc: '获得时法考进度 +15' },
+{ id: 'card_prof',     name: '老师的好感',     icon: '😊', rarity: '稀有', desc: '触发"点名/划重点"类事件时，负面效果消失' },
+{ id: 'card_mem',      name: '法考刷题',       icon: '🧾', rarity: '普通', desc: '获得时法考进度 +15' },
 { id: 'card_mind',     name: '思维导图',       icon: '🗺️', rarity: '普通', desc: '获得时 San值 +15' },
-{ id: 'card_2x',       name: '网课倍速',       icon: '💻', rarity: '普通', desc: '持有时法考增速 +50%，精力消耗 +20%' },
+{ id: 'card_2x',       name: '网课倍速',       icon: '💻', rarity: '普通', desc: '持有时法考增速 +100%，精力消耗 +20%' },
 { id: 'card_luck',     name: '锦鲤转发',       icon: '🐟', rarity: '普通', desc: '获得时随机两项资源 +10' },
 { id: 'card_genius',   name: '学霸附体',   icon: '🌟', rarity: '史诗', desc: '接下来 6 天内，所有正面效果 +100%' }
 ];
@@ -1934,20 +1934,20 @@ class GameEngine {
 
       // 学霸附体：正面效果 +100%
       if (delta > 0 && s.geniusDays > 0) delta = Math.ceil(delta * 2.0);
-      // 网课倍速：BAR+50%/张 / ENG消耗+20%/张（叠加：3张=+150%增速、+60%消耗）
+      // 网课倍速：BAR+100%/张 / ENG消耗+20%/张（叠加：3张=+300%增速、+60%消耗）
       const x2cnt = s.countCard('card_2x');
       if (x2cnt > 0) {
-        if (key === 'bar' && delta > 0) delta = Math.ceil(delta * (1 + 0.5 * x2cnt));
+        if (key === 'bar' && delta > 0) delta = Math.ceil(delta * (1 + 1.0 * x2cnt));
         if (key === 'eng' && delta < 0) delta = Math.round(delta * (1 + 0.2 * x2cnt));
       }
       // 社交隔离：正面社交归零
       if (key === 'soc' && delta > 0 && s.isolationDays > 0) {
         delta = 0; notes.push('社交隔离中，社交收益无效');
       }
-      // 老师的好感：课堂类事件负面减半（乘法叠加：1张=×0.5、2张=×0.25、3张=×0.125）
+      // 老师的好感：课堂类事件负面消失（1张及以上即完全抵消）
       const profCnt = s.countCard('card_prof');
       if (delta < 0 && profCnt > 0 && event && event.tags.includes('class')) {
-        delta = Math.round(delta * Math.pow(0.5, profCnt));
+        delta = 0;
       }
       // 往年真题：抵消一次 GPA/BAR 负面
       if (delta < 0 && (key === 'gpa' || key === 'bar') && s.hasCard('card_past')) {
@@ -1961,13 +1961,13 @@ class GameEngine {
     if (event && !opts.skipLinkCards) {
       const civilCnt = s.countCard('card_civil');
       if (civilCnt > 0 && event.tags.includes('civil')) {
-        const bonus = 5 * civilCnt;
+        const bonus = 10 * civilCnt;
         deltas.gpa = (deltas.gpa || 0) + s.addResource('gpa', bonus);
         notes.push(`⚖️ 请求权基础发动：GPA +${bonus}`);
       }
       const crimCnt = s.countCard('card_crim');
       if (crimCnt > 0 && event.tags.includes('crim')) {
-        const bonus = 5 * crimCnt;
+        const bonus = 10 * crimCnt;
         deltas.bar = (deltas.bar || 0) + s.addResource('bar', bonus);
         notes.push(`🔨 构成要件该当性发动：法考 +${bonus}`);
       }
@@ -2017,7 +2017,7 @@ class GameEngine {
     const s = this.state;
     switch (cardId) {
       case 'card_speed': s.addResource('eng', 25); s.speedPenalty = (s.speedPenalty || 0) + 1; break;
-      case 'card_notes': s.addResource('gpa', 10); break;
+      case 'card_notes': s.addResource('gpa', 15); break;
       case 'card_mem':   s.addResource('bar', 15); break;
       case 'card_mind':  s.addResource('san', 15); break;
       case 'card_wang':  s.wangBoost = true; s.addResource('gpa', 20); break;
@@ -2077,7 +2077,7 @@ class GameEngine {
     }
     if (s.day > s.maxDay) return { messages, over: true };
     const coffeeCnt = s.countCard('card_coffee');
-    if (coffeeCnt > 0) { const bonus = 5 * coffeeCnt; s.addResource('eng', bonus); messages.push(`☕ 咖啡续命：精力 +${bonus}（${coffeeCnt}张）`); }
+    if (coffeeCnt > 0) { const bonus = 10 * coffeeCnt; s.addResource('eng', bonus); messages.push(`☕ 咖啡续命：精力 +${bonus}（${coffeeCnt}张）`); }
     if (s.speedPenalty > 0) { const cnt = s.speedPenalty; s.speedPenalty = 0; s.addResource('san', -20 * cnt); messages.push(`⏩ 速成反噬：San值 -${20 * cnt}`); }
     if (s.resources.gpa <= 20) { s.addResource('san', -5); messages.push('⚠️ 学业警告：焦虑蔓延，San值 -5'); }
     if (s.resources.bar >= 100) { s.addResource('eng', -5); messages.push('📖 法考狂热：过度复习，精力 -5'); }
