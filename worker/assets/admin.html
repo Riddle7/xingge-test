@@ -1360,6 +1360,7 @@
           <button class="nav-tab" data-tab="sessions">会话</button>
           <button class="nav-tab" data-tab="heatmap">热力图</button>
           <button class="nav-tab" data-tab="regions">地域</button>
+          <button class="nav-tab" data-tab="law-exam">期末周</button>
         </nav>
         <div class="header-actions">
           <span class="meta-info" id="last-update">最后更新：-</span>
@@ -1537,6 +1538,41 @@
           <div class="card-body table-body">
             <table><thead><tr><th>国家·地区</th><th>访问</th><th>占比</th></tr></thead>
               <tbody id="regions-overseas-body"></tbody></table>
+          </div>
+        </div>
+      </section>
+
+      <!-- Law Exam Week Tab -->
+      <section id="tab-law-exam" class="tab-content">
+        <div class="kpi-grid" id="law-exam-kpis"></div>
+        <div class="chart-grid full">
+          <div class="card">
+            <div class="card-header">
+              <div class="card-title">期末周游玩与结局趋势</div>
+              <div class="controls">
+                <button data-lawexam-days="7">7 天</button>
+                <button data-lawexam-days="30" class="active">30 天</button>
+                <button data-lawexam-days="90">90 天</button>
+              </div>
+            </div>
+            <div class="card-body">
+              <div class="chart-canvas-wrap"><canvas id="chart-law-exam-trend"></canvas></div>
+            </div>
+          </div>
+        </div>
+        <div class="chart-grid full">
+          <div class="card">
+            <div class="card-header"><div class="card-title">结局达成分布</div></div>
+            <div class="card-body">
+              <div class="chart-canvas-wrap"><canvas id="chart-law-exam-endings"></canvas></div>
+            </div>
+          </div>
+        </div>
+        <div class="card" style="margin-top:20px">
+          <div class="card-header"><div class="card-title">结局解锁排行榜</div></div>
+          <div class="card-body table-body">
+            <table><thead><tr><th>结局</th><th>达成次数</th><th>占比</th></tr></thead>
+              <tbody id="law-exam-endings-body"></tbody></table>
           </div>
         </div>
       </section>

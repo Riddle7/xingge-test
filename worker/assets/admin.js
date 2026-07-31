@@ -204,6 +204,7 @@ document.getElementById('nav-tabs').addEventListener('click', function (e) {
   else if (tab === 'sessions') loadSessionsTab();
   else if (tab === 'heatmap') loadHeatmapTab();
   else if (tab === 'regions') loadRegionsTab();
+  else if (tab === 'law-exam') loadLawExamTab();
 });
 
 // ===== Overview =====
@@ -768,6 +769,7 @@ function reloadActiveTab() {
   else if (id === 'sessions') loadSessionsTab();
   else if (id === 'heatmap') loadHeatmapTab();
   else if (id === 'regions') loadRegionsTab();
+  else if (id === 'law-exam') loadLawExamTab();
 }
 function startRefresh() {
   stopRefresh();
@@ -960,6 +962,120 @@ document.addEventListener('click', function (e) {
     document.querySelectorAll('[data-regions-scope]').forEach(function (b) { b.classList.remove('active'); });
     e.target.classList.add('active');
     loadRegionsTab();
+  }
+});
+
+// ===== Law Exam Week Tab（期末周）=====
+// 结局 ID → 中文名映射（与游戏 ENDINGS 同步，共 27 个结局）
+const ENDING_LABELS = {
+  'end_01': '保研清北', 'end_02': '保研本校', 'end_03': '考研二战',
+  'end_04': '出国 LLM', 'end_05': '直博', 'end_06': '红圈所留用',
+  'end_07': '精品所', 'end_08': '考公上岸', 'end_09': '企业法务',
+  'end_10': '转行互联网', 'end_11': '转行金融', 'end_12': '客观题一次过',
+  'end_13': '主观题挂', 'end_14': '法考二战', 'end_15': '放弃法考',
+  'end_16': '法学网红', 'end_17': '延毕', 'end_18': '猝死',
+  'end_19': '出家', 'end_20': '快乐普通人', 'end_21': '退学',
+  'end_22': '被父母安排', 'end_23': '普通研究生', 'end_24': '基层法院',
+  'end_25': '律师助理', 'end_28': '双考战士'
+};
+// 坏结局标记（用于排行榜标红）
+const ENDING_BAD = { 'end_17': 1, 'end_18': 1, 'end_19': 1, 'end_21': 1, 'end_22': 1 };
+
+let lawExamDays = 30;
+async function loadLawExamTab() {
+  try {
+    const data = await api('/api/admin/law-exam?days=' + lawExamDays);
+    renderLawExamKPIs(data);
+    renderLawExamTrendChart(data.trend || []);
+    renderLawExamEndingsChart(data.endings || []);
+    renderLawExamEndingsTable(data.endings || []);
+    updateLastUpdate();
+  } catch (e) {
+    if (e && e.message === 'unauthorized') return;
+    if (isTransientNetworkError(e)) return;
+    toast('加载失败: ' + (e && e.message ? e.message : e), true);
+  }
+}
+
+function renderLawExamKPIs(data) {
+  const today = data.today || {};
+  const total = data.total || {};
+  const conv = total.conversion_rate || 0;
+  document.getElementById('law-exam-kpis').innerHTML = [
+    kpiCard('今日游玩', fmt(today.plays), null, 'tests'),
+    kpiCard('今日结局', fmt(today.endings), null, 'conversion'),
+    kpiCard('累计游玩', fmt(total.plays), null, 'sessions'),
+    kpiCard('累计结局', fmt(total.endings), null, 'pages'),
+    kpiCard('结局转化率', conv + '%', null, 'bounce')
+  ].join('');
+}
+
+function renderLawExamTrendChart(points) {
+  const ctx = document.getElementById('chart-law-exam-trend');
+  if (charts.lawExamTrend) charts.lawExamTrend.destroy();
+  charts.lawExamTrend = new Chart(ctx, {
+    type: 'line',
+    data: {
+      labels: points.map(function (p) { return p.date.slice(5); }),
+      datasets: [
+        lineDataset('游玩', points.map(function (p) { return p.plays; }), '#7E8FA3', true),
+        lineDataset('结局', points.map(function (p) { return p.endings; }), '#C99489', true)
+      ]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      interaction: { mode: 'index', intersect: false },
+      plugins: { legend: { position: 'top', align: 'end' } },
+      scales: { y: { beginAtZero: true, grid: { borderDash: [4, 4] } } }
+    }
+  });
+}
+
+function renderLawExamEndingsChart(endings) {
+  const ctx = document.getElementById('chart-law-exam-endings');
+  if (charts.lawExamEndings) charts.lawExamEndings.destroy();
+  // 取 Top 12 结局展示，避免饼图过密
+  const top = endings.slice(0, 12);
+  const labels = top.map(function (e) { return ENDING_LABELS[e.ending_id] || e.ending_id; });
+  const data = top.map(function (e) { return e.count; });
+  const colors = top.map(function (e, i) {
+    return ENDING_BAD[e.ending_id] ? '#C99489' : DATA_COLORS[i % DATA_COLORS.length];
+  });
+  charts.lawExamEndings = new Chart(ctx, {
+    type: 'doughnut',
+    data: { labels: labels, datasets: [{ data: data, backgroundColor: colors, borderColor: '#FFFFFF', borderWidth: 2 }] },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: { legend: { position: 'right', align: 'center', labels: { boxWidth: 10, boxHeight: 10, padding: 10, font: { size: 11 } } } },
+      cutout: '58%'
+    }
+  });
+}
+
+function renderLawExamEndingsTable(endings) {
+  const tb = document.getElementById('law-exam-endings-body');
+  const total = endings.reduce(function (a, b) { return a + (b.count || 0); }, 0) || 1;
+  tb.innerHTML = endings.map(function (e) {
+    const name = ENDING_LABELS[e.ending_id] || e.ending_id;
+    const isBad = ENDING_BAD[e.ending_id];
+    const w = Math.max(2, (e.count / total) * 100);
+    const pct = (Math.round(e.count / total * 1000) / 10) + '%';
+    return '<tr><td>' + (isBad ? '<span style="color:#C99489">' + escapeHtml(name) + '</span>' : escapeHtml(name))
+      + ' <span style="color:#94A3B8;font-size:11px">' + e.ending_id + '</span></td>'
+      + '<td>' + fmt(e.count) + '</td>'
+      + '<td><div class="bar-cell"><div class="bar-track"><div class="bar" style="width:' + w + '%"></div></div><span>' + pct + '</span></div></td></tr>';
+  }).join('') || '<tr><td colspan="3" style="text-align:center;color:#94A3B8;padding:24px">暂无结局数据</td></tr>';
+}
+
+// days 切换按钮
+document.addEventListener('click', function (e) {
+  if (e.target.dataset.lawexamDays) {
+    lawExamDays = parseInt(e.target.dataset.lawexamDays, 10);
+    document.querySelectorAll('[data-lawexam-days]').forEach(function (b) { b.classList.remove('active'); });
+    e.target.classList.add('active');
+    loadLawExamTab();
   }
 });
 

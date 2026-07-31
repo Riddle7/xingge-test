@@ -314,8 +314,11 @@ async function handleVisits(env, ctx) {
 }
 
 // POST /api/event
-// Body: { event_type: 'page_view', page, session_id, referrer }
-// 写入 events 表，供后台分析
+// Body: { event_type, page, session_id, referrer?, ending_id? }
+// 支持 event_type: 'page_view' | 'game_start' | 'game_ending'
+//   - page_view: 全站页面访问（tracking.js 自动上报）
+//   - game_start: 期末周开始游戏（游戏页面手动上报）
+//   - game_ending: 期末周达成结局（ending_id 存入 type 列，便于聚合）
 async function handleEvent(request, env, ctx) {
   let body;
   try {
@@ -323,12 +326,25 @@ async function handleEvent(request, env, ctx) {
   } catch (e) {
     return json({ success: false, error: 'invalid json', code: 'INVALID_PARAMS' }, 400);
   }
-  if (!body || body.event_type !== 'page_view' || !body.page) {
+  if (!body || !body.event_type || !body.page) {
     return json({ success: false, error: 'missing required fields', code: 'INVALID_PARAMS' }, 400);
   }
   // page 白名单校验：仅允许以 / 开头的路径
   if (typeof body.page !== 'string' || !body.page.startsWith('/')) {
     return json({ success: false, error: 'invalid page', code: 'INVALID_PARAMS' }, 400);
+  }
+  // 事件类型白名单
+  const ALLOWED_EVENTS = { page_view: 1, game_start: 1, game_ending: 1 };
+  if (!ALLOWED_EVENTS.hasOwnProperty(body.event_type)) {
+    return json({ success: false, error: 'unsupported event_type', code: 'INVALID_PARAMS' }, 400);
+  }
+  // game_ending 必须带 ending_id（格式 end_XX），存入 type 列
+  let typeVal = null;
+  if (body.event_type === 'game_ending') {
+    if (!body.ending_id || !/^end_\d{2}$/.test(body.ending_id)) {
+      return json({ success: false, error: 'invalid ending_id', code: 'INVALID_PARAMS' }, 400);
+    }
+    typeVal = body.ending_id;
   }
   const ua = request.headers.get('User-Agent') || null;
   const country = (request.cf && request.cf.country) ? request.cf.country : null;
@@ -338,8 +354,9 @@ async function handleEvent(request, env, ctx) {
   const city = (request.cf && request.cf.city) ? request.cf.city : null;
   try {
     await insertEvent(env, ctx, {
-      event_type: 'page_view',
+      event_type: body.event_type,
       page: body.page,
+      type: typeVal,
       session_id: body.session_id || null,
       referrer: body.referrer || null,
       ua: ua,
@@ -348,7 +365,7 @@ async function handleEvent(request, env, ctx) {
       city: city
     });
   } catch (e) {
-    console.error('events insert failed (page_view):', e);
+    console.error('events insert failed (' + body.event_type + '):', e);
     // 静默失败：tracking.js 不阻塞用户
     return json({ success: false, error: 'db error', code: 'DB_ERROR' }, 500);
   }
@@ -906,6 +923,48 @@ async function handleAdminRegions(request, env, ctx) {
   });
 }
 
+// GET /api/admin/law-exam?days=30
+// 期末周游戏数据聚合：游玩数、结局数、结局转化率、趋势、结局分布排行
+// 口径：event_type='game_start' 计游玩，event_type='game_ending' 计结局
+async function handleAdminLawExam(request, env, ctx) {
+  const url = new URL(request.url);
+  const days = Math.min(Math.max(parseInt(url.searchParams.get('days') || '30', 10), 1), 90);
+  const today = bjDateNow();
+  const sinceDate = bjDateFromIso(new Date(Date.now() - days * 24 * 60 * 60 * 1000).toISOString());
+
+  const [todayPlays, todayEndings,
+         totalPlays, totalEndings,
+         trend, endingDist] = await Promise.all([
+    env.CPTI_DB.prepare("SELECT COUNT(*) AS c FROM events WHERE event_type='game_start' AND ts_date_bj=?").bind(today).first(),
+    env.CPTI_DB.prepare("SELECT COUNT(*) AS c FROM events WHERE event_type='game_ending' AND ts_date_bj=?").bind(today).first(),
+    env.CPTI_DB.prepare("SELECT COUNT(*) AS c FROM events WHERE event_type='game_start'").first(),
+    env.CPTI_DB.prepare("SELECT COUNT(*) AS c FROM events WHERE event_type='game_ending'").first(),
+    env.CPTI_DB.prepare(
+      "SELECT ts_date_bj AS d, SUM(CASE WHEN event_type='game_start' THEN 1 ELSE 0 END) AS p, SUM(CASE WHEN event_type='game_ending' THEN 1 ELSE 0 END) AS e FROM events WHERE event_type IN ('game_start','game_ending') AND ts_date_bj >= ? GROUP BY ts_date_bj ORDER BY ts_date_bj"
+    ).bind(sinceDate).all(),
+    env.CPTI_DB.prepare(
+      "SELECT type AS ending_id, COUNT(*) AS c FROM events WHERE event_type='game_ending' AND type IS NOT NULL GROUP BY type ORDER BY c DESC"
+    ).all()
+  ]);
+
+  const todayP = todayPlays?.c || 0;
+  const todayE = todayEndings?.c || 0;
+  const totalP = totalPlays?.c || 0;
+  const totalE = totalEndings?.c || 0;
+  const conversion = (totalP > 0) ? Math.round(totalE / totalP * 1000) / 10 : 0;
+
+  return json({
+    today: { plays: todayP, endings: todayE },
+    total: { plays: totalP, endings: totalE, conversion_rate: conversion },
+    trend: (trend.results || []).map(function (r) {
+      return { date: r.d, plays: r.p || 0, endings: r.e || 0 };
+    }),
+    endings: (endingDist.results || []).map(function (r) {
+      return { ending_id: r.ending_id, count: r.c };
+    })
+  });
+}
+
 // 静态资源：通过 env.STATIC_ASSETS 读取
 async function serveAdminHtml(env) {
   const obj = await env.STATIC_ASSETS.fetch(new Request('https://internal/admin.html'));
@@ -1023,6 +1082,9 @@ export default {
     }
     if (url.pathname === '/api/admin/regions' && request.method === 'GET') {
       return withAuth(request, env, ctx, handleAdminRegions);
+    }
+    if (url.pathname === '/api/admin/law-exam' && request.method === 'GET') {
+      return withAuth(request, env, ctx, handleAdminLawExam);
     }
 
     // ===== Admin UI + 静态资源 =====

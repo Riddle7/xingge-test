@@ -2618,6 +2618,7 @@ class Renderer {
     game.saveEndings();
     game.clearRun();
     Sound.ending(!e.bad);
+    trackGameEvent('game_ending', { ending_id: endingId });
     // 清空 #app，移除游戏界面的退出按钮，避免与结局页的退出按钮叠加
     this.app.innerHTML = '';
 
@@ -2765,12 +2766,31 @@ async function onChoice(idx) {
   }
 }
 
+// ===== 游戏事件埋点（上报到 stats worker）=====
+// 复用 tracking.js 的 session_id（gj_sid），保持会话一致性
+// sendBeacon 优先（不阻塞页面卸载），降级 fetch keepalive
+function trackGameEvent(eventType, extra) {
+  try {
+    var sid = null;
+    try { sid = localStorage.getItem('gj_sid'); } catch (e) {}
+    var payload = { event_type: eventType, page: '/law-exam-week', session_id: sid };
+    if (extra) Object.assign(payload, extra);
+    var body = JSON.stringify(payload);
+    var API = 'https://stats.generative-jurisprudence.top/api/event';
+    if (navigator.sendBeacon) {
+      try { navigator.sendBeacon(API, body); return; } catch (e) {}
+    }
+    fetch(API, { method: 'POST', body: body, headers: { 'Content-Type': 'application/json' }, keepalive: true }).catch(function () {});
+  } catch (e) {}
+}
+
 function startGame() {
   game.reset();
   engine.currentEvent = EVENTS.find(e => e.id === 'EVT_START');
   game.usedEvents.add('EVT_START');
   renderer.renderGame(game, engine.currentEvent);
   game.saveRun('EVT_START');
+  trackGameEvent('game_start');
 }
 
 function continueGame() {
