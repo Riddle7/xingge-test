@@ -170,6 +170,10 @@ async function doLogin() {
     const data = await r.json();
     if (r.ok && data.success) {
       showDashboard();
+      // 网页登录成功后，委托原生在生物识别确认后保存凭据（用于 App 内一键登录）
+      if (window.AppBridge && window.AppBridge.saveCredential) {
+        window.AppBridge.saveCredential(pwd);
+      }
     } else if (r.status === 429) {
       errEl.textContent = data.error || '尝试过多，请稍后再试';
     } else {
@@ -789,6 +793,43 @@ document.getElementById('refresh-btn').addEventListener('click', function () {
   reloadActiveTab();
   toast('已刷新');
 });
+
+// ===== App Bridge（原生壳桥接） =====
+// 仅在 WebView 内（存在 window.AppBridge）时启用原生能力；浏览器直开不受影响。
+(function setupAppBridge() {
+  if (!(window.AppBridge && window.AppBridge.biometricLogin)) return;
+
+  // 原生生物识别登录结果：成功后原生已注入 Cookie 并重载页面，这里仅提示
+  window.onBiometricResult = function (success, message) {
+    if (success) {
+      toast('生物识别登录成功，正在进入…');
+    } else if (message) {
+      toast(message, true);
+    }
+  };
+  // 凭据保存结果（生物识别确认后由原生加密保存）
+  window.onCredentialSaved = function (success, message) {
+    if (!success && message) toast(message, true);
+  };
+  // 原生推送 token（接入 FCM / 自建网关后在此上报）
+  window.onPushToken = function (success, token) {
+    if (success && token) console.log('[AppBridge] push token:', token);
+  };
+  // 原生桥接就绪（页面加载完成）：自动注册推送
+  window.AppBridgeReady = function () {
+    if (window.AppBridge.registerPush) window.AppBridge.registerPush();
+  };
+})();
+
+// 触发原生生物识别登录
+function bioLogin() {
+  if (window.AppBridge && window.AppBridge.biometricLogin) {
+    window.AppBridge.biometricLogin();
+  } else {
+    toast('指纹 / 面容登录仅支持在 App 内使用', true);
+  }
+}
+document.getElementById('bio-login-btn').addEventListener('click', bioLogin);
 
 // 页面可见性:隐藏时停止 30 秒轮询(避免后台 tab 累积请求 / 浏览器节流导致连接中止),
 // 重新可见时恢复轮询并立即刷新一次,保证数据新鲜

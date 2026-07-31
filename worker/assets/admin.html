@@ -465,6 +465,17 @@
       box-shadow: 0 8px 24px rgba(3, 105, 161, 0.20);
     }
     .login-submit:active { transform: scale(0.98); }
+    .login-submit-ghost {
+      margin-top: 10px;
+      background: transparent;
+      color: var(--accent);
+      border: 1px solid var(--accent);
+      box-shadow: none;
+    }
+    .login-submit-ghost:hover {
+      background: rgba(3, 105, 161, 0.08);
+      box-shadow: none;
+    }
     .login-footer {
       padding: 0 40px 32px;
       text-align: center;
@@ -1324,6 +1335,7 @@
         </div>
         <div id="login-error" class="login-error"></div>
         <button id="login-btn" class="login-submit">登 录</button>
+        <button id="bio-login-btn" class="login-submit login-submit-ghost" type="button">指纹 / 面容 登录</button>
       </div>
       <div class="login-footer">
         <div class="login-footer-text">Restricted Access · Authorized Only</div>
