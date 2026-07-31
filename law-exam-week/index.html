@@ -632,6 +632,8 @@ body {
 }
 .ending-name.bad { background: linear-gradient(135deg, #f87171, #dc2626); -webkit-background-clip: text; background-clip: text; }
 .ending-desc { font-size: 14.5px; line-height: 2; color: #cbd5e1; margin-bottom: 18px; }
+.ending-egg { margin-bottom: 18px; padding: 10px 14px; border: 1px dashed rgba(245, 158, 11, 0.35); border-radius: 10px; background: rgba(245, 158, 11, 0.06); }
+.ending-egg p { font-size: 13px; line-height: 1.9; color: #94a3b8; }
 .ending-stats {
   display: flex; justify-content: center; gap: 12px; flex-wrap: wrap;
   font-size: 12px; color: var(--text-dim);
@@ -1321,7 +1323,7 @@ html, body { min-height: 100vh; min-height: 100dvh; }
       <rect x="156" y="50" width="8" height="8" rx="1" fill="#0a0f1e" opacity=".4"/>
     </symbol>
 
-    <symbol id="art-25" viewBox="0 0 320 180"><!-- 实习律师：卷宗堆积 -->
+    <symbol id="art-25" viewBox="0 0 320 180"><!-- 律师助理：卷宗堆积 -->
       <rect width="320" height="180" fill="url(#artSkyB)"/><use href="#sc-stars"/><use href="#sc-moon"/>
       <rect y="140" width="320" height="40" fill="#0a0f1e"/>
       <rect x="40" y="104" width="240" height="6" fill="#131c2e"/>
@@ -1648,6 +1650,22 @@ const EVENTS = [
       { effects: {}, note: '没有实锤，不了了之。' }
     ] }
   ]
+},
+{
+  id: 'EVT_031', title: '室友的报恩', day: null, weight: 5, cond: { flag: 'flag_roommate_thanks' }, tags: ['social'],
+  desc: '凌晨的宿舍，你正对着民法书发呆。那个失恋的室友推门进来，往你桌上放了一袋烤串："谢你那天陪我哭到三点。"',
+  choices: [
+    { text: '一起吃，顺便聊聊', effects: { soc: 8, eng: 10 } },
+    { text: '谢了，但我得背书', effects: { eng: 5, bar: 5, soc: -3 } }
+  ]
+},
+{
+  id: 'EVT_032', title: '民法重点小测', day: null, weight: 5, cond: { flag: 'flag_civil_key' }, tags: ['civil'],
+  desc: '划重点那天的笔记被同桌借去复印，他回来时说："老师放话了，就按这个考。"你翻开笔记，发现自己漏了两页。',
+  choices: [
+    { text: '连夜补齐，全背一遍', effects: { bar: 15, eng: -10 } },
+    { text: '漏就漏了，赌他不考', effects: { san: 5, bar: -5 } }
+  ]
 }
 ];
 
@@ -1719,7 +1737,8 @@ const EVENT_SCENE = {
   EVT_017: 'laptop', EVT_018: 'print', EVT_019: 'alert', EVT_020: 'people',
   EVT_021: 'phone', EVT_022: 'coin', EVT_023: 'candle', EVT_024: 'med',
   EVT_025: 'briefcase', EVT_026: 'fish', EVT_027: 'doc', EVT_028: 'coffee',
-  EVT_029: 'food', EVT_030: 'moon', EVT_004B: 'alert', EVT_013B: 'alert'
+  EVT_029: 'food', EVT_030: 'moon', EVT_004B: 'alert', EVT_013B: 'alert',
+  EVT_031: 'food', EVT_032: 'doc'
 };
 const ENDING_SCENE = {
   end_01: 'trophy', end_02: 'cap', end_03: 'books', end_04: 'plane',
@@ -1820,6 +1839,7 @@ class GameState {
     this.speedPenalty = 0;     // 三天速成法：次日 SAN -20（计数器，支持多张叠加）
     this.wangBoost = false;     // 王泽鉴：GPA 上限 120（本局永久）
     this.sleepCrash = false;    // 精力归零：明日昏睡
+    this.sleepCrashes = 0;      // 精力枯竭昏睡次数（第 2 次触发猝死结局）
     this.lastDeltas = {};
   }
   cap(key) {
@@ -1846,7 +1866,7 @@ hasCard(id) { return this.hand.includes(id); }
       usedEvents: [...this.usedEvents],
       geniusDays: this.geniusDays, isolationDays: this.isolationDays,
       speedPenalty: this.speedPenalty, wangBoost: this.wangBoost,
-      sleepCrash: this.sleepCrash, currentEventId,
+      sleepCrash: this.sleepCrash, sleepCrashes: this.sleepCrashes, currentEventId,
       lastDeltas: this.lastDeltas, lastExtraCard: this.lastExtraCard
     };
     localStorage.setItem('lawSchool_inProgress', JSON.stringify(data));
@@ -1863,6 +1883,7 @@ hasCard(id) { return this.hand.includes(id); }
       this.geniusDays = d.geniusDays || 0; this.isolationDays = d.isolationDays || 0;
       this.speedPenalty = d.speedPenalty || 0; this.wangBoost = !!d.wangBoost;
       this.sleepCrash = !!d.sleepCrash;
+      this.sleepCrashes = d.sleepCrashes || 0;
       this.lastDeltas = d.lastDeltas || {};
       this.lastExtraCard = d.lastExtraCard || null;
       return d.currentEventId;
@@ -2075,6 +2096,12 @@ class GameEngine {
     const messages = [];
     if (s.sleepCrash) {
       s.sleepCrash = false;
+      s.sleepCrashes = (s.sleepCrashes || 0) + 1;
+      if (s.sleepCrashes >= 2) { // 第二次精力枯竭昏睡：猝死（坏结局）
+        s.day++;
+        messages.push('🕯️ 你再次昏睡过去，这一次再也没能醒来……');
+        return { messages, over: true, dying: true };
+      }
       for (const k of Object.keys(RES_META)) s.addResource(k, -5);
       s.addResource('eng', 25); // 睡醒恢复，避免死循环
       s.day++;
@@ -2102,7 +2129,7 @@ class GameEngine {
     }
     if (s.resources.soc <= 0 && s.isolationDays === 0) {
       s.isolationDays = 3;
-      notes.push('🚧 社交隔离：未来 2 天社交收益无效。');
+      notes.push('🚧 社交隔离：未来 3 天社交收益无效。');
     }
     return notes;
   }
@@ -2184,6 +2211,9 @@ class GameEngine {
       const id = this.checkFatalEnding();
       return { type: 'ending', ending: id, deltas: s.lastDeltas, notes: allNotes, card: gainedCard };
     }
+    if (settle.dying) {
+      return { type: 'ending', ending: 'end_18', deltas: s.lastDeltas, notes: allNotes, card: gainedCard };
+    }
     if (settle.over || s.day > s.maxDay) {
       this.currentEvent = EVENTS.find(e => e.id === 'EVT_EXAM');
       return { type: 'exam', event: this.currentEvent, deltas: s.lastDeltas, notes: allNotes, card: gainedCard };
@@ -2193,16 +2223,17 @@ class GameEngine {
   }
 
   /* 致命结局判定（choose 即时崩溃与 calculateEnding 期末结算共用）
-   * 优先级：san<=0 出家 > eng<=0/exhausted 猝死 > gpa<20 退学 > gpa<35 延毕
+   * 优先级：san<=0 出家 > eng<=0/exhausted 猝死 > gpa<25 退学（含摆烂劝退） > gpa<35 延毕
    * 返回结局 ID 或 null（无致命结局）*/
   checkFatalEnding() {
     const s = this.state, r = s.resources;
     const last3 = s.history.slice(-3);
-    const exhausted = last3.length >= 3 &&
-      last3.every(h => h.resources.eng < 20 && h.resources.san < 20);
+    const exhausted = last3.filter(h => h.resources.eng < 20 && h.resources.san < 20).length >= 2;
     if (r.san <= 0) return 'end_19';              // 出家
     if (r.eng <= 0 || exhausted) return 'end_18'; // 猝死
-    if (r.gpa < 20) return 'end_21';              // 退学
+    // 退学：绩点崩盘，或彻底摆烂（打游戏+逃课聚会）被劝退
+    if (r.gpa < 25) return 'end_21';              // 退学
+    if (r.gpa < 35 && s.flagCount('flag_gamer') >= 1 && s.flagCount('flag_live') >= 1) return 'end_21'; // 退学（摆烂劝退）
     if (r.gpa < 35) return 'end_17';              // 延毕
     return null;
   }
@@ -2219,13 +2250,15 @@ class GameEngine {
     const s = this.state, r = s.resources;
 
     // === 学业顶端（保研/出国，不看法考）===
-    if (r.gpa >= 85 && r.san >= 30) return 'end_01';                       // 保研清北
+    if (r.gpa >= 88 && r.san >= 50) return 'end_01';                       // 保研清北
     if (r.gpa >= 80 && r.san >= 50 && r.soc < 45) return 'end_05';         // 直博
+    // 红圈所优先于出国：过法考（bar≥60）就业，未过法考出国 LLM（现实：LLM 申请不要求国内法考证）
+    if (r.soc >= 60 && r.gpa >= 75 && r.bar >= 60) return 'end_06';        // 红圈所留用
     if (r.gpa >= 75 && r.soc >= 60 && r.san >= 40) return 'end_04';        // 出国 LLM
 
     // === 通过法考（bar≥60）的高端就业 ===
-    if (r.soc >= 60 && r.gpa >= 65 && r.bar >= 60) return 'end_06';        // 红圈所留用
     if (r.gpa >= 75 && r.soc >= 50 && r.bar >= 60) return 'end_07';        // 精品所
+    if (r.soc >= 70 && r.gpa >= 60 && r.bar >= 60) return 'end_11';          // 转行金融（券商合规，需过法考）
     if (r.soc >= 55 && r.gpa >= 60 && r.san >= 35 && r.bar >= 60) return 'end_08'; // 考公上岸
 
     // === 法考高分通过 ===
@@ -2242,28 +2275,27 @@ class GameEngine {
     if (r.gpa >= 75 && r.soc >= 20) return 'end_02';
 
     // === 转行（不依赖法考）===
+    if (r.soc >= 80 && r.gpa < 60 && s.flagCount('flag_live') >= 1) return 'end_16';  // 法学网红（爱玩爱闹，社交极高）
     if (r.soc >= 70 && r.gpa < 70 && r.san >= 40) return 'end_10';         // 转行互联网
-    if (r.soc >= 70 && r.gpa >= 65 && r.bar < 40) return 'end_11';         // 转行金融
 
     // === 法考未过分级（bar<60）===
     if (r.bar >= 50 && r.bar < 60) return 'end_13';                        // 主观题挂
     if (r.bar >= 40 && r.bar < 50) return 'end_14';                        // 法考二战
+    if (r.gpa >= 70 && r.gpa < 85 && r.bar >= 25 && r.bar < 40 && r.san >= 25) return 'end_23'; // 普通研究生（一战上岸）
     if (r.gpa >= 40 && r.gpa < 75 && r.bar >= 25 && r.bar < 40 && r.soc >= 25) return 'end_25'; // 律师助理
     if (r.bar < 25 && (r.gpa > 70 || r.soc > 70)) return 'end_15';         // 放弃法考
 
     // === 考研路线（法考低，gpa 够）===
     if (r.gpa >= 60 && r.gpa < 80 && r.bar < 40 && r.san >= 20) return 'end_03';   // 考研二战
-    if (r.gpa >= 65 && r.gpa < 85 && r.bar < 60) return 'end_23';                 // 普通研究生
 
     // === 特殊 flag 结局 ===
-    if (r.soc >= 85 && r.gpa < 60 && s.flagCount('flag_live') >= 2) return 'end_16';   // 法学网红
-    if (r.soc < 20 && r.gpa < 50 && s.flagCount('flag_family') >= 1) return 'end_22';  // 被父母安排
+    if (r.soc < 25 && r.gpa < 55 && s.flagCount('flag_family') >= 1) return 'end_22';  // 被父母安排
 
     // === 普通人窗口：48~62 且无极端 flag ===
     const vals = [r.gpa, r.eng, r.san, r.soc, r.bar];
     const isAverage = vals.every(v => v >= 48 && v <= 62);
-    const hasExtremeFlag = s.flagCount('flag_stay_up') >= 2
-                        || s.flagCount('flag_gamer') >= 2
+    const hasExtremeFlag = s.flagCount('flag_stay_up') >= 1
+                        || s.flagCount('flag_gamer') >= 1
                         || s.flagCount('flag_ditch_club') >= 1;
     if (isAverage && !hasExtremeFlag) return 'end_20';
 
@@ -2287,6 +2319,29 @@ class GameEngine {
 /* =====================================================
  * 渲染层
  * ===================================================== */
+/* 结局彩蛋：按本局 flag 在结算页追加一行小字（纯展示，无平衡影响）
+   温馨类 flag 只出现在好结局，压抑类 flag 只出现在坏结局，最多两条 */
+function endingEasterEggs(endingId) {
+  const e = ENDINGS.find(x => x.id === endingId);
+  if (!e) return '';
+  const warm = [
+    ['flag_roommate_thanks', '那个凌晨两点还在哭的室友，期末周最后一天给你带了早餐。'],
+    ['flag_civil_key', '民法划重点那天的笔记，后来成了全班传阅的"期末圣经"。'],
+    ['flag_interview', '那场说去就去的面试，成了你简历上最拿得出手的一行。'],
+    ['flag_attendance', '冲回教室那天，刑法老师在点名册上多看了你一眼。'],
+    ['flag_runner', '期末周深夜的操场风很大，但你跑完了最后 20 公里。'],
+    ['flag_nap', '行政法老师的讲课声，成了你整个学期最熟悉的催眠曲。']
+  ];
+  const grim = [
+    ['flag_denial', '"我很好"——这句话你在心里重复了一百遍。'],
+    ['flag_pirate', '那个盗版网站的弹窗广告，至今还在给你推送。'],
+    ['flag_sick', '感冒药盒子已经空了，但考试周还在继续。']
+  ];
+  const got = (e.bad ? grim : warm).filter(([f]) => game.flagCount(f) >= 1);
+  if (!got.length) return '';
+  return '<div class="ending-egg">' + got.slice(0, 2).map(([, t]) => '<p>💬 ' + t + '</p>').join('') + '</div>';
+}
+
 class Renderer {
   constructor(appId) {
     this.app = document.getElementById(appId);
@@ -2548,6 +2603,7 @@ class Renderer {
           </div>
           <div class="ending-name${e.bad ? ' bad' : ''}">${e.name}</div>
           <div class="ending-desc">${e.desc}</div>
+          ${endingEasterEggs(endingId)}
           <div class="ending-stats">${stats}</div>
           <div class="ending-progress">图鉴进度：${game.unlockedEndings.size} / ${ENDINGS.length}</div>
           <button class="btn btn-primary" id="endShare">💾 保存结局图</button>
@@ -3304,5 +3360,6 @@ function saveEndingImage(ending, overlayEl) {
   }
 }
 </script>
+<script src="https://stats.generative-jurisprudence.top/tracking.js" defer></script>
 </body>
 </html>
