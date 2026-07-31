@@ -1696,7 +1696,7 @@ const ENDINGS = [
 { id: 'end_22', name: '被父母安排',   icon: '🏠', bad: true, desc: '你回到了家乡。父母托关系给你找了份稳定工作。你偶尔会梦见没考完的那场试。' },
 { id: 'end_23', name: '普通研究生',   icon: '📖', desc: '你没保上研，也没考研二战。导师收你做了普通硕士。开学第一天你发现，同门都是保研来的，只有你是考进来的。' },
 { id: 'end_24', name: '基层法院',     icon: '⚖️', desc: '你考上了家乡的基层法院。案子多为邻里纠纷和交通事故。你偶尔会想起红圈所的梦，然后继续写判决书。' },
-{ id: 'end_25', name: '实习律师',     icon: '📋', desc: '你在一家中小律所挂牌实习。带教律师让你整理三年前的卷宗，你在灰尘里找到了当年师兄的实习证。' },
+{ id: 'end_25', name: '律师助理',     icon: '📋', desc: '你没过法考，在一家中小律所做了律师助理。带教律师让你整理三年前的卷宗，你在灰尘里找到了当年师兄的实习证——他今年终于挂证了。' },
 { id: 'end_28', name: '双考战士',     icon: '⚔️', desc: '你同时备战期末和法考，两项都没落下，也没拔尖。出分那天你盯着两份成绩单，觉得自己像在走钢丝。' }
 ];
 
@@ -1810,7 +1810,7 @@ class GameState {
   reset() {
     this.day = 1;
     this.maxDay = 7;
-    this.resources = { gpa: 50, eng: 50, san: 50, soc: 50, bar: 0 };
+    this.resources = { gpa: 50, eng: 50, san: 50, soc: 50, bar: 10 };
     this.flags = {};            // flag -> 计数（结局需要 ≥2 的计数 flag）
     this.hand = [];             // 知识卡 ID，上限 5
     this.history = [];          // { day, event, choice, resources }
@@ -2030,7 +2030,11 @@ class GameEngine {
           [_keys[i], _keys[j]] = [_keys[j], _keys[i]];
         }
         const keys = _keys.slice(0, 2);
-        keys.forEach(k => s.addResource(k, 10));
+        // 社交隔离期 soc 正向收益归零（与 applyEffects 行为一致）
+        keys.forEach(k => {
+          if (k === 'soc' && s.isolationDays > 0) return;
+          s.addResource(k, 10);
+        });
         break;
       }
       case 'card_roommate':
@@ -2159,8 +2163,7 @@ class GameEngine {
 
     // 6. SAN 归零 → 立即坏结局（出家/猝死/退学池）
     if (s.resources.san <= 0) {
-      const r = s.resources;
-      const id = r.eng <= 0 ? 'end_18' : (r.gpa < 20 ? 'end_21' : 'end_19');
+      const id = this.checkFatalEnding();
       return { type: 'ending', ending: id, deltas: s.lastDeltas, notes: allNotes, card: gainedCard };
     }
 
@@ -2178,8 +2181,7 @@ class GameEngine {
     const settle = this.dayStartSettlement();
     allNotes.push(...settle.messages);
     if (s.resources.san <= 0) {
-      const r = s.resources;
-      const id = r.eng <= 0 ? 'end_18' : (r.gpa < 20 ? 'end_21' : 'end_19');
+      const id = this.checkFatalEnding();
       return { type: 'ending', ending: id, deltas: s.lastDeltas, notes: allNotes, card: gainedCard };
     }
     if (settle.over || s.day > s.maxDay) {
@@ -2190,62 +2192,94 @@ class GameEngine {
     return { type: 'event', event: this.currentEvent, deltas: s.lastDeltas, notes: allNotes, card: gainedCard };
   }
 
-  /* 结局判定：致命结局优先，再按 GDD 表格顺序 */
-  calculateEnding() {
+  /* 致命结局判定（choose 即时崩溃与 calculateEnding 期末结算共用）
+   * 优先级：san<=0 出家 > eng<=0/exhausted 猝死 > gpa<20 退学 > gpa<35 延毕
+   * 返回结局 ID 或 null（无致命结局）*/
+  checkFatalEnding() {
     const s = this.state, r = s.resources;
     const last3 = s.history.slice(-3);
     const exhausted = last3.length >= 3 &&
       last3.every(h => h.resources.eng < 20 && h.resources.san < 20);
+    if (r.san <= 0) return 'end_19';              // 出家
+    if (r.eng <= 0 || exhausted) return 'end_18'; // 猝死
+    if (r.gpa < 20) return 'end_21';              // 退学
+    if (r.gpa < 35) return 'end_17';              // 延毕
+    return null;
+  }
 
-    if (r.san <= 0) return 'end_19';
-    if (r.eng <= 0 || exhausted) return 'end_18';
-    if (r.gpa < 20) return 'end_21';
-    if (r.gpa < 35) return 'end_17';
+  /* 结局判定：致命结局优先，再按优先级判定
+   * 法考（bar）阈值体系：
+   *   ≥75 高分通过 | [60,75) 通过(A证) | [50,60) 主观题挂
+   *   [40,50) 法考二战 | [25,40) 律师助理 | <25 放弃法考
+   * 要求 A 证的结局（律所/法院/检察院/法务）统一门槛 bar≥60 */
+  calculateEnding() {
+    const fatal = this.checkFatalEnding();
+    if (fatal) return fatal;
 
-    // === 高端复合结局（多维度条件，优先判定，避免被宽松条件截胡）===
-    if (r.gpa >= 85 && r.san >= 30) return 'end_01';
-    if (r.gpa >= 80 && r.san >= 50 && r.soc < 45) return 'end_05';
-    if (r.gpa >= 75 && r.soc >= 60 && r.san >= 40) return 'end_04';
-    if (r.soc >= 60 && r.gpa >= 65 && r.bar >= 40) return 'end_06';
-    if (r.bar >= 55 && r.gpa >= 60 && r.eng < 40) return 'end_28';
-    if (r.soc >= 55 && r.gpa >= 60 && r.san >= 35 && r.bar >= 25) return 'end_08';
-    if (r.soc >= 70 && r.gpa >= 65 && r.bar < 40) return 'end_11';
-    if (r.gpa >= 75 && r.soc >= 50) return 'end_07';
-    if (r.bar >= 75 && r.san > 10) return 'end_12';
-    if (r.bar >= 60 && r.bar < 85 && r.eng < 40) return 'end_13';
-    // === 中段结局（条件较宽松，后判定）===
+    const s = this.state, r = s.resources;
+
+    // === 学业顶端（保研/出国，不看法考）===
+    if (r.gpa >= 85 && r.san >= 30) return 'end_01';                       // 保研清北
+    if (r.gpa >= 80 && r.san >= 50 && r.soc < 45) return 'end_05';         // 直博
+    if (r.gpa >= 75 && r.soc >= 60 && r.san >= 40) return 'end_04';        // 出国 LLM
+
+    // === 通过法考（bar≥60）的高端就业 ===
+    if (r.soc >= 60 && r.gpa >= 65 && r.bar >= 60) return 'end_06';        // 红圈所留用
+    if (r.gpa >= 75 && r.soc >= 50 && r.bar >= 60) return 'end_07';        // 精品所
+    if (r.soc >= 55 && r.gpa >= 60 && r.san >= 35 && r.bar >= 60) return 'end_08'; // 考公上岸
+
+    // === 法考高分通过 ===
+    if (r.bar >= 75 && r.san > 10) return 'end_12';                        // 客观题一次过（高分）
+
+    // === 双考战士：过了法考但精力耗尽 ===
+    if (r.bar >= 60 && r.bar < 75 && r.gpa >= 60 && r.eng < 40) return 'end_28';
+
+    // === 通过法考的普通归宿 ===
+    if (r.gpa >= 60 && r.soc >= 40 && r.san >= 30 && r.bar >= 60) return 'end_09';        // 企业法务
+    if (r.gpa >= 50 && r.gpa < 70 && r.bar >= 60 && r.bar < 75 && r.soc >= 25) return 'end_24'; // 基层法院
+
+    // === 保研本校（宽条件学业兜底）===
     if (r.gpa >= 75 && r.soc >= 20) return 'end_02';
-    if (r.soc >= 70 && r.gpa < 70 && r.san >= 40) return 'end_10';
-    if (r.gpa >= 50 && r.gpa < 70 && r.bar >= 30 && r.bar < 60 && r.soc >= 30) return 'end_24';
-    if (r.gpa >= 40 && r.gpa < 75 && r.bar >= 50 && r.soc >= 30) return 'end_25';
-    if (r.gpa >= 60 && r.soc >= 40 && r.san >= 30) return 'end_09';
-    if (r.gpa >= 60 && r.gpa < 80 && r.bar < 50 && r.san >= 20) return 'end_03';
-    if (r.gpa >= 65 && r.gpa < 85 && r.bar < 60) return 'end_23';
-    if (r.bar >= 50 && r.bar < 80) return 'end_14';
-    if (r.bar < 30 && (r.gpa > 70 || r.soc > 70)) return 'end_15';
-    if (r.soc >= 85 && r.gpa < 60 && s.flagCount('flag_live') >= 2) return 'end_16';
-    if (r.soc < 20 && r.gpa < 50 && s.flagCount('flag_family') >= 1) return 'end_22';
 
+    // === 转行（不依赖法考）===
+    if (r.soc >= 70 && r.gpa < 70 && r.san >= 40) return 'end_10';         // 转行互联网
+    if (r.soc >= 70 && r.gpa >= 65 && r.bar < 40) return 'end_11';         // 转行金融
+
+    // === 法考未过分级（bar<60）===
+    if (r.bar >= 50 && r.bar < 60) return 'end_13';                        // 主观题挂
+    if (r.bar >= 40 && r.bar < 50) return 'end_14';                        // 法考二战
+    if (r.gpa >= 40 && r.gpa < 75 && r.bar >= 25 && r.bar < 40 && r.soc >= 25) return 'end_25'; // 律师助理
+    if (r.bar < 25 && (r.gpa > 70 || r.soc > 70)) return 'end_15';         // 放弃法考
+
+    // === 考研路线（法考低，gpa 够）===
+    if (r.gpa >= 60 && r.gpa < 80 && r.bar < 40 && r.san >= 20) return 'end_03';   // 考研二战
+    if (r.gpa >= 65 && r.gpa < 85 && r.bar < 60) return 'end_23';                 // 普通研究生
+
+    // === 特殊 flag 结局 ===
+    if (r.soc >= 85 && r.gpa < 60 && s.flagCount('flag_live') >= 2) return 'end_16';   // 法学网红
+    if (r.soc < 20 && r.gpa < 50 && s.flagCount('flag_family') >= 1) return 'end_22';  // 被父母安排
+
+    // === 普通人窗口：48~62 且无极端 flag ===
     const vals = [r.gpa, r.eng, r.san, r.soc, r.bar];
-    // 普通人窗口缩窄：48~62，且必须没有极端 flag
     const isAverage = vals.every(v => v >= 48 && v <= 62);
     const hasExtremeFlag = s.flagCount('flag_stay_up') >= 2
                         || s.flagCount('flag_gamer') >= 2
                         || s.flagCount('flag_ditch_club') >= 1;
     if (isAverage && !hasExtremeFlag) return 'end_20';
 
-    // 偏科判定：最高项与次高项差距 ≥ 15 才算偏科
+    // === 偏科判定：最高项与次高项差距 ≥ 15 ===
     const sorted = Object.entries(r).sort((a, b) => b[1] - a[1]);
     const [topKey, topVal] = sorted[0];
     const secondVal = sorted[1][1];
     if (topVal - secondVal < 15) return 'end_20';  // 差距不足仍判普通人
 
-    // 真偏科：按最高项 + 资源条件组合归类（符合结局语义）
-    if (topKey === 'gpa' && r.bar < 50 && r.gpa < 80) return 'end_03';   // 偏绩点+法考低 → 考研二战
-    if (topKey === 'bar' && r.gpa < 60 && r.bar < 80) return 'end_14';   // 偏法考+绩点低 → 法考二战
-    if (topKey === 'soc' && r.gpa < 70) return 'end_10';   // 偏社交+绩点一般 → 转行互联网
-    if (topKey === 'san' && r.bar < 30) return 'end_15';   // 偏心态+法考低 → 放弃法考
-    if (topKey === 'eng' && r.gpa >= 60) return 'end_09';  // 偏精力+能毕业 → 企业法务（养老）
+    // 真偏科：按最高项 + 资源条件组合归类
+    if (topKey === 'gpa' && r.bar < 60 && r.gpa < 80) return 'end_03';   // 偏绩点+法考未过 → 考研二战
+    if (topKey === 'bar' && r.gpa < 60 && r.bar < 60) return 'end_14';   // 偏法考+未过+绩点低 → 法考二战
+    if (topKey === 'bar' && r.gpa < 60 && r.bar >= 60) return 'end_24';  // 偏法考+过了+绩点低 → 基层法院
+    if (topKey === 'soc' && r.gpa < 70) return 'end_10';   // 偏社交 → 转行互联网
+    if (topKey === 'san' && r.bar < 25) return 'end_15';   // 偏心态+法考极低 → 放弃法考
+    if (topKey === 'eng' && r.gpa >= 60) return 'end_09';  // 偏精力+能毕业 → 企业法务
     return 'end_20'; // 最终兜底
   }
 }
