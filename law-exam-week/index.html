@@ -2034,8 +2034,8 @@ class GameEngine {
         break;
       }
       case 'card_roommate':
-        // 递归时避免移除 roommate 自己
-        if (depth < 1) {
+        // 限制递归深度防止极端情况下无限链式抽卡（depth<5 已远超实际概率）
+        if (depth < 5) {
           const extraId = this.drawRandomCard();
           // 腾出空间：优先移除最旧的非 roommate 卡，全是 roommate 则移除最旧的
           if (s.hand.length >= 10) {
@@ -2051,7 +2051,8 @@ class GameEngine {
             if (s.resources[k] > s.cap(k)) s.resources[k] = s.cap(k);
           }
           // Bug 8: 记录额外抽到的卡，供 choose 显示弹窗
-          s.lastExtraCard = extraId;
+          // 链式场景下仅记录最终非 roommate 卡，避免被上层 roommate 覆盖
+          if (extraId !== 'card_roommate') s.lastExtraCard = extraId;
           // 更新 lastDeltas
           if (!depth) {
             for (const k of Object.keys(RES_META)) {
