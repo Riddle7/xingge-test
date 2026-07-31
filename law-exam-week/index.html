@@ -1655,8 +1655,8 @@ const EVENTS = [
 const CARDS = [
 { id: 'card_civil',    name: '请求权基础',     icon: '⚖️', rarity: '稀有', desc: '触发民法相关事件时，GPA 额外 +5' },
 { id: 'card_crim',     name: '构成要件该当性', icon: '🔨', rarity: '稀有', desc: '触发刑法相关事件时，法考进度额外 +5' },
-{ id: 'card_bolang',   name: '柏浪涛刑法观',   icon: '🎓', rarity: '史诗', desc: '所有选择后，若法考进度增加，则额外 +3' },
-{ id: 'card_wang',     name: '王泽鉴民法思维', icon: '📜', rarity: '史诗', desc: 'GPA 上限突破至 110，获得时 GPA +10' },
+{ id: 'card_bolang',   name: '柏浪涛刑法观',   icon: '🎓', rarity: '史诗', desc: '所有选择后，若法考进度增加，则额外 +20' },
+{ id: 'card_wang',     name: '王泽鉴民法思维', icon: '📜', rarity: '史诗', desc: 'GPA 上限突破至 120，获得时 GPA +20' },
 { id: 'card_speed',    name: '三天速成法',     icon: '⏩', rarity: '普通', desc: '获得时立即精力 +25；下一天开始时 San值 -20' },
 { id: 'card_past',     name: '往年真题',       icon: '📝', rarity: '稀有', desc: '抵消下一个对 GPA 或法考进度的负面效果一次' },
 { id: 'card_notes',    name: '重点笔记',       icon: '📒', rarity: '普通', desc: '获得时立即 GPA +10' },
@@ -1667,7 +1667,7 @@ const CARDS = [
 { id: 'card_mind',     name: '思维导图',       icon: '🗺️', rarity: '普通', desc: '获得时 San值 +15' },
 { id: 'card_2x',       name: '网课倍速',       icon: '💻', rarity: '普通', desc: '持有时法考增速 +50%，精力消耗 +20%' },
 { id: 'card_luck',     name: '锦鲤转发',       icon: '🐟', rarity: '普通', desc: '获得时随机两项资源 +10' },
-{ id: 'card_genius',   name: '学霸附体',       icon: '🌟', rarity: '史诗', desc: '接下来 2 天内，所有正面效果 +50%' }
+{ id: 'card_genius',   name: '学霸附体',   icon: '🌟', rarity: '史诗', desc: '接下来 6 天内，所有正面效果 +100%' }
 ];
 
 /* ---------------- 结局（26 个） ---------------- */
@@ -1818,12 +1818,12 @@ class GameState {
     this.geniusDays = 0;        // 学霸附体剩余天数
     this.isolationDays = 0;     // 社交隔离剩余天数
     this.speedPenalty = 0;     // 三天速成法：次日 SAN -20（计数器，支持多张叠加）
-    this.wangBoost = false;     // 王泽鉴：GPA 上限 110（本局永久）
+    this.wangBoost = false;     // 王泽鉴：GPA 上限 120（本局永久）
     this.sleepCrash = false;    // 精力归零：明日昏睡
     this.lastDeltas = {};
   }
   cap(key) {
-    if (key === 'gpa' && this.wangBoost) return 110;
+    if (key === 'gpa' && this.wangBoost) return 120;
     if (key === 'san') { const coffeeCnt = this.countCard('card_coffee'); if (coffeeCnt > 0) return Math.max(50, 100 - 5 * coffeeCnt); }
     return 100;
   }
@@ -1932,8 +1932,8 @@ class GameEngine {
       let delta = effects[key] || 0;
       if (delta === 0) continue;
 
-      // 学霸附体：正面效果 +50%
-      if (delta > 0 && s.geniusDays > 0) delta = Math.ceil(delta * 1.5);
+      // 学霸附体：正面效果 +100%
+      if (delta > 0 && s.geniusDays > 0) delta = Math.ceil(delta * 2.0);
       // 网课倍速：BAR+50%/张 / ENG消耗+20%/张（叠加：3张=+150%增速、+60%消耗）
       const x2cnt = s.countCard('card_2x');
       if (x2cnt > 0) {
@@ -1971,10 +1971,10 @@ class GameEngine {
         deltas.bar = (deltas.bar || 0) + s.addResource('bar', bonus);
         notes.push(`🔨 构成要件该当性发动：法考 +${bonus}`);
       }
-      // 柏浪涛：BAR 增加则额外 +3/张（在所有 BAR 加成之后触发）
+      // 柏浪涛：BAR 增加则额外 +20/张（在所有 BAR 加成之后触发）
       const bolangCnt = s.countCard('card_bolang');
       if (bolangCnt > 0 && (deltas.bar || 0) > 0) {
-        const bonus = 3 * bolangCnt;
+        const bonus = 20 * bolangCnt;
         deltas.bar += s.addResource('bar', bonus);
       }
     }
@@ -1983,7 +1983,7 @@ class GameEngine {
   }
 
   drawRandomCard() {
-    const weights = { '普通': 10, '稀有': 4, '史诗': 1 };
+    const weights = { '普通': 10, '稀有': 4, '史诗': 4 };
     const total = CARDS.reduce((sum, c) => sum + weights[c.rarity], 0);
     let r = Math.random() * total;
     for (const c of CARDS) { r -= weights[c.rarity]; if (r <= 0) return c.id; }
@@ -2020,8 +2020,8 @@ class GameEngine {
       case 'card_notes': s.addResource('gpa', 10); break;
       case 'card_mem':   s.addResource('bar', 15); break;
       case 'card_mind':  s.addResource('san', 15); break;
-      case 'card_wang':  s.wangBoost = true; s.addResource('gpa', 10); break;
-      case 'card_genius': s.geniusDays = 3; break;
+      case 'card_wang':  s.wangBoost = true; s.addResource('gpa', 20); break;
+      case 'card_genius': s.geniusDays = 6; break;
       case 'card_luck': {
         // Fisher-Yates 均匀洗牌取前 2 个
         const _keys = Object.keys(RES_META);
