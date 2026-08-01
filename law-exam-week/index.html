@@ -1585,7 +1585,7 @@ const EVENTS = [
 },
 {
   id: 'EVT_025', title: '红圈所 JD', day: null, weight: 5, tags: [],
-  desc: '朋友圈有人转发某红圈所招聘：要求 GPA 3.8 + 法考 A 证 + 雅思 7.5。',
+  desc: '朋友圈有人转发某红圈所招聘：要求 GPA 3.5 + 法考 A 证 + 雅思 7.5，最好再来个靠谱的内推。',
   choices: [
     { text: '转发给自己当壁纸', effects: { bar: 5, gpa: 5, san: -10 } },
     { text: '点"不感兴趣"', effects: { san: 5 } }
@@ -2090,7 +2090,6 @@ class GameEngine {
             else s.hand.shift();
           }
           s.hand.push(extraId);
-          const beforeExtra = { ...s.resources };
           this.applyCardEffect(extraId, depth + 1);
           // 钳制资源上限
           for (const k of Object.keys(RES_META)) {
@@ -2099,13 +2098,8 @@ class GameEngine {
           // Bug 8: 记录额外抽到的卡，供 choose 显示弹窗
           // 链式场景下仅记录最终非 roommate 卡，避免被上层 roommate 覆盖
           if (extraId !== 'card_roommate') s.lastExtraCard = extraId;
-          // 更新 lastDeltas
-          if (!depth) {
-            for (const k of Object.keys(RES_META)) {
-              const d = s.resources[k] - beforeExtra[k];
-              if (d !== 0) s.lastDeltas[k] = (s.lastDeltas[k] || 0) + d;
-            }
-          }
+          // 修复：lastDeltas 由 gainCard 外层统一累加一次，
+          //       此处不再重复累加，避免额外卡效果被计入两次（浮动数值翻倍显示）。
         }
         break;
     }
@@ -2262,7 +2256,8 @@ class GameEngine {
     const last3 = s.history.slice(-3);
     const exhausted = last3.filter(h => h.resources.eng < 20 && h.resources.san < 20).length >= 2;
     if (r.san <= 0) return 'end_19';              // 出家
-    if (r.eng <= 0 || exhausted) return 'end_18'; // 猝死
+    // 修复：历史疲惫仅在当前精力仍低（<30）时判猝死，避免恢复后被"秋后算账"
+    if (r.eng <= 0 || (exhausted && r.eng < 30)) return 'end_18'; // 猝死
     // 退学：绩点崩盘，或彻底摆烂（打游戏+逃课聚会）被劝退
     if (r.gpa < 25) return 'end_21';              // 退学
     if (r.gpa < 35 && s.flagCount('flag_gamer') >= 1 && s.flagCount('flag_live') >= 1) return 'end_21'; // 退学（摆烂劝退）
@@ -2288,7 +2283,7 @@ class GameEngine {
     if (r.gpa >= 88 && r.san >= 50) return 'end_01';                       // 保研清北
     if (r.gpa >= 80 && r.san >= 50 && r.soc < 45) return 'end_05';         // 直博
     // 红圈所优先于出国：过法考（bar≥60）就业，未过法考出国 LLM（现实：LLM 申请不要求国内法考证）
-    if (r.soc >= 60 && r.gpa >= 75 && r.bar >= 60) return 'end_06';        // 红圈所留用
+    if (r.soc >= 55 && r.gpa >= 75 && r.bar >= 60) return 'end_06';        // 红圈所留用（社交≥55：人脉/内推）
     if (r.gpa >= 75 && r.soc >= 60 && r.san >= 40) return 'end_04';        // 出国 LLM
 
     // === 通过法考（bar≥60）的高端就业 ===
@@ -2306,8 +2301,8 @@ class GameEngine {
     if (r.gpa >= 60 && r.soc >= 40 && r.san >= 30 && r.bar >= 60) return 'end_09';        // 企业法务
     if (r.gpa >= 50 && r.gpa < 70 && r.bar >= 60 && r.bar < 75 && r.soc >= 25) return 'end_24'; // 基层法院
 
-    // === 保研本校（宽条件学业兜底）===
-    if (r.gpa >= 75 && r.soc >= 20) return 'end_02';
+    // === 保研本校（学业兜底：绩点≥75 即可，不看法考与社交）===
+    if (r.gpa >= 75) return 'end_02';
 
     // === 转行（不依赖法考）===
     if (r.soc >= 80 && r.gpa < 60 && s.flagCount('flag_live') >= 1) return 'end_16';  // 法学网红（爱玩爱闹，社交极高）
