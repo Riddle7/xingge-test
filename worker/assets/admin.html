@@ -1363,12 +1363,12 @@
         <nav class="nav-tabs" id="nav-tabs">
           <button class="nav-tab active" data-tab="overview">概览</button>
           <button class="nav-tab" data-tab="visits">访问</button>
+          <button class="nav-tab" data-tab="law-exam">期末周</button>
           <button class="nav-tab" data-tab="tests">测试</button>
           <button class="nav-tab" data-tab="types">人格</button>
           <button class="nav-tab" data-tab="sessions">会话</button>
           <button class="nav-tab" data-tab="heatmap">热力图</button>
           <button class="nav-tab" data-tab="regions">地域</button>
-          <button class="nav-tab" data-tab="law-exam">期末周</button>
         </nav>
         <div class="header-actions">
           <span class="meta-info" id="last-update">最后更新：-</span>
@@ -1382,6 +1382,22 @@
       <!-- Overview Tab -->
       <section id="tab-overview" class="tab-content active">
         <div class="kpi-grid" id="overview-kpis"></div>
+        <div class="chart-grid">
+          <div class="card">
+            <div class="card-header"><div class="card-title">期末周速览</div></div>
+            <div class="card-body table-body">
+              <table><thead><tr><th>指标</th><th>今日</th><th>累计</th></tr></thead>
+                <tbody id="overview-law-exam-stats-body"></tbody></table>
+            </div>
+          </div>
+          <div class="card">
+            <div class="card-header"><div class="card-title">热门结局 Top 5</div></div>
+            <div class="card-body table-body">
+              <table><thead><tr><th>结局</th><th>次数</th><th>占比</th></tr></thead>
+                <tbody id="overview-law-exam-endings-body"></tbody></table>
+            </div>
+          </div>
+        </div>
         <div class="chart-grid full">
           <div class="card">
             <div class="card-header">

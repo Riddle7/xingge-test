@@ -213,14 +213,16 @@ async function loadOverview() {
     const data = await api('/api/admin/overview');
     renderOverviewKPIs(data);
     renderTrendChart(data.trend_30d || []);
-    const [hourly, types, pages] = await Promise.all([
+    const [hourly, types, pages, lawExam] = await Promise.all([
       api('/api/admin/hourly?date=today'),
       api('/api/admin/types?date=today'),
-      api('/api/admin/pages?days=30&limit=10')
+      api('/api/admin/pages?days=30&limit=10'),
+      api('/api/admin/law-exam?days=7')
     ]);
     renderHourlyChart(hourly);
     renderTypesTodayChart(types);
     renderTopPages(pages, 'top-pages-body');
+    renderOverviewLawExam(lawExam);
     updateLastUpdate();
   } catch (e) {
     if (e && e.message === 'unauthorized') return;
@@ -247,6 +249,41 @@ function renderOverviewKPIs(data) {
     kpiCard('累计访问', fmt(total.visits), null, 'visits'),
     kpiCard('累计测试', fmt(total.tests), null, 'tests')
   ].join('');
+}
+
+// 概览页期末周速览：紧凑表格展示今日/累计游玩与结局，右侧 Top 5 结局
+// 复用 ENDING_LABELS / ENDING_BAD（定义在 Law Exam Tab 区块）
+function renderOverviewLawExam(data) {
+  if (!data) return;
+  const today = data.today || {};
+  const total = data.total || {};
+  const conv = total.conversion_rate || 0;
+  // 左侧：指标速览表
+  const statsBody = document.getElementById('overview-law-exam-stats-body');
+  if (statsBody) {
+    const row = function (label, t, c) {
+      return '<tr><td>' + label + '</td><td>' + fmt(t) + '</td><td>' + fmt(c) + '</td></tr>';
+    };
+    statsBody.innerHTML = [
+      row('游玩次数', today.plays, total.plays),
+      row('游玩人数', today.plays_unique, total.plays_unique),
+      row('结局达成', today.endings, total.endings),
+      '<tr><td>结局转化率</td><td>-</td><td>' + conv + '%</td></tr>'
+    ].join('');
+  }
+  // 右侧：Top 5 结局
+  const endBody = document.getElementById('overview-law-exam-endings-body');
+  if (endBody) {
+    const endings = (data.endings || []).slice(0, 5);
+    const sum = endings.reduce(function (a, b) { return a + (b.count || 0); }, 0) || 1;
+    endBody.innerHTML = endings.map(function (e) {
+      const name = ENDING_LABELS[e.ending_id] || e.ending_id;
+      const isBad = ENDING_BAD[e.ending_id];
+      const pct = (Math.round(e.count / sum * 1000) / 10) + '%';
+      const nameHtml = isBad ? '<span style="color:#C99489">' + escapeHtml(name) + '</span>' : escapeHtml(name);
+      return '<tr><td>' + nameHtml + '</td><td>' + fmt(e.count) + '</td><td>' + pct + '</td></tr>';
+    }).join('') || '<tr><td colspan="3" style="text-align:center;color:#94A3B8;padding:16px">暂无数据</td></tr>';
+  }
 }
 const KPI_ICONS = {
   visits: '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>',
