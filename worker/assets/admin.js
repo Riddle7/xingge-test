@@ -1001,11 +1001,18 @@ function renderLawExamKPIs(data) {
   const today = data.today || {};
   const total = data.total || {};
   const conv = total.conversion_rate || 0;
+  // 双口径：主数值为次数，副数值为人数（COUNT DISTINCT session_id）
+  // 人数为 0 时不显示副口径（localStorage 禁用或数据为空）
+  function dual(count, unique) {
+    var main = fmt(count);
+    if (!unique || unique === 0) return main;
+    return main + '<div class="kpi-sub">' + fmt(unique) + ' 人</div>';
+  }
   document.getElementById('law-exam-kpis').innerHTML = [
-    kpiCard('今日游玩', fmt(today.plays), null, 'tests'),
-    kpiCard('今日结局', fmt(today.endings), null, 'conversion'),
-    kpiCard('累计游玩', fmt(total.plays), null, 'sessions'),
-    kpiCard('累计结局', fmt(total.endings), null, 'pages'),
+    kpiCard('今日游玩', dual(today.plays, today.plays_unique), null, 'tests'),
+    kpiCard('今日结局', dual(today.endings, today.endings_unique), null, 'conversion'),
+    kpiCard('累计游玩', dual(total.plays, total.plays_unique), null, 'sessions'),
+    kpiCard('累计结局', dual(total.endings, total.endings_unique), null, 'pages'),
     kpiCard('结局转化率', conv + '%', null, 'bounce')
   ].join('');
 }

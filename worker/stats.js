@@ -925,7 +925,8 @@ async function handleAdminRegions(request, env, ctx) {
 
 // GET /api/admin/law-exam?days=30
 // 期末周游戏数据聚合：游玩数、结局数、结局转化率、趋势、结局分布排行
-// 口径：event_type='game_start' 计游玩，event_type='game_ending' 计结局
+// 双口径：plays/endings 为次数（COUNT *），plays_unique/endings_unique 为人数（COUNT DISTINCT session_id）
+//   - session_id IS NULL（localStorage 禁用等降级场景）不计入 unique，只计入次数
 async function handleAdminLawExam(request, env, ctx) {
   const url = new URL(request.url);
   const days = Math.min(Math.max(parseInt(url.searchParams.get('days') || '30', 10), 1), 90);
@@ -934,11 +935,17 @@ async function handleAdminLawExam(request, env, ctx) {
 
   const [todayPlays, todayEndings,
          totalPlays, totalEndings,
+         todayPlaysU, todayEndingsU,
+         totalPlaysU, totalEndingsU,
          trend, endingDist] = await Promise.all([
     env.CPTI_DB.prepare("SELECT COUNT(*) AS c FROM events WHERE event_type='game_start' AND ts_date_bj=?").bind(today).first(),
     env.CPTI_DB.prepare("SELECT COUNT(*) AS c FROM events WHERE event_type='game_ending' AND ts_date_bj=?").bind(today).first(),
     env.CPTI_DB.prepare("SELECT COUNT(*) AS c FROM events WHERE event_type='game_start'").first(),
     env.CPTI_DB.prepare("SELECT COUNT(*) AS c FROM events WHERE event_type='game_ending'").first(),
+    env.CPTI_DB.prepare("SELECT COUNT(DISTINCT session_id) AS c FROM events WHERE event_type='game_start' AND ts_date_bj=? AND session_id IS NOT NULL").bind(today).first(),
+    env.CPTI_DB.prepare("SELECT COUNT(DISTINCT session_id) AS c FROM events WHERE event_type='game_ending' AND ts_date_bj=? AND session_id IS NOT NULL").bind(today).first(),
+    env.CPTI_DB.prepare("SELECT COUNT(DISTINCT session_id) AS c FROM events WHERE event_type='game_start' AND session_id IS NOT NULL").first(),
+    env.CPTI_DB.prepare("SELECT COUNT(DISTINCT session_id) AS c FROM events WHERE event_type='game_ending' AND session_id IS NOT NULL").first(),
     env.CPTI_DB.prepare(
       "SELECT ts_date_bj AS d, SUM(CASE WHEN event_type='game_start' THEN 1 ELSE 0 END) AS p, SUM(CASE WHEN event_type='game_ending' THEN 1 ELSE 0 END) AS e FROM events WHERE event_type IN ('game_start','game_ending') AND ts_date_bj >= ? GROUP BY ts_date_bj ORDER BY ts_date_bj"
     ).bind(sinceDate).all(),
@@ -954,8 +961,8 @@ async function handleAdminLawExam(request, env, ctx) {
   const conversion = (totalP > 0) ? Math.round(totalE / totalP * 1000) / 10 : 0;
 
   return json({
-    today: { plays: todayP, endings: todayE },
-    total: { plays: totalP, endings: totalE, conversion_rate: conversion },
+    today: { plays: todayP, endings: todayE, plays_unique: todayPlaysU?.c || 0, endings_unique: todayEndingsU?.c || 0 },
+    total: { plays: totalP, endings: totalE, plays_unique: totalPlaysU?.c || 0, endings_unique: totalEndingsU?.c || 0, conversion_rate: conversion },
     trend: (trend.results || []).map(function (r) {
       return { date: r.d, plays: r.p || 0, endings: r.e || 0 };
     }),
