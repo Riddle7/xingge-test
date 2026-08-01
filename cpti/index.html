@@ -34,7 +34,7 @@
 
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@300;400;500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@300;400;500;600;700;900&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <style id="theme-vars">
 :root {
   --color-primary-50: #eef2ff;
@@ -538,6 +538,113 @@
           transition: none;
         }
       }
+
+      /* ===== 复古像素风 CTA：跳转《法学院：期末周》 =====
+         设计理念：克制学术风为底，像素风为骨
+         1. 容器沿用页面 card 体系（圆角 + 浅 indigo 渐变 + 边框），不喧宾夺主
+         2. 按钮本体方角 + 单层硬阴影（4px #312e81），保留 8-bit 立体感
+         3. 顶部 2px 像素高光条（浅 indigo），暗示 8-bit 高光面
+         4. 字体回归 Noto Sans SC 800，与页面一致；箭头用等宽几何符号 ▶
+         5. Color Lock：indigo 单色家族贯穿，金黄仅作箭头单点强调
+         6. 单一动效：箭头 steps() 阶跃弹跳（动机：引导点击方向）
+         7. :active 物理按压 translate(4px,4px) + 阴影归零，模拟按键反馈
+         8. prefers-reduced-motion 静默降级 */
+      .pixel-cta-section {
+        margin: 0 0 2.5rem 0;
+        padding: 1.25rem 1.25rem 1.5rem;
+        background: linear-gradient(180deg, #eef2ff 0%, #ffffff 100%);
+        border: 1px solid #c7d2fe;
+        border-radius: 12px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 0.75rem;
+      }
+      .pixel-cta-eyebrow {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.4rem;
+        font-family: ui-monospace, 'SF Mono', Consolas, monospace;
+        font-size: 10px;
+        letter-spacing: 0.22em;
+        text-transform: uppercase;
+        color: #4338ca;
+        font-weight: 600;
+      }
+      .pixel-cta-eyebrow::before {
+        content: '';
+        width: 6px;
+        height: 6px;
+        background: #4338ca;
+        display: inline-block;
+      }
+      .pixel-cta-btn {
+        position: relative;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.75rem;
+        padding: 0.875rem 1.5rem;
+        background: #4338ca;
+        color: #ffffff;
+        font-family: 'Noto Sans SC', system-ui, sans-serif;
+        font-weight: 800;
+        font-size: 15px;
+        line-height: 1.4;
+        letter-spacing: 0.01em;
+        text-decoration: none;
+        border: 3px solid #312e81;
+        border-radius: 0;
+        cursor: pointer;
+        /* 单层硬阴影：克制的 8-bit 立体感 */
+        box-shadow: 4px 4px 0 0 #312e81;
+        transition: transform 0.08s steps(2), box-shadow 0.08s steps(2), background 0.1s steps(2);
+        max-width: 100%;
+      }
+      .pixel-cta-btn::before {
+        /* 顶部像素高光条（2px 细线，克制暗示 8-bit 高光面） */
+        content: '';
+        position: absolute;
+        top: -3px;
+        left: -3px;
+        right: -3px;
+        height: 2px;
+        background: #818cf8;
+      }
+      .pixel-cta-arrow {
+        font-family: ui-monospace, 'SF Mono', Consolas, monospace;
+        font-size: 13px;
+        font-weight: 900;
+        color: #fbbf24;
+        display: inline-block;
+        line-height: 1;
+        animation: pixel-arrow-bounce 0.6s steps(2) infinite;
+      }
+      @keyframes pixel-arrow-bounce {
+        0%, 50% { transform: translateX(0); }
+        51%, 100% { transform: translateX(3px); }
+      }
+      .pixel-cta-btn:hover { background: #4f46e5; }
+      .pixel-cta-btn:active {
+        transform: translate(4px, 4px);
+        box-shadow: 0 0 0 0 #312e81;
+      }
+      @media (max-width: 640px) {
+        .pixel-cta-section { padding: 1rem 1rem 1.25rem; }
+        .pixel-cta-btn {
+          width: 100%;
+          font-size: 14px;
+          padding: 0.875rem 1rem;
+          justify-content: center;
+        }
+      }
+      @media (prefers-reduced-motion: reduce) {
+        .pixel-cta-btn,
+        .pixel-cta-arrow {
+          animation: none;
+          transition: none;
+        }
+        .pixel-cta-btn:active { transform: none; }
+      }
     </style>
 </head>
 <body class="min-h-screen font-body antialiased">
@@ -814,6 +921,18 @@
             </div>
           </div>
         </div>
+      </section>
+
+      <!-- 复古像素风 CTA：跳转《法学院：期末周》 -->
+      <section class="pixel-cta-section" aria-label="跳转法学院期末周">
+        <span class="pixel-cta-eyebrow">Next Chapter</span>
+        <a href="https://generative-jurisprudence.top/law-exam-week/"
+           class="pixel-cta-btn"
+           target="_blank"
+           rel="noopener noreferrer">
+          <span class="pixel-cta-text">测完刑法人格，来试试你能活过期末周吗？</span>
+          <span class="pixel-cta-arrow" aria-hidden="true">▶</span>
+        </a>
       </section>
 
      </div>
