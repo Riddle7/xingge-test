@@ -1433,7 +1433,7 @@
         </div>
 
         <!-- Feature card: 学术月报入口（融合布局：星云装饰作为背景层，文字浮于上层） -->
-        <a href="nebula/2026-06.html" class="radar-card scroll-reveal group relative overflow-hidden rounded-[19px] border border-[var(--color-background-300)] bg-[var(--color-background-50)] hover:border-[var(--color-brand-300)] hover:shadow-lg transition-all block">
+        <div class="radar-card scroll-reveal group relative overflow-hidden rounded-[19px] border border-[var(--color-background-300)] bg-[var(--color-background-50)] hover:border-[var(--color-brand-300)] hover:shadow-lg transition-all block">
           <!-- 背景层：星云装饰（星轨带动星点公转 + 中心微光） -->
           <div class="radar-bg" aria-hidden="true">
             <div class="nebula-glow"></div>
@@ -1460,21 +1460,25 @@
           <div class="relative z-10 p-8 sm:p-12 lg:p-14 max-w-xl">
             <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-[6px] bg-[var(--color-brand-50)] text-[var(--color-brand-600)] text-[11px] font-mono font-semibold mb-5 w-fit">
               <i data-lucide="orbit" class="w-3 h-3"></i>
-              2026年6月
+              学术月报
             </span>
             <h3 class="text-2xl sm:text-3xl font-bold tracking-tight mb-2 text-[var(--color-text-800)]">文献星云图</h3>
-            <p class="text-base font-medium text-[var(--color-text-500)] mb-4">41篇核心期刊 &nbsp; 8个理论簇</p>
+            <p class="text-base font-medium text-[var(--color-text-500)] mb-4">6月 41篇 · 7月 49篇 核心期刊</p>
             <p class="text-[14.5px] leading-[1.75] text-[var(--color-text-500)] max-w-lg mb-8">
               将月度刑法学论文转化为可视化的理论星图。以论文为星辰，以理论为引力，以争议为碰撞带。在数据中观察学术脉络的走向。
             </p>
-            <div>
-              <span class="inline-flex items-center gap-2 px-5 py-3 rounded-[999px] bg-[var(--color-brand-500)] text-white text-[14px] font-semibold group-hover:bg-[var(--color-brand-600)] group-hover:gap-3 active:translate-y-[1px] transition-all">
-                2026年6月
+            <!-- 月度切换：7月为最新（主按钮），6月为历史（次按钮） -->
+            <div class="flex flex-wrap items-center gap-3">
+              <a href="nebula/2026-07.html" class="inline-flex items-center gap-2 px-5 py-3 rounded-[999px] bg-[var(--color-brand-500)] text-white text-[14px] font-semibold hover:bg-[var(--color-brand-600)] group-hover:gap-3 active:translate-y-[1px] transition-all">
+                2026年7月
                 <i data-lucide="arrow-right" class="w-4 h-4"></i>
-              </span>
+              </a>
+              <a href="nebula/2026-06.html" class="inline-flex items-center gap-2 px-5 py-3 rounded-[999px] border border-[var(--color-brand-300)] text-[var(--color-brand-600)] text-[14px] font-semibold hover:border-[var(--color-brand-400)] hover:bg-[var(--color-brand-50)] active:translate-y-[1px] transition-all">
+                2026年6月
+              </a>
             </div>
           </div>
-        </a>
+        </div>
       </div>
     </section>
     <!-- ============ FEATURED READINGS (Asymmetric: 1 featured + 2 secondary) ============ -->
