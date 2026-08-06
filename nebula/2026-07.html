@@ -1358,7 +1358,7 @@ a { color: inherit; text-decoration: none; }
 .ps-foot { margin-top: 20px; padding-top: 14px; border-top: 1px dashed var(--line-soft); }
 
 /* ============================================================
-   模块三 · 本月对撞
+   模块六 · 本月对撞
    ============================================================ */
 .clash-list { display: grid; gap: 16px; }
 .clash-card {
@@ -1721,7 +1721,7 @@ a { color: inherit; text-decoration: none; }
 }
 
 /* ============================================================
-   模块四 · 双月脉搏对照
+   模块三 · 双月脉搏对照
    ============================================================ */
 .crossmonth-grid {
   display: grid;
@@ -1772,7 +1772,7 @@ a { color: inherit; text-decoration: none; }
 .cm-shift-row .trend.new { color: var(--accent); }
 
 /* ============================================================
-   模块五 · 学术天气图
+   模块四 · 学术天气图
    ============================================================ */
 #weatherPanel { position: relative; }
 #genPosterBtn:hover { background: var(--accent-soft); }
@@ -1783,7 +1783,7 @@ a { color: inherit; text-decoration: none; }
 }
 
 /* ============================================================
-   模块六 · 本月推荐（Pick of the Month）
+   模块五 · 本月推荐（Pick of the Month）
    ============================================================ */
 .pick-grid {
   display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px;
@@ -2065,26 +2065,11 @@ a { color: inherit; text-decoration: none; }
   </section>
   <div class="hairline"></div>
 
-  <!-- ══════════ 模块三 · 本月对撞 ══════════ -->
-  <section class="section" id="clash">
-    <div class="section-head reveal">
-      <div>
-        <span class="idx">03 / COLLISIONS</span>
-        <h2>本月对撞<span class="en">Collisions</span></h2>
-      </div>
-      <div class="head-side">
-        <span class="ai-tag">AI生成，仅供娱乐与参考，以原文为准</span>
-      </div>
-    </div>
-    <div class="clash-list reveal" id="clashList"></div>
-  </section>
-  <div class="hairline"></div>
-
-  <!-- ══════════ 模块四 · 双月脉搏对照 ══════════ -->
+  <!-- ══════════ 模块三 · 双月脉搏对照 ══════════ -->
   <section class="section" id="crossmonth">
     <div class="section-head reveal">
       <div>
-        <span class="idx">04 / CROSS-MONTH</span>
+        <span class="idx">03 / CROSS-MONTH</span>
         <h2>双月脉搏对照<span class="en">Cross-Month Pulse</span></h2>
       </div>
       <div class="head-side">
@@ -2133,11 +2118,11 @@ a { color: inherit; text-decoration: none; }
   </section>
   <div class="hairline"></div>
 
-  <!-- ══════════ 模块五 · 学术天气图 ══════════ -->
+  <!-- ══════════ 模块四 · 学术天气图 ══════════ -->
   <section class="section" id="weather">
     <div class="section-head reveal">
       <div>
-        <span class="idx">05 / WEATHER MAP</span>
+        <span class="idx">04 / WEATHER MAP</span>
         <h2>学术天气图<span class="en">Academic Weather</span></h2>
       </div>
       <div class="head-side">
@@ -2153,11 +2138,11 @@ a { color: inherit; text-decoration: none; }
     </div>
   </section>
 
-  <!-- ══════════ 模块六 · 本月推荐（Pick of the Month） ══════════ -->
+  <!-- ══════════ 模块五 · 本月推荐（Pick of the Month） ══════════ -->
   <section class="section" id="picks">
     <div class="section-head reveal">
       <div>
-        <span class="idx">06 / PICK OF THE MONTH</span>
+        <span class="idx">05 / PICK OF THE MONTH</span>
         <h2>本月推荐<span class="en">Recommended This Month</span></h2>
       </div>
       <div class="head-side">
@@ -2230,6 +2215,21 @@ a { color: inherit; text-decoration: none; }
       </article>
     </div>
   </section>
+
+  <!-- ══════════ 模块六 · 本月对撞 ══════════ -->
+  <section class="section" id="clash">
+    <div class="section-head reveal">
+      <div>
+        <span class="idx">06 / COLLISIONS</span>
+        <h2>本月对撞<span class="en">Collisions</span></h2>
+      </div>
+      <div class="head-side">
+        <span class="ai-tag">AI生成，仅供娱乐与参考，以原文为准</span>
+      </div>
+    </div>
+    <div class="clash-list reveal" id="clashList"></div>
+  </section>
+  <div class="hairline"></div>
 
   <!-- ══════════ 页脚 ══════════ -->
   <footer class="site-footer">
@@ -3016,7 +3016,7 @@ document.addEventListener('keydown', function (e) {
 });
 
 /* ============================================================
-   模块三 · 本月对撞
+   模块六 · 本月对撞
    ============================================================ */
 function renderClashes(meta, papers) {
   var pairs = meta.controversyPairs || [];
@@ -3079,7 +3079,7 @@ function renderClashes(meta, papers) {
 }
 
 /* ============================================================
-   模块四 · 双月脉搏对照
+   模块三 · 双月脉搏对照
    ============================================================ */
 var CROSS_MONTH_CANDIDATES = ['../cross-month.json', '/cross-month.json', 'cross-month.json'];
 
@@ -3182,7 +3182,7 @@ function renderCrossMonth(cm) {
 }
 
 /* ============================================================
-   模块五 · 学术天气图
+   模块四 · 学术天气图
    ============================================================ */
 function renderWeatherMap(papers, meta) {
   var el = document.getElementById('weatherChart');
