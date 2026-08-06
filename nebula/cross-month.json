@@ -1,0 +1,528 @@
+{
+  "june_total": 41,
+  "july_total": 49,
+  "total_diff": 8,
+  "topic_migration": [
+    {
+      "topic": "罪刑各论（具体罪名教义学）",
+      "june": 11,
+      "july": 12,
+      "diff": 1,
+      "trend": "up"
+    },
+    {
+      "topic": "数字刑法与网络犯罪",
+      "june": 8,
+      "july": 12,
+      "diff": 4,
+      "trend": "up"
+    },
+    {
+      "topic": "归责理论",
+      "june": 6,
+      "july": 7,
+      "diff": 1,
+      "trend": "up"
+    },
+    {
+      "topic": "刑罚论与刑事政策",
+      "june": 5,
+      "july": 4,
+      "diff": -1,
+      "trend": "down"
+    },
+    {
+      "topic": "贿赂犯罪",
+      "june": 3,
+      "july": 5,
+      "diff": 2,
+      "trend": "up"
+    },
+    {
+      "topic": "行刑衔接与轻罪治理",
+      "june": 3,
+      "july": 4,
+      "diff": 1,
+      "trend": "up"
+    },
+    {
+      "topic": "程序与实体交叉",
+      "june": 3,
+      "july": 3,
+      "diff": 0,
+      "trend": "stable"
+    },
+    {
+      "topic": "法益理论",
+      "june": 2,
+      "july": 1,
+      "diff": -1,
+      "trend": "down"
+    },
+    {
+      "topic": "刑法哲学与知识体系",
+      "june": 0,
+      "july": 1,
+      "diff": 1,
+      "trend": "up"
+    }
+  ],
+  "new_topics": [
+    {
+      "topic": "刑法哲学与知识体系",
+      "june": 0,
+      "july": 1,
+      "diff": 1,
+      "trend": "up"
+    }
+  ],
+  "hot_topics": [
+    {
+      "topic": "罪刑各论（具体罪名教义学）",
+      "june": 11,
+      "july": 12,
+      "diff": 1,
+      "trend": "up"
+    },
+    {
+      "topic": "数字刑法与网络犯罪",
+      "june": 8,
+      "july": 12,
+      "diff": 4,
+      "trend": "up"
+    },
+    {
+      "topic": "归责理论",
+      "june": 6,
+      "july": 7,
+      "diff": 1,
+      "trend": "up"
+    },
+    {
+      "topic": "刑罚论与刑事政策",
+      "june": 5,
+      "july": 4,
+      "diff": -1,
+      "trend": "down"
+    },
+    {
+      "topic": "贿赂犯罪",
+      "june": 3,
+      "july": 5,
+      "diff": 2,
+      "trend": "up"
+    },
+    {
+      "topic": "行刑衔接与轻罪治理",
+      "june": 3,
+      "july": 4,
+      "diff": 1,
+      "trend": "up"
+    },
+    {
+      "topic": "程序与实体交叉",
+      "june": 3,
+      "july": 3,
+      "diff": 0,
+      "trend": "stable"
+    }
+  ],
+  "rising_topics": [
+    {
+      "topic": "罪刑各论（具体罪名教义学）",
+      "june": 11,
+      "july": 12,
+      "diff": 1,
+      "trend": "up"
+    },
+    {
+      "topic": "数字刑法与网络犯罪",
+      "june": 8,
+      "july": 12,
+      "diff": 4,
+      "trend": "up"
+    },
+    {
+      "topic": "归责理论",
+      "june": 6,
+      "july": 7,
+      "diff": 1,
+      "trend": "up"
+    },
+    {
+      "topic": "贿赂犯罪",
+      "june": 3,
+      "july": 5,
+      "diff": 2,
+      "trend": "up"
+    },
+    {
+      "topic": "行刑衔接与轻罪治理",
+      "june": 3,
+      "july": 4,
+      "diff": 1,
+      "trend": "up"
+    }
+  ],
+  "falling_topics": [
+    {
+      "topic": "刑罚论与刑事政策",
+      "june": 5,
+      "july": 4,
+      "diff": -1,
+      "trend": "down"
+    },
+    {
+      "topic": "法益理论",
+      "june": 2,
+      "july": 1,
+      "diff": -1,
+      "trend": "down"
+    }
+  ],
+  "theory_changes": [
+    {
+      "theory": "法益保护理论",
+      "june": 3,
+      "july": 12,
+      "diff": 9,
+      "status": "rising"
+    },
+    {
+      "theory": "罪刑法定原则",
+      "june": 7,
+      "july": 0,
+      "diff": -7,
+      "status": "falling"
+    },
+    {
+      "theory": "共同犯罪理论",
+      "june": 2,
+      "july": 4,
+      "diff": 2,
+      "status": "rising"
+    },
+    {
+      "theory": "法秩序统一性原理",
+      "june": 2,
+      "july": 3,
+      "diff": 1,
+      "status": "rising"
+    },
+    {
+      "theory": "功能主义刑法",
+      "june": 0,
+      "july": 5,
+      "diff": 5,
+      "status": "new"
+    },
+    {
+      "theory": "想象竞合理论",
+      "june": 0,
+      "july": 5,
+      "diff": 5,
+      "status": "new"
+    },
+    {
+      "theory": "宽严相济刑事政策",
+      "june": 4,
+      "july": 0,
+      "diff": -4,
+      "status": "falling"
+    },
+    {
+      "theory": "行刑衔接理论",
+      "june": 0,
+      "july": 4,
+      "diff": 4,
+      "status": "new"
+    },
+    {
+      "theory": "责任主义",
+      "june": 2,
+      "july": 2,
+      "diff": 0,
+      "status": "stable"
+    },
+    {
+      "theory": "注意义务理论",
+      "june": 0,
+      "july": 3,
+      "diff": 3,
+      "status": "new"
+    },
+    {
+      "theory": "罪责刑相适应原则",
+      "june": 2,
+      "july": 0,
+      "diff": -2,
+      "status": "falling"
+    },
+    {
+      "theory": "罪刑相适应原则",
+      "june": 0,
+      "july": 2,
+      "diff": 2,
+      "status": "new"
+    },
+    {
+      "theory": "牵连犯理论",
+      "june": 2,
+      "july": 0,
+      "diff": -2,
+      "status": "falling"
+    },
+    {
+      "theory": "类型化分析方法",
+      "june": 2,
+      "july": 0,
+      "diff": -2,
+      "status": "falling"
+    },
+    {
+      "theory": "刑法谦抑性",
+      "june": 2,
+      "july": 0,
+      "diff": -2,
+      "status": "falling"
+    }
+  ],
+  "scholar_changes": [
+    {
+      "scholar": "张明楷",
+      "june": 23,
+      "july": 9,
+      "diff": -14,
+      "status": "falling"
+    },
+    {
+      "scholar": "陈兴良",
+      "june": 9,
+      "july": 6,
+      "diff": -3,
+      "status": "falling"
+    },
+    {
+      "scholar": "劳东燕",
+      "june": 7,
+      "july": 5,
+      "diff": -2,
+      "status": "falling"
+    },
+    {
+      "scholar": "孙国祥",
+      "june": 5,
+      "july": 3,
+      "diff": -2,
+      "status": "falling"
+    },
+    {
+      "scholar": "刘艳红",
+      "june": 7,
+      "july": 0,
+      "diff": -7,
+      "status": "falling"
+    },
+    {
+      "scholar": "房慧颖",
+      "june": 7,
+      "july": 0,
+      "diff": -7,
+      "status": "falling"
+    },
+    {
+      "scholar": "姚建龙",
+      "june": 6,
+      "july": 0,
+      "diff": -6,
+      "status": "falling"
+    },
+    {
+      "scholar": "陈璇",
+      "june": 5,
+      "july": 0,
+      "diff": -5,
+      "status": "falling"
+    },
+    {
+      "scholar": "黎宏",
+      "june": 5,
+      "july": 0,
+      "diff": -5,
+      "status": "falling"
+    },
+    {
+      "scholar": "程啸",
+      "june": 5,
+      "july": 0,
+      "diff": -5,
+      "status": "falling"
+    },
+    {
+      "scholar": "姜涛",
+      "june": 0,
+      "july": 4,
+      "diff": 4,
+      "status": "new"
+    },
+    {
+      "scholar": "刘宪权",
+      "june": 0,
+      "july": 4,
+      "diff": 4,
+      "status": "new"
+    },
+    {
+      "scholar": "付立庆",
+      "june": 0,
+      "july": 3,
+      "diff": 3,
+      "status": "new"
+    },
+    {
+      "scholar": "李本灿",
+      "june": 0,
+      "july": 3,
+      "diff": 3,
+      "status": "new"
+    },
+    {
+      "scholar": "张智辉",
+      "june": 0,
+      "july": 3,
+      "diff": 3,
+      "status": "new"
+    }
+  ],
+  "new_scholars": [
+    {
+      "scholar": "姜涛",
+      "june": 0,
+      "july": 4,
+      "diff": 4,
+      "status": "new"
+    },
+    {
+      "scholar": "刘宪权",
+      "june": 0,
+      "july": 4,
+      "diff": 4,
+      "status": "new"
+    },
+    {
+      "scholar": "付立庆",
+      "june": 0,
+      "july": 3,
+      "diff": 3,
+      "status": "new"
+    },
+    {
+      "scholar": "李本灿",
+      "june": 0,
+      "july": 3,
+      "diff": 3,
+      "status": "new"
+    },
+    {
+      "scholar": "张智辉",
+      "june": 0,
+      "july": 3,
+      "diff": 3,
+      "status": "new"
+    }
+  ],
+  "sankey": {
+    "nodes": [
+      {
+        "name": "6月·罪刑各论（具体罪"
+      },
+      {
+        "name": "7月·罪刑各论（具体罪"
+      },
+      {
+        "name": "6月·数字刑法与网络犯"
+      },
+      {
+        "name": "7月·数字刑法与网络犯"
+      },
+      {
+        "name": "6月·归责理论"
+      },
+      {
+        "name": "7月·归责理论"
+      },
+      {
+        "name": "6月·刑罚论与刑事政策"
+      },
+      {
+        "name": "7月·刑罚论与刑事政策"
+      },
+      {
+        "name": "6月·贿赂犯罪"
+      },
+      {
+        "name": "7月·贿赂犯罪"
+      },
+      {
+        "name": "6月·行刑衔接与轻罪治"
+      },
+      {
+        "name": "7月·行刑衔接与轻罪治"
+      },
+      {
+        "name": "6月·程序与实体交叉"
+      },
+      {
+        "name": "7月·程序与实体交叉"
+      },
+      {
+        "name": "6月·法益理论"
+      },
+      {
+        "name": "7月·法益理论"
+      }
+    ],
+    "links": [
+      {
+        "source": "6月·罪刑各论（具体罪",
+        "target": "7月·罪刑各论（具体罪",
+        "value": 11
+      },
+      {
+        "source": "6月·数字刑法与网络犯",
+        "target": "7月·数字刑法与网络犯",
+        "value": 8
+      },
+      {
+        "source": "6月·归责理论",
+        "target": "7月·归责理论",
+        "value": 6
+      },
+      {
+        "source": "6月·刑罚论与刑事政策",
+        "target": "7月·刑罚论与刑事政策",
+        "value": 4
+      },
+      {
+        "source": "6月·贿赂犯罪",
+        "target": "7月·贿赂犯罪",
+        "value": 3
+      },
+      {
+        "source": "6月·行刑衔接与轻罪治",
+        "target": "7月·行刑衔接与轻罪治",
+        "value": 3
+      },
+      {
+        "source": "6月·程序与实体交叉",
+        "target": "7月·程序与实体交叉",
+        "value": 3
+      },
+      {
+        "source": "6月·法益理论",
+        "target": "7月·法益理论",
+        "value": 1
+      }
+    ]
+  }
+}
