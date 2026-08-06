@@ -1781,6 +1781,78 @@ a { color: inherit; text-decoration: none; }
 @media (max-width: 768px) {
   .crossmonth-grid { grid-template-columns: 1fr; }
 }
+
+/* ============================================================
+   模块六 · 本月推荐（Pick of the Month）
+   ============================================================ */
+.pick-grid {
+  display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px;
+}
+.pick-card {
+  position: relative;
+  background: var(--card-bg);
+  border: 1px solid var(--line-soft);
+  border-radius: var(--r-md);
+  padding: 20px 18px 18px;
+  display: flex; flex-direction: column;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.03);
+  transition: border-color .3s ease, transform .3s ease, box-shadow .3s ease;
+}
+.pick-card:hover {
+  border-color: var(--accent-dim);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.06);
+}
+.pick-card.rank-1 { border-color: rgba(184, 134, 11, 0.42); }
+.pick-rank {
+  font-family: var(--mono);
+  font-size: 11px; letter-spacing: 0.12em;
+  display: flex; align-items: center; justify-content: space-between;
+  margin-bottom: 10px;
+}
+.pick-rank .rk {
+  width: 26px; height: 26px; border-radius: 50%;
+  display: grid; place-items: center;
+  font-size: 12px; font-weight: 700;
+  background: var(--bg-2); color: var(--ink-3);
+  border: 1px solid var(--line);
+}
+.pick-card.rank-1 .pick-rank .rk {
+  background: var(--gold); color: #fff; border-color: var(--gold);
+  box-shadow: 0 2px 6px rgba(184, 134, 11, 0.35);
+}
+.pick-score { font-family: var(--mono); font-size: 12px; color: var(--ink-3); }
+.pick-score b { font-size: 15px; color: var(--accent); }
+.pick-card.rank-1 .pick-score b { color: var(--gold); }
+.pick-tag {
+  font-family: var(--mono); font-size: 10px; letter-spacing: 0.1em;
+  color: var(--ink-4); margin-bottom: 8px;
+}
+.pick-title {
+  font-family: var(--serif); font-size: 18px; font-weight: 600;
+  line-height: 1.5; letter-spacing: 0.02em; color: var(--ink);
+  margin: 4px 0 10px;
+}
+.pick-meta {
+  font-family: var(--mono); font-size: 11px; color: var(--ink-3);
+  display: flex; flex-wrap: wrap; gap: 4px 12px;
+  margin-bottom: 12px; padding-bottom: 12px; border-bottom: 1px solid var(--line-soft);
+}
+.pick-meta i { font-style: normal; color: var(--ink-4); }
+.pick-intro { font-size: 13px; line-height: 1.75; color: var(--ink-2); margin-bottom: 12px; flex: 1; }
+.pick-why {
+  font-size: 12.5px; line-height: 1.7; color: var(--ink-2);
+  background: var(--callout-bg);
+  border: 1px solid var(--line-soft);
+  border-left: 3px solid var(--accent);
+  border-radius: 0 var(--r-sm) var(--r-sm) 0;
+  padding: 10px 12px;
+}
+.pick-why .why-label {
+  font-family: var(--mono); font-size: 10px; letter-spacing: 0.18em;
+  color: var(--accent); display: block; margin-bottom: 4px;
+}
+@media (max-width: 900px) { .pick-grid { grid-template-columns: 1fr; } }
 </style>
 </head>
 <body>
@@ -2078,6 +2150,84 @@ a { color: inherit; text-decoration: none; }
       <p style="margin-top:12px;font-size:12px;color:var(--ink-3);text-align:center">
         横轴 = 7月三旬 · 纵轴 = 议题 · 色深 = 论文密度 × 平均新颖度
       </p>
+    </div>
+  </section>
+
+  <!-- ══════════ 模块六 · 本月推荐（Pick of the Month） ══════════ -->
+  <section class="section" id="picks">
+    <div class="section-head reveal">
+      <div>
+        <span class="idx">06 / PICK OF THE MONTH</span>
+        <h2>本月推荐<span class="en">Recommended This Month</span></h2>
+      </div>
+      <div class="head-side">
+        <span class="ai-tag">按学术品味综合排序 问题锐度 × 理论纵深 × 方法论自觉 × 范式创新</span>
+      </div>
+    </div>
+
+    <div class="pick-grid">
+      <!-- 第一名 -->
+      <article class="pick-card rank-1 reveal">
+        <div class="pick-rank">
+          <span class="rk">1</span>
+          <span class="pick-score">品味分 <b>8.9</b></span>
+        </div>
+        <span class="pick-tag">问题锐度 9 · 理论纵深 9 · 方法论自觉 8.5 · 范式创新 9</span>
+        <h3 class="pick-title">从具身到离身·刑法行为范式转型何以可能？</h3>
+        <div class="pick-meta"><i>张智辉、陈正湘</i><i>山东大学学报（哲社版）</i><i>行为论与归责理论</i></div>
+        <p class="pick-intro">
+          脑机接口、元宇宙、数字永生把离身行为推到台前。传统行为论以生物身体的动静为基石，
+          涵摄不了这种新现象。作者不满足于规范层面的修补，直接回到存在论，借胡塞尔的悬置、
+          梅洛庞蒂的本己身体和唐伊德的技术身体，把行为概念重述为行为人凭意向性借技术媒介
+          引发的外部状态变更。共生性离身和存在性离身分开处理，各给一条证立路径。
+        </p>
+        <div class="pick-why">
+          <span class="why-label">为何推荐</span>
+          行为论是刑法最旧的地基，平时没人愿意去动。这篇偏拿新技术反过去逼问它，念头到动作那一段还成不成行为、归谁。最难得的是没停在提出问题，而是真把本体论的活干了，从胡塞尔到查默斯一路推下来，给了个能落地的说法。读起来费劲，但值。
+        </div>
+      </article>
+
+      <!-- 第二名 -->
+      <article class="pick-card reveal">
+        <div class="pick-rank">
+          <span class="rk">2</span>
+          <span class="pick-score">品味分 <b>8.7</b></span>
+        </div>
+        <span class="pick-tag">问题锐度 8.5 · 理论纵深 8.5 · 方法论自觉 9 · 范式创新 9</span>
+        <h3 class="pick-title">非法吸收公众存款罪的制度经济学分析</h3>
+        <div class="pick-meta"><i>张龙</i><i>当代财经</i><i>金融犯罪与跨学科方法</i></div>
+        <p class="pick-intro">
+          传统理论把这个罪关在刑法自己的封闭领域里研究，忽视了它内在的金融属性。
+          作者从制度经济学切入，用货币内生性机制揭示不法本质，吸资转贷活动游离于
+          存款准备金监管之外，会向社会创造无限量货币，引发超速通货膨胀。据此重塑构成要件，
+          给口袋罪勘定边界。
+        </p>
+        <div class="pick-why">
+          <span class="why-label">为何推荐</span>
+          刑法学界研究金融犯罪，多数还是就法条论法条。这篇偏要跨出去，把经济学里货币创造的硬道理搬过来，告诉你这个罪到底在罚什么。跨学科容易做成两张皮，这篇没有，经济规律直接服务于构成要件的重塑，逻辑链条咬得很紧。方法论的自觉程度，在同类研究里少见。
+        </div>
+      </article>
+
+      <!-- 第三名 -->
+      <article class="pick-card reveal">
+        <div class="pick-rank">
+          <span class="rk">3</span>
+          <span class="pick-score">品味分 <b>8.6</b></span>
+        </div>
+        <span class="pick-tag">问题锐度 8.5 · 理论纵深 9 · 方法论自觉 8.5 · 范式创新 8.5</span>
+        <h3 class="pick-title">从法益恢复到融入性预防·积极事后行为的刑法体系定位</h3>
+        <div class="pick-meta"><i>唐志威</i><i>法学研究</i><i>刑罚论与刑事政策</i></div>
+        <p class="pick-intro">
+          积极事后行为（退赔、补偿）凭什么能减免刑罚？法益恢复讲了好些年，几乎成了默认选项。
+          作者点出它概括力不够，既没法经验描述，也缺乏正当性论证。于是另起炉灶，
+          把积极事后行为挪进功能主义刑法体系，当作刑罚合目的性里的消极要素。减刑的依据，
+          是它把预防需要的刑罚量压低了。
+        </p>
+        <div class="pick-why">
+          <span class="why-label">为何推荐</span>
+          这篇好在敢对常识下手。法益恢复几乎成了通说，作者却把它拆开看，发现兜不住。批判之后没停在否定，而是给出了替代方案，三道先决条件摆得清楚。想弄懂事后补救为什么该从宽、又不想停在感觉层面的人，值得从头读一遍。
+        </div>
+      </article>
     </div>
   </section>
 
@@ -3209,6 +3359,43 @@ function hexToRGB(hex) {
   };
 }
 
+/**
+ * 雷达冲击波光环材质：在环带内用高斯峰绘制"波前"，
+ * 波前最亮、向后方衰减，形成真实冲击波的亮度分布。
+ * 透明度由 uniform uOpacity 驱动（每环独立）。
+ */
+function makeShockRingMaterial(hex) {
+  const c = hexToRGB(hex);
+  return new THREE.ShaderMaterial({
+    uniforms: {
+      uOpacity: { value: 0 },
+      uColor: { value: new THREE.Color(c.r, c.g, c.b) },
+    },
+    vertexShader: `
+      varying vec2 vPos;
+      void main() {
+        vPos = position.xy;
+        gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+      }`,
+    fragmentShader: `
+      uniform float uOpacity;
+      uniform vec3 uColor;
+      varying vec2 vPos;
+      void main() {
+        float r = length(vPos);
+        // 环带位于内径 0.86 ~ 外径 1.0，归一化到 0..1
+        float t = clamp((r - 0.86) / 0.14, 0.0, 1.0);
+        // 波前高斯峰：t≈0.82（外缘）最亮，向节点方向衰减
+        float a = exp(-pow((t - 0.82) * 14.0, 2.0));
+        gl_FragColor = vec4(uColor, a * uOpacity);
+      }`,
+    transparent: true,
+    blending: THREE.AdditiveBlending,
+    depthWrite: false,
+    side: THREE.DoubleSide,
+  });
+}
+
 // 议题短名（与原页面 TOPIC_META 一致）
 function topicShort(name) {
   const map = {
@@ -3289,6 +3476,7 @@ const Nebula3D = {
     this.buildClouds();
     this.buildEdges();
     this.buildPoints();
+    this._buildShockwaves();
     this.setupRaycaster();
     this.setupTooltip();
     this.bindEvents();
@@ -3357,28 +3545,44 @@ const Nebula3D = {
   },
 
   /**
-   * 构建粒子云团：每个簇中心渲染一团半透明粒子
+   * 构建粒子云团：围绕每个实际节点生成局部光晕，
+   * 使同色系论文节点被粒子云包裹，凸显同一主题的聚合效应。
    */
   buildClouds() {
     this.cloudMeshes = [];
+
+    // 收集每个主题的论文节点坐标，用于计算能包裹全部同色节点的云团半径
+    const clusterNodes = new Map();
+    this.papers.forEach(p => {
+      if (p.cluster === undefined || p.cluster === null) return;
+      if (!clusterNodes.has(p.cluster)) clusterNodes.set(p.cluster, []);
+      clusterNodes.get(p.cluster).push(p);
+    });
+
     this.clusters.forEach(cluster => {
       const center = cluster.center;
       const cx = center[0], cy = center[1], cz = center[2];
       const color = hexToRGB(cluster.color);
-      const size = cluster.size || 1;
+      const nodes = clusterNodes.get(cluster.id) || [];
 
-      // 粒子数量：基于簇内论文数，每篇约 80 个粒子
-      const particleCount = Math.max(60, size * 80);
+      // 云团半径：取该主题内所有节点到主题中心的最大距离并略外扩，
+      // 确保粒子云能完整包裹同色系全部节点
+      let maxDist = 0;
+      nodes.forEach(p => {
+        const d = Math.hypot(p.x - cx, p.y - cy, p.z - cz);
+        if (d > maxDist) maxDist = d;
+      });
+      const radius = Math.max(0.5, maxDist * 1.15);
+
+      // 粒子数量：随云体积增长，保证放大范围后仍具备足够密度
+      const particleCount = Math.max(150, Math.round(radius * 320));
       const positions = new Float32Array(particleCount * 3);
       const colors = new Float32Array(particleCount * 3);
       const sizes = new Float32Array(particleCount);
 
-      // 云团半径：基于簇大小，但有下限
-      const radius = Math.max(0.35, 0.18 + size * 0.04);
-
       for (let i = 0; i < particleCount; i++) {
-        // 球内随机分布（偏向中心更密集）
-        const r = radius * Math.pow(Math.random(), 0.6);
+        // 球内分布（略偏内密），让云团覆盖整个主题区域
+        const r = radius * Math.pow(Math.random(), 0.8);
         const theta = Math.random() * Math.PI * 2;
         const phi = Math.acos(2 * Math.random() - 1);
 
@@ -3406,11 +3610,10 @@ const Nebula3D = {
         size: 0.04,
         sizeAttenuation: true,
         transparent: true,
-        opacity: 0.18,
+        opacity: 0.22,
         vertexColors: true,
         blending: THREE.AdditiveBlending,
         depthWrite: false,
-        sizeAttenuation: true,
       });
 
       const points = new THREE.Points(geometry, material);
@@ -3480,6 +3683,7 @@ const Nebula3D = {
     const positions = new Float32Array(count * 3);
     const colors = new Float32Array(count * 3);
     const sizes = new Float32Array(count);
+    const noveltyVals = new Float32Array(count);
 
     // 计算大小比例尺
     const theoryCounts = this.papers.map(p => (p.theories || []).length);
@@ -3502,27 +3706,34 @@ const Nebula3D = {
       const tNorm = tMax > tMin ? (theoryCounts[i] - tMin) / (tMax - tMin) : 0.5;
       const nNorm = nMax > nMin ? (novelties[i] - nMin) / (nMax - nMin) : 0.5;
       sizes[i] = 0.06 + tNorm * 0.08 + nNorm * 0.04;
+      // 高新颖度脉冲光环的强度来源：原始新颖度（0~10），供 shader 平滑插值
+      noveltyVals[i] = +p.novelty || 5;
     });
 
     const geometry = new THREE.BufferGeometry();
     geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
     geometry.setAttribute('color', new THREE.BufferAttribute(colors, 3));
     geometry.setAttribute('size', new THREE.BufferAttribute(sizes, 1));
+    geometry.setAttribute('novelty', new THREE.BufferAttribute(noveltyVals, 1));
 
-    // 自定义 Shader：圆形光点 + 发光晕
+    // 自定义 Shader：圆形光点 + 发光晕 + 高新颖度柔和脉冲光环
     const material = new THREE.ShaderMaterial({
       uniforms: {
         uHoverIdx: { value: -1 },
         uSelectedIdx: { value: -1 },
         uPixelRatio: { value: this.renderer.getPixelRatio() },
+        uTime: { value: 0 },
       },
       vertexShader: `
         attribute float size;
         attribute vec3 color;
+        attribute float novelty;
         varying vec3 vColor;
+        varying float vNovelty;
         uniform float uPixelRatio;
         void main() {
           vColor = color;
+          vNovelty = novelty;
           vec4 mvPosition = modelViewMatrix * vec4(position, 1.0);
           gl_PointSize = size * 300.0 * uPixelRatio / -mvPosition.z;
           gl_Position = projectionMatrix * mvPosition;
@@ -3530,6 +3741,8 @@ const Nebula3D = {
       `,
       fragmentShader: `
         varying vec3 vColor;
+        varying float vNovelty;
+        uniform float uTime;
         void main() {
           // 圆形 + 柔光晕
           vec2 c = gl_PointCoord - vec2(0.5);
@@ -3540,6 +3753,16 @@ const Nebula3D = {
           float glow = smoothstep(0.5, 0.15, d) * 0.5;
           float alpha = core * 0.9 + glow * 0.3;
           vec3 col = vColor * (1.0 + glow * 1.2);
+          // 高新颖度（≥8）柔和脉冲光环：外围呼吸光环 + 内核微亮
+          float hi = smoothstep(8.0, 9.0, vNovelty);
+          if (hi > 0.001) {
+            float pulse = 0.5 + 0.5 * sin(uTime * 2.2 + vNovelty * 0.9);
+            // 外圈光环：随脉冲在 0.22~0.48 半径区间内扩张收缩
+            float ring = smoothstep(0.48, 0.30, d) * (1.0 - smoothstep(0.22, 0.30, d));
+            float ringAlpha = ring * 0.30 * hi * (0.35 + 0.65 * pulse);
+            alpha += ringAlpha;
+            col += vColor * (ringAlpha * 0.9 + 0.28 * hi * pulse);
+          }
           gl_FragColor = vec4(col, alpha);
         }
       `,
@@ -3557,6 +3780,56 @@ const Nebula3D = {
     this._nRange = { min: nMin, max: nMax };
     // 保存原始 size，供搜索命中放大光晕后还原（避免累积）
     this._origSizes = Float32Array.from(sizes);
+  },
+
+  /**
+   * 雷达冲击波：为高新颖度（>=8）节点叠加周期扩散的冲击光环。
+   * 每个节点 3 个错峰光环，依次向外扩散并淡出，形成"扫描 ping"的醒目效果。
+   * 光环始终面向相机（billboard），以圆环形态呈现。
+   */
+  _buildShockwaves() {
+    this.shockGroups = [];
+    this.shockwaveMeshes = [];
+    const hiNodes = this.papers.filter(p => (+p.novelty || 5) >= 8);
+    if (!hiNodes.length) return;
+
+    // 共享圆环几何体：内径 0.86 / 外径 1.0，缩放到目标半径后形成细环带
+    const ringGeo = new THREE.RingGeometry(0.86, 1.0, 64);
+    this._shockRingGeo = ringGeo;
+
+    hiNodes.forEach(p => {
+      const cluster = this.clusters[p.cluster];
+      const color = cluster ? cluster.color : '#38bdf8';
+      const grp = new THREE.Group();
+      grp.position.set(p.x, p.y, p.z);
+      const rings = [];
+      for (let i = 0; i < 3; i++) {
+        const mat = makeShockRingMaterial(color);
+        const mesh = new THREE.Mesh(ringGeo, mat);
+        grp.add(mesh);
+        rings.push({ mesh, mat, period: 2.4, offset: i / 3 });
+      }
+      this.scene.add(grp);
+      this.shockGroups.push({ grp, rings });
+      this.shockwaveMeshes.push(...rings.map(r => r.mesh));
+    });
+  },
+
+  /**
+   * 驱动雷达冲击波：每帧推进各光环的扩散相位并让其面向相机。
+   */
+  _updateShockwaves(t) {
+    if (!this.shockGroups) return;
+    for (const sg of this.shockGroups) {
+      for (const ring of sg.rings) {
+        // billboard：始终面向相机
+        ring.mesh.quaternion.copy(this.camera.quaternion);
+        const ph = ((t / ring.period) + ring.offset) % 1.0;
+        const s = 0.06 + ph * 0.46;   // 半径从 0.06 扩展到 ~0.52
+        ring.mesh.scale.set(s, s, s);
+        ring.mat.uniforms.uOpacity.value = (1 - ph) * 0.9;
+      }
+    }
   },
 
   setupRaycaster() {
@@ -3775,7 +4048,12 @@ const Nebula3D = {
 
   animate() {
     this.animationId = requestAnimationFrame(() => this.animate());
+    // 推进高新颖度脉冲光环的时间（dx 每帧，循环驱动 shader 呼吸动画）
+    if (this.pointsMesh && this.pointsMesh.material.uniforms.uTime) {
+      this.pointsMesh.material.uniforms.uTime.value = performance.now() / 1000;
+    }
     this._updatePulse();   // 搜索命中/悬停节点的呼吸脉冲 + 光环动画
+    this._updateShockwaves(performance.now() / 1000);   // 高新颖度节点雷达冲击波
     this.controls.update();
     this.renderer.render(this.scene, this.camera);
   },
@@ -4238,6 +4516,16 @@ const Nebula3D = {
       this._haloMesh.geometry.dispose();
       this._haloMesh.material.dispose();
     }
+    // 释放雷达冲击波资源
+    if (this.shockwaveMeshes) {
+      this.shockwaveMeshes.forEach(m => m.material.dispose());
+      this.shockwaveMeshes = null;
+    }
+    if (this._shockRingGeo) {
+      this._shockRingGeo.dispose();
+      this._shockRingGeo = null;
+    }
+    this.shockGroups = null;
   },
 };
 
