@@ -1853,6 +1853,146 @@ a { color: inherit; text-decoration: none; }
   color: var(--accent); display: block; margin-bottom: 4px;
 }
 @media (max-width: 900px) { .pick-grid { grid-template-columns: 1fr; } }
+
+/* ============================================================
+   本月推荐 · 全息翻转卡（Holographic Wall）
+   浅色学术杂志风：白卡 + 发丝线 + 衬线标题 + 蓝金点缀，与全页基调一致
+   翻转由显式按钮触发，避免整卡点击造成误触与不可发现
+   ============================================================ */
+.holo-shell {
+  perspective: 1600px;
+  border-radius: var(--r-lg);
+  background: var(--panel-bg);
+  border: 1px solid var(--line);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.03);
+  padding: clamp(22px, 4vw, 40px);
+  position: relative;
+  overflow: hidden;
+}
+.holo-shell::before {
+  content: '';
+  position: absolute; inset: 0; pointer-events: none;
+  background: var(--card-decor);
+}
+.holo-grid {
+  position: relative;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: clamp(16px, 2.5vw, 26px);
+}
+.holo-card {
+  position: relative;
+  height: 620px;
+  cursor: pointer;
+  border-radius: var(--r-md);
+  transition: transform .3s ease, box-shadow .3s ease;
+}
+/* 悬停动效：轻抬 + 圆角向背光阴影，提示可交互 */
+.holo-card:hover {
+  transform: translateY(-6px);
+  box-shadow: 0 18px 40px rgba(10, 60, 120, 0.10), 0 2px 8px rgba(10, 60, 120, 0.06);
+}
+.holo-card-inner {
+  position: absolute; inset: 0;
+  transform-style: preserve-3d;
+  transition: transform 0.7s cubic-bezier(0.4, 0.2, 0.2, 1);
+  will-change: transform;
+}
+.holo-face {
+  position: absolute; inset: 0;
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+  border-radius: var(--r-md);
+  background: var(--card-bg);
+  border: 1px solid var(--line);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.03);
+  padding: 24px 22px;
+  display: flex;
+  flex-direction: column;
+}
+.holo-back { transform: rotateY(180deg); }
+/* 顶栏：排名 + 品味分 */
+.holo-topline {
+  display: flex; align-items: baseline; justify-content: space-between;
+  margin-bottom: 14px;
+}
+.holo-rank {
+  font-family: var(--mono); font-size: 11px; font-weight: 600; letter-spacing: 0.16em;
+  color: var(--ink-3);
+}
+.holo-score { font-family: var(--mono); font-size: 12px; color: var(--ink-3); }
+.holo-score b { font-size: 18px; color: var(--accent); margin-left: 3px; }
+.holo-title {
+  font-family: var(--serif); font-size: 20px; font-weight: 600;
+  line-height: 1.5; color: var(--ink); margin-bottom: 10px;
+}
+.holo-meta { font-size: 12.5px; color: var(--ink-3); line-height: 1.8; }
+.holo-chips { display: flex; flex-wrap: wrap; gap: 8px; margin: 14px 0 12px; }
+.holo-chip {
+  font-family: var(--mono); font-size: 11px; letter-spacing: 0.05em; line-height: 1;
+  color: var(--ink-2); background: var(--bg-2);
+  border: 1px solid var(--line-soft); border-radius: 999px;
+  padding: 6px 11px;
+}
+.holo-intro {
+  margin-top: 14px; padding-top: 14px; border-top: 1px solid var(--line-soft);
+  font-size: 14px; line-height: 1.85; color: var(--ink-2);
+}
+/* 翻转按钮：显式、可发现的触发点 */
+.holo-flip-btn {
+  margin-top: auto;
+  align-self: flex-start;
+  display: inline-flex; align-items: center; gap: 7px;
+  padding: 8px 16px;
+  border-radius: 999px;
+  border: 1px solid var(--accent);
+  background: var(--accent);
+  color: #fff;
+  font-family: var(--mono); font-size: 12px; letter-spacing: 0.06em;
+  cursor: pointer;
+  transition: background .25s ease, transform .25s ease, box-shadow .25s ease;
+}
+.holo-flip-btn:hover { background: #0061c2; box-shadow: 0 4px 14px rgba(0, 113, 227, 0.28); }
+.holo-flip-btn:active { transform: scale(0.97); }
+.holo-flip-btn .flip-ico { font-size: 13px; line-height: 1; }
+.holo-back-title {
+  font-family: var(--mono); font-size: 11px; letter-spacing: 0.2em; color: var(--accent);
+  margin-bottom: 12px;
+}
+.holo-stance { font-size: 14px; line-height: 1.85; color: var(--ink); flex: 1; }
+.holo-novelty { margin-top: 16px; }
+.holo-novelty .nv-label {
+  font-family: var(--mono); font-size: 11px; letter-spacing: 0.12em; color: var(--ink-3);
+  display: flex; justify-content: space-between; margin-bottom: 6px;
+}
+.holo-novelty .nv-bar { height: 6px; border-radius: 999px; background: var(--bg-2); overflow: hidden; }
+.holo-novelty .nv-fill { height: 100%; border-radius: 999px; background: linear-gradient(90deg, var(--accent), var(--accent-warm)); }
+.holo-back-btn {
+  align-self: flex-start;
+  margin-top: 14px;
+  display: inline-flex; align-items: center; gap: 7px;
+  padding: 8px 16px;
+  border-radius: 999px;
+  border: 1px solid var(--line);
+  background: var(--bg-1);
+  color: var(--ink-2);
+  font-family: var(--mono); font-size: 12px; letter-spacing: 0.06em;
+  cursor: pointer;
+  transition: border-color .25s ease, color .25s ease, background .25s ease;
+}
+.holo-back-btn:hover { border-color: var(--accent-dim); color: var(--accent); background: var(--accent-soft); }
+.holo-back-btn:active { transform: scale(0.97); }
+.holo-back-btn .flip-ico { font-size: 13px; line-height: 1; }
+/* 第一名：古典金强调，呼应全页 rank-1 处理 */
+.holo-card.rank-1 .holo-face { border-top: 2px solid var(--accent-warm); }
+.holo-card.rank-1 .holo-rank { color: var(--accent-warm); }
+.holo-card.rank-1 .holo-score b { color: var(--accent-warm); }
+.holo-hint { margin-top: 16px; text-align: center; font-size: 12px; color: var(--ink-3); }
+@media (prefers-reduced-motion: reduce) { .holo-card-inner { transition: none; } }
+@media (max-width: 900px) {
+  .holo-grid { grid-template-columns: 1fr; }
+  .holo-card { height: 640px; }
+}
 </style>
 </head>
 <body>
@@ -2150,69 +2290,102 @@ a { color: inherit; text-decoration: none; }
       </div>
     </div>
 
-    <div class="pick-grid">
-      <!-- 第一名 -->
-      <article class="pick-card rank-1 reveal">
-        <div class="pick-rank">
-          <span class="rk">1</span>
-          <span class="pick-score">品味分 <b>8.9</b></span>
+    <div class="holo-shell reveal">
+      <div class="holo-grid holo-picks-grid">
+        <!-- 第一名 -->
+        <div class="holo-card rank-1">
+          <div class="holo-card-inner">
+            <div class="holo-face holo-front">
+              <div class="holo-topline">
+                <span class="holo-rank">PICK 01</span>
+                <span class="holo-score">品味分 <b>8.9</b></span>
+              </div>
+              <h3 class="holo-title">从具身到离身·刑法行为范式转型何以可能？</h3>
+              <div class="holo-meta">张智辉、陈正湘 · 山东大学学报（哲社版） · 行为论与归责理论</div>
+              <p class="holo-intro">脑机接口、人机协作这类数字化行为一多起来，传统以身体为中心的具身行为论就明显吃不消了。文章绕着意向性重新讲刑法里的行为概念，把离身用例分成共生与存在两种，再把离身行为还原成借技术媒介引发的外部状态变更，一步步给技术时代的行为归责重新打了地基。作者不满足于只指出问题，而是顺着现象学的路一路推到底，最后落回一套能用的归责框架。</p>
+              <div class="holo-chips">
+                <span class="holo-chip">问题锐度 9</span>
+                <span class="holo-chip">理论纵深 9</span>
+                <span class="holo-chip">方法论自觉 8.5</span>
+                <span class="holo-chip">范式创新 9</span>
+              </div>
+              <button type="button" class="holo-flip-btn" data-flip><span class="flip-ico">⟳</span>查看推荐语</button>
+            </div>
+            <div class="holo-face holo-back">
+              <div class="holo-back-title">WHY · 为何推荐</div>
+              <p class="holo-stance">行为论是刑法最旧的一块地基，平时几乎没人愿意去动它。刑法行为怎么定义，一百年前就大致定下来了，可技术的到来让这套旧话再也盖不住新问题。脑机接口一接上，念头到动作那一段还成不成行为、该归谁负责，法律人一时语塞。这篇偏拿新技术反过来逼问这个老问题，没有停在提出问题，而是真把本体论的活干了。从胡塞尔一路推到查默斯，把离身行为重述成凭意向性借技术媒介引发的外部状态变更，共生性离身与存在性离身各给一条证立路径，最后落到一套能用的归责框架。作者不是想替技术开脱，而是想让刑法的网眼织得足够密，该负责的不漏掉，不该负责的不误伤。读起来费劲，因为作者不给你捷径，但读完你会觉得，原来行为论还能这样长骨头。值。</p>
+              <div class="holo-novelty">
+                <div class="nv-label"><span>NOVELTY 新颖度</span><span>8/10</span></div>
+                <div class="nv-bar"><div class="nv-fill" style="width:80%"></div></div>
+              </div>
+              <button type="button" class="holo-back-btn" data-flip><span class="flip-ico">⟲</span>返回</button>
+            </div>
+          </div>
         </div>
-        <span class="pick-tag">问题锐度 9 · 理论纵深 9 · 方法论自觉 8.5 · 范式创新 9</span>
-        <h3 class="pick-title">从具身到离身·刑法行为范式转型何以可能？</h3>
-        <div class="pick-meta"><i>张智辉、陈正湘</i><i>山东大学学报（哲社版）</i><i>行为论与归责理论</i></div>
-        <p class="pick-intro">
-          脑机接口、元宇宙、数字永生把离身行为推到台前。传统行为论以生物身体的动静为基石，
-          涵摄不了这种新现象。作者不满足于规范层面的修补，直接回到存在论，借胡塞尔的悬置、
-          梅洛庞蒂的本己身体和唐伊德的技术身体，把行为概念重述为行为人凭意向性借技术媒介
-          引发的外部状态变更。共生性离身和存在性离身分开处理，各给一条证立路径。
-        </p>
-        <div class="pick-why">
-          <span class="why-label">为何推荐</span>
-          行为论是刑法最旧的地基，平时没人愿意去动。这篇偏拿新技术反过去逼问它，念头到动作那一段还成不成行为、归谁。最难得的是没停在提出问题，而是真把本体论的活干了，从胡塞尔到查默斯一路推下来，给了个能落地的说法。读起来费劲，但值。
-        </div>
-      </article>
 
-      <!-- 第二名 -->
-      <article class="pick-card reveal">
-        <div class="pick-rank">
-          <span class="rk">2</span>
-          <span class="pick-score">品味分 <b>8.7</b></span>
+        <!-- 第二名 -->
+        <div class="holo-card">
+          <div class="holo-card-inner">
+            <div class="holo-face holo-front">
+              <div class="holo-topline">
+                <span class="holo-rank">PICK 02</span>
+                <span class="holo-score">品味分 <b>8.7</b></span>
+              </div>
+              <h3 class="holo-title">非法吸收公众存款罪的制度经济学分析</h3>
+              <div class="holo-meta">张龙 · 当代财经 · 金融犯罪与跨学科方法</div>
+              <p class="holo-intro">这篇从货币内生性机制切入，指出该罪真正要罚的，是游离在存款准备金监管之外的吸资转贷行为。作者用制度经济学重新勘定这个常被当成口袋罪的处罚边界，说明它的危害根源在于脱离监管凭空放大货币供给，而不是简单碰了存款。整篇把跨学科的经济逻辑和教义学分析拧在一起，为构成要件的限缩提供了扎实依据，读起来并不隔。</p>
+              <div class="holo-chips">
+                <span class="holo-chip">问题锐度 8.5</span>
+                <span class="holo-chip">理论纵深 8.5</span>
+                <span class="holo-chip">方法论自觉 9</span>
+                <span class="holo-chip">范式创新 9</span>
+              </div>
+              <button type="button" class="holo-flip-btn" data-flip><span class="flip-ico">⟳</span>查看推荐语</button>
+            </div>
+            <div class="holo-face holo-back">
+              <div class="holo-back-title">WHY · 为何推荐</div>
+              <p class="holo-stance">刑法学界研究金融犯罪，多数还是就法条论法条，把非法吸收公众存款罪当成一个边界模糊、想怎么装就怎么装的口袋罪来用。这篇偏要跨出去，把经济学里货币创造的本相搬过来，告诉你这个罪到底在罚什么。作者抓住货币内生性机制，吸资转贷之所以有害，不是因为它碰了存款，而是因为它脱离存款准备金的监管，向社会凭空喷出无限量的货币。经济规律直接服务于构成要件的重塑，处罚范围被一步步收窄勘定，而不是含糊其辞地从严。跨学科最怕做成两张皮，前面讲经济、后面讲刑法，各说各话，这篇没有，经济逻辑和教义学分析咬得很紧，环环相扣。方法论的自觉程度，在同类金融犯罪研究里相当少见。想弄懂口袋罪为什么存在、又该怎么约束它的人，这篇是一把难得的钥匙。</p>
+              <div class="holo-novelty">
+                <div class="nv-label"><span>NOVELTY 新颖度</span><span>7/10</span></div>
+                <div class="nv-bar"><div class="nv-fill" style="width:70%"></div></div>
+              </div>
+              <button type="button" class="holo-back-btn" data-flip><span class="flip-ico">⟲</span>返回</button>
+            </div>
+          </div>
         </div>
-        <span class="pick-tag">问题锐度 8.5 · 理论纵深 8.5 · 方法论自觉 9 · 范式创新 9</span>
-        <h3 class="pick-title">非法吸收公众存款罪的制度经济学分析</h3>
-        <div class="pick-meta"><i>张龙</i><i>当代财经</i><i>金融犯罪与跨学科方法</i></div>
-        <p class="pick-intro">
-          传统理论把这个罪关在刑法自己的封闭领域里研究，忽视了它内在的金融属性。
-          作者从制度经济学切入，用货币内生性机制揭示不法本质，吸资转贷活动游离于
-          存款准备金监管之外，会向社会创造无限量货币，引发超速通货膨胀。据此重塑构成要件，
-          给口袋罪勘定边界。
-        </p>
-        <div class="pick-why">
-          <span class="why-label">为何推荐</span>
-          刑法学界研究金融犯罪，多数还是就法条论法条。这篇偏要跨出去，把经济学里货币创造的硬道理搬过来，告诉你这个罪到底在罚什么。跨学科容易做成两张皮，这篇没有，经济规律直接服务于构成要件的重塑，逻辑链条咬得很紧。方法论的自觉程度，在同类研究里少见。
-        </div>
-      </article>
 
-      <!-- 第三名 -->
-      <article class="pick-card reveal">
-        <div class="pick-rank">
-          <span class="rk">3</span>
-          <span class="pick-score">品味分 <b>8.6</b></span>
+        <!-- 第三名 -->
+        <div class="holo-card">
+          <div class="holo-card-inner">
+            <div class="holo-face holo-front">
+              <div class="holo-topline">
+                <span class="holo-rank">PICK 03</span>
+                <span class="holo-score">品味分 <b>8.6</b></span>
+              </div>
+              <h3 class="holo-title">从法益恢复到融入性预防·积极事后行为的刑法体系定位</h3>
+              <div class="holo-meta">唐志威 · 法学研究 · 刑罚论与刑事政策</div>
+              <p class="holo-intro">这篇对几乎已成通说的法益恢复提出质疑，主张用融入性预防来替代它。作者认为积极事后行为应当作为刑罚合目的性中的消极要素来处理，并给出三道先决条件，让事后补救行为从宽有了成体系的依据。批判没有停在否定，而是补上了通说长期欠下的论证，把减刑的根据从感觉层面拉回到可检验的制度逻辑。</p>
+              <div class="holo-chips">
+                <span class="holo-chip">问题锐度 8.5</span>
+                <span class="holo-chip">理论纵深 9</span>
+                <span class="holo-chip">方法论自觉 8.5</span>
+                <span class="holo-chip">范式创新 8.5</span>
+              </div>
+              <button type="button" class="holo-flip-btn" data-flip><span class="flip-ico">⟳</span>查看推荐语</button>
+            </div>
+            <div class="holo-face holo-back">
+              <div class="holo-back-title">WHY · 为何推荐</div>
+              <p class="holo-stance">这篇好在敢对常识下手。法益恢复在国内几乎成了通说，好像事后把钱还了、把损失补了，量刑就天然该从宽，大家都这么说，却没人追问为什么。作者把它拆开来看，发现这套说法既缺经验层面的准确描述，也缺正当性层面的论证，根本兜不住。批判之后没有停在否定，而是给出替代方案，把积极事后行为挪进功能主义体系，当刑罚合目的性里的消极要素，三道先决条件摆得清清楚楚。这样一改，减刑的根据就不再是玄而又玄的悔过之心，而是看得见、可检验的制度逻辑。整篇读下来，你会觉得作者不是在抬杠，而是在认真给一个大家都习以为常的结论补上欠了多年的论证。想弄懂事后补救为什么该从宽、又不想停在感觉层面的人，值得从头到尾读一遍。</p>
+              <div class="holo-novelty">
+                <div class="nv-label"><span>NOVELTY 新颖度</span><span>8/10</span></div>
+                <div class="nv-bar"><div class="nv-fill" style="width:80%"></div></div>
+              </div>
+              <button type="button" class="holo-back-btn" data-flip><span class="flip-ico">⟲</span>返回</button>
+            </div>
+          </div>
         </div>
-        <span class="pick-tag">问题锐度 8.5 · 理论纵深 9 · 方法论自觉 8.5 · 范式创新 8.5</span>
-        <h3 class="pick-title">从法益恢复到融入性预防·积极事后行为的刑法体系定位</h3>
-        <div class="pick-meta"><i>唐志威</i><i>法学研究</i><i>刑罚论与刑事政策</i></div>
-        <p class="pick-intro">
-          积极事后行为（退赔、补偿）凭什么能减免刑罚？法益恢复讲了好些年，几乎成了默认选项。
-          作者点出它概括力不够，既没法经验描述，也缺乏正当性论证。于是另起炉灶，
-          把积极事后行为挪进功能主义刑法体系，当作刑罚合目的性里的消极要素。减刑的依据，
-          是它把预防需要的刑罚量压低了。
-        </p>
-        <div class="pick-why">
-          <span class="why-label">为何推荐</span>
-          这篇好在敢对常识下手。法益恢复几乎成了通说，作者却把它拆开看，发现兜不住。批判之后没停在否定，而是给出了替代方案，三道先决条件摆得清楚。想弄懂事后补救为什么该从宽、又不想停在感觉层面的人，值得从头读一遍。
-        </div>
-      </article>
+      </div>
+      <div class="holo-hint">悬停卡片有轻微 3D 倾斜 · 点按「查看推荐语」即可翻转</div>
     </div>
   </section>
 
@@ -3096,40 +3269,60 @@ function loadCrossMonth() {
   return next();
 }
 
+function renderMigrationSankey(cm) {
+  var el = document.getElementById('topicMigrationChart');
+  if (!el || typeof echarts === 'undefined') return;
+  var topics = (cm.topic_migration || []).slice();
+  /* 升降温排序：升温在上、降温在下，一眼看出天气 */
+  topics.sort(function (a, b) { return (b.diff - a.diff) || (b.july - a.july); });
+  var nodes = [], links = [];
+  var upC = '#b8860b', downC = '#0071e3', stableC = '#9aa0a6', juneC = '#b9b2a3';
+  topics.forEach(function (t) {
+    var jn = '6月 · ' + t.topic;
+    var jl = '7月 · ' + t.topic;
+    nodes.push({ name: jn, value: t.june, itemStyle: { color: juneC } });
+    var c = t.trend === 'up' ? upC : (t.trend === 'down' ? downC : stableC);
+    nodes.push({ name: jl, value: t.july, itemStyle: { color: c } });
+    links.push({ source: jn, target: jl, value: (t.june + t.july) / 2, june: t.june, july: t.july, trend: t.trend });
+  });
+  var chart = echarts.init(el);
+  chart.setOption({
+    tooltip: {
+      trigger: 'item',
+      formatter: function (p) {
+        if (p.dataType === 'edge') {
+          var d = p.data;
+          var w = d.trend === 'up' ? '升温' : (d.trend === 'down' ? '降温' : '持平');
+          return d.source.replace(/^6月 · /, '') + '<br/>6月 <b>' + d.june + '</b> → 7月 <b>' + d.july + '</b> 篇 · ' + w;
+        }
+        return p.name.replace(/^[67]月 · /, '') + ' · 论文 <b>' + p.value + '</b> 篇';
+      }
+    },
+    series: [{
+      type: 'sankey',
+      top: 24, left: '1%', right: '1%', bottom: '4%',
+      nodeWidth: 12, nodeGap: 12,
+      draggable: false,
+      label: {
+        position: 'right', fontSize: 11,
+        color: 'var(--ink-2)',
+        formatter: function (p) { return p.name.replace(/^[67]月 · /, ''); }
+      },
+      itemStyle: { borderWidth: 0 },
+      lineStyle: { color: 'gradient', opacity: 0.3, curveness: 0.5 },
+      emphasis: { focus: 'adjacency', lineStyle: { opacity: 0.75 } },
+      data: nodes,
+      links: links
+    }]
+  });
+  window.addEventListener('resize', function () { chart.resize(); });
+}
+
 function renderCrossMonth(cm) {
   if (!cm) return;
 
-  /* 议题热度迁移柱状图 */
-  var chartEl = document.getElementById('topicMigrationChart');
-  if (chartEl && typeof echarts !== 'undefined') {
-    var chart = echarts.init(chartEl);
-    var topics = cm.topic_migration || [];
-    chart.setOption({
-      tooltip: { trigger: 'axis', axisPointer: { type: 'shadow' } },
-      legend: { data: ['6月', '7月'], top: 0, right: 10, textStyle: { fontSize: 11 } },
-      grid: { left: '3%', right: '4%', bottom: '3%', top: 30, containLabel: true },
-      xAxis: {
-        type: 'value', max: function(v) { return v.max + 2; },
-        axisLabel: { fontSize: 10, fontFamily: 'JetBrains Mono' }
-      },
-      yAxis: {
-        type: 'category',
-        data: topics.map(function(t) { return t.topic.length > 10 ? t.topic.slice(0,8) + '…' : t.topic; }).reverse(),
-        axisLabel: { fontSize: 11 }
-      },
-      series: [
-        {
-          name: '6月', type: 'bar', itemStyle: { color: 'rgba(184, 134, 11, 0.5)', borderRadius: [0, 3, 3, 0] },
-          data: topics.map(function(t) { return t.june; }).reverse()
-        },
-        {
-          name: '7月', type: 'bar', itemStyle: { color: 'rgba(0, 113, 227, 0.65)', borderRadius: [0, 3, 3, 0] },
-          data: topics.map(function(t) { return t.july; }).reverse()
-        }
-      ]
-    });
-    window.addEventListener('resize', function() { chart.resize(); });
-  }
+  /* 议题热度迁移 · 桑基/冲积图（6月 vs 7月，一眼看出升温降温） */
+  renderMigrationSankey(cm);
 
   /* 三分类标签 */
   var rising = cm.rising_topics || [];
@@ -3280,6 +3473,46 @@ function renderWeatherMap(papers, meta) {
 }
 
 /* ============================================================
+   本月推荐 · 全息翻转卡交互（Holographic Wall）
+   3D 倾斜跟随鼠标 + 通过显式按钮触发翻转
+   翻转不绑定整卡点击，避免误触，也让动作更可发现
+   ============================================================ */
+function bindHoloCardEvents() {
+  var hREDUCED = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  var FLIP_TRANS = 'transform 0.7s cubic-bezier(0.4, 0.2, 0.2, 1)';
+  var TILT_TRANS = 'transform 0.12s ease-out';
+  document.querySelectorAll('.holo-card').forEach(function (card) {
+    var inner = card.querySelector('.holo-card-inner');
+    if (!inner) return;
+    var flipped = false, tx = 0, ty = 0;
+    function compose() {
+      return (flipped ? 'rotateY(180deg) ' : '') +
+        'rotateX(' + ty.toFixed(2) + 'deg) rotateY(' + tx.toFixed(2) + 'deg)';
+    }
+    function apply(trans) {
+      if (trans) inner.style.transition = trans;
+      inner.style.transform = compose();
+    }
+    function toggle() { flipped = !flipped; apply(FLIP_TRANS); }
+    /* 显式按钮触发翻转（原生 button，键盘可达） */
+    card.querySelectorAll('[data-flip]').forEach(function (btn) {
+      btn.addEventListener('click', function (e) { e.stopPropagation(); toggle(); });
+    });
+    if (hREDUCED) return;
+    card.addEventListener('mousemove', function (e) {
+      var r = card.getBoundingClientRect();
+      tx = ((e.clientX - r.left) / r.width - 0.5) * 12;
+      ty = ((e.clientY - r.top) / r.height - 0.5) * -10;
+      apply(TILT_TRANS);
+    });
+    card.addEventListener('mouseleave', function () {
+      tx = 0; ty = 0;
+      apply(flipped ? FLIP_TRANS : TILT_TRANS);
+    });
+  });
+}
+
+/* ============================================================
    初始化
    ============================================================ */
 function init() {
@@ -3299,6 +3532,7 @@ function init() {
     }
     renderClashes(meta, papers);
     renderWeatherMap(papers, meta);
+    bindHoloCardEvents();
 
     /* 双月对照数据（异步加载，不阻塞主流程） */
     loadCrossMonth().then(function(cm) {
