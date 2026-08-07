@@ -2790,24 +2790,39 @@ const Nebula3D = {
    */
   buildClouds() {
     this.cloudMeshes = [];
+
+    // 收集每个主题的论文节点坐标，用于计算能包裹全部同色节点的云团半径
+    const clusterNodes = new Map();
+    this.papers.forEach(p => {
+      if (p.cluster === undefined || p.cluster === null) return;
+      if (!clusterNodes.has(p.cluster)) clusterNodes.set(p.cluster, []);
+      clusterNodes.get(p.cluster).push(p);
+    });
+
     this.clusters.forEach(cluster => {
       const center = cluster.center;
       const cx = center[0], cy = center[1], cz = center[2];
       const color = hexToRGB(cluster.color);
-      const size = cluster.size || 1;
+      const nodes = clusterNodes.get(cluster.id) || [];
 
-      // 粒子数量：基于簇内论文数，每篇约 80 个粒子
-      const particleCount = Math.max(60, size * 80);
+      // 云团半径：取该主题内所有节点到主题中心的最大距离并略外扩，
+      // 确保粒子云能完整包裹同色系全部节点
+      let maxDist = 0;
+      nodes.forEach(p => {
+        const d = Math.hypot(p.x - cx, p.y - cy, p.z - cz);
+        if (d > maxDist) maxDist = d;
+      });
+      const radius = Math.max(0.5, maxDist * 1.15);
+
+      // 粒子数量：随云体积增长，保证放大范围后仍具备足够密度
+      const particleCount = Math.max(150, Math.round(radius * 320));
       const positions = new Float32Array(particleCount * 3);
       const colors = new Float32Array(particleCount * 3);
       const sizes = new Float32Array(particleCount);
 
-      // 云团半径：基于簇大小，但有下限
-      const radius = Math.max(0.35, 0.18 + size * 0.04);
-
       for (let i = 0; i < particleCount; i++) {
-        // 球内随机分布（偏向中心更密集）
-        const r = radius * Math.pow(Math.random(), 0.6);
+        // 球内分布（略偏内密），让云团覆盖整个主题区域
+        const r = radius * Math.pow(Math.random(), 0.8);
         const theta = Math.random() * Math.PI * 2;
         const phi = Math.acos(2 * Math.random() - 1);
 
@@ -2835,11 +2850,10 @@ const Nebula3D = {
         size: 0.04,
         sizeAttenuation: true,
         transparent: true,
-        opacity: 0.18,
+        opacity: 0.22,
         vertexColors: true,
         blending: THREE.AdditiveBlending,
         depthWrite: false,
-        sizeAttenuation: true,
       });
 
       const points = new THREE.Points(geometry, material);
