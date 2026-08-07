@@ -62,6 +62,7 @@ for p in papers:
         'theories': p.get('theories', []),
         'keywords': p.get('keywords', []),
         'stance': p.get('stance', ''),
+        'summary': p.get('summary', ''),
         'novelty': p.get('novelty', 5),
         'position': [round(x, 4), round(y, 4), round(z, 4)],
         'cluster': topics.index(p['topic']) if p['topic'] in topics else 0,

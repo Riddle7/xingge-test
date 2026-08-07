@@ -3106,8 +3106,7 @@ function buildPaperHTML(p, tMeta) {
       '<span class="mono">' + esc(p.issue || '') + '</span>' +
       '<span class="mono" style="color:var(--ink-4)">' + esc(p.id || '') + '</span>' +
     '</div>' +
-    (p.stance ? '<div class="ps-stance"><span class="tag">立场 POSITION</span>' + esc(p.stance) + '</div>' : '') +
-    (p.summary ? '<p class="ps-summary">' + esc(p.summary) + '</p>' : '') +
+    (p.summary ? '<div class="ps-stance"><span class="tag">摘要 ABSTRACT</span>' + esc(p.summary) + '</div>' : '') +
     '<div class="ps-novelty">' +
       '<span class="nv-label">新颖度</span>' +
       '<span class="nv-bar"><i style="width:' + (novelty * 10) + '%"></i></span>' +
