@@ -2696,10 +2696,18 @@ const Nebula3D = {
 
     // 加载数据
     const data = await this.loadData(dataUrl);
-    this.papers = data.papers || [];
+    // 兼容 papers-3d.json 的两种格式：papers（x/y/z 字段）与 points（position 数组）
+    this.papers = data.papers || data.points || [];
     this.clusters = data.clusters || [];
     this.edges = data.edges || [];
-    this.papers.forEach(p => { this.paperById[p.id] = p; });
+    this.papers.forEach(p => {
+      if (Array.isArray(p.position)) {
+        p.x = p.position[0];
+        p.y = p.position[1];
+        p.z = p.position[2];
+      }
+      this.paperById[p.id] = p;
+    });
 
     if (!this.papers.length) {
       console.warn('[Nebula3D] 无论文数据');
