@@ -5,7 +5,7 @@
     "reduceMethod": "topic-center-scatter",
     "reduceDesc": "Papers placed near topic centers on sphere with random offset",
     "simThreshold": 0.35,
-    "generatedAt": "2026-08-06"
+    "generatedAt": "2026-08-07"
   },
   "clusters": [
     {

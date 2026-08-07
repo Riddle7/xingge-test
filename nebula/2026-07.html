@@ -3032,7 +3032,7 @@ function renderNebula2D(papers, meta) {
 
 function renderNebula(papers, meta) {
   /* Three.js module 脚本会在 DOMContentLoaded 前挂载 window.initNebula3D。
-     此处仅触发初始化，3D 数据由 module 自行 fetch papers-3d.json。 */
+     此处仅触发初始化，3D 数据由 module 自行 fetch papers-2026-07-3d.json。 */
   var nebulaSection = document.getElementById('nebula');
   /* 移动端判断：触屏设备 + 窄屏才降级 2D；电脑端窄窗（如分屏）仍用 3D */
   var isTouch = window.matchMedia('(pointer: coarse)').matches && 'ontouchstart' in window;
@@ -3566,7 +3566,7 @@ if (document.readyState === 'loading') {
 /**
  * 刑法学术月报 · 文献星云图 3D（Three.js 实现）
  * ============================================================
- * 数据源：papers-3d.json（由 compute_nebula_3d.py 预计算）
+ * 数据源：papers-2026-07-3d.json（由 compute_nebula_3d.py 预计算）
  *
  * 渲染元素：
  *   1) 光点 —— 每篇论文一个，颜色=簇色，大小=理论数+新颖度
@@ -3679,7 +3679,7 @@ const Nebula3D = {
   /**
    * 初始化 3D 星云图
    * @param {HTMLElement} containerEl - 容器元素
-   * @param {string} dataUrl - papers-3d.json 路径
+   * @param {string} dataUrl - papers-2026-07-3d.json 路径
    * @param {function} onPaperClick - 点击光点回调（接收 paper 对象）
    */
   async init(containerEl, dataUrl, onPaperClick) {
@@ -3688,7 +3688,7 @@ const Nebula3D = {
 
     // 加载数据
     const data = await this.loadData(dataUrl);
-    // 兼容 papers-3d.json 的两种格式：papers（x/y/z 字段）与 points（position 数组）
+    // 兼容 papers-2026-07-3d.json 的两种格式：papers（x/y/z 字段）与 points（position 数组）
     this.papers = data.papers || data.points || [];
     this.clusters = data.clusters || [];
     this.edges = data.edges || [];
@@ -3720,9 +3720,9 @@ const Nebula3D = {
   async loadData(dataUrl) {
     const candidates = [
       dataUrl,
-      '../papers-3d.json',
-      '/papers-3d.json',
-      'papers-3d.json',
+      '../papers-2026-07-3d.json',
+      '/papers-2026-07-3d.json',
+      'papers-2026-07-3d.json',
     ];
     for (const url of candidates) {
       try {
@@ -3730,7 +3730,7 @@ const Nebula3D = {
         if (res.ok) return await res.json();
       } catch (e) { /* try next */ }
     }
-    throw new Error('无法加载 papers-3d.json');
+    throw new Error('无法加载 papers-2026-07-3d.json');
   },
 
   setupScene() {
@@ -4779,7 +4779,7 @@ async function initNebula3D(sourceMeta) {
   if (!stage) return;
 
   try {
-    await Nebula3D.init(stage, 'papers-3d.json', (paper) => {
+    await Nebula3D.init(stage, 'papers-2026-07-3d.json', (paper) => {
       // 点击光点回调：调用星云图专属浮层显示详情（无全屏蒙版，不遮挡画布）
       const cluster = Nebula3D.clusters[paper.cluster];
       const tMeta = {
