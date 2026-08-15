@@ -10,6 +10,10 @@ on:
         description: "回看天数"
         default: "14"
 
+concurrency:
+  group: cl-digest
+  cancel-in-progress: false
+
 permissions:
   contents: write
 
