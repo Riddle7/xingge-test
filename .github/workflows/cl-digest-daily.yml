@@ -1,0 +1,37 @@
+name: cl-digest daily
+
+on:
+  schedule:
+    - cron: "10 0 * * *"   # 每日 UTC 00:10（北京 08:10）
+    - cron: "30 0 * * 1"   # 每周一 catch-up（UTC 00:30）
+  workflow_dispatch:
+    inputs:
+      lookback:
+        description: "回看天数"
+        default: "14"
+
+permissions:
+  contents: write
+
+jobs:
+  digest:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: cl-digest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install -r requirements.txt
+      - name: Run digest
+        env:
+          CL_DIGEST_MAILTO: ${{ secrets.CL_DIGEST_MAILTO }}
+          LLM_API_KEY: ${{ secrets.LLM_API_KEY }}
+          LLM_BASE_URL: ${{ secrets.LLM_BASE_URL || 'https://open.bigmodel.cn/api/paas/v4' }}
+          LLM_MODEL: ${{ secrets.LLM_MODEL || 'glm-4.6' }}
+        run: |
+          python -m app.daily \
+            --lookback "${{ github.event_name == 'workflow_dispatch' && inputs.lookback || (github.event.schedule == '30 0 * * 1' && '30' || '14') }}" \
+            --push
