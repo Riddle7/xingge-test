@@ -15,3 +15,26 @@ def test_clean_doi_rejects_invalid():
     assert clean_doi("not a doi") is None
     assert clean_doi("") is None
     assert clean_doi(None) is None
+
+
+from app.normalize import parse_date, rebuild_abstract, strip_jats
+
+
+def test_parse_date_full_and_partial():
+    assert parse_date({"date-parts": [[2026, 8, 15]]}) == "2026-08-15"
+    assert parse_date({"date-parts": [[2026, 8]]}) == "2026-08"
+    assert parse_date({"date-parts": [[2026]]}) == "2026"
+    assert parse_date({}) is None
+    assert parse_date(None) is None
+
+
+def test_rebuild_abstract_orders_by_position():
+    inv = {"world": [2], "hello": [0], ",": [1]}
+    assert rebuild_abstract(inv) == "hello , world"
+    assert rebuild_abstract(None) is None
+    assert rebuild_abstract({}) == ""
+
+
+def test_strip_jats_removes_tags_and_unescapes():
+    assert strip_jats("<p>A &amp; B</p>") == "A & B"
+    assert strip_jats("Plain") == "Plain"
