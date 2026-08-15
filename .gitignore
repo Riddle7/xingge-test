@@ -45,3 +45,7 @@ miniprogram/
 *.tmp
 *.bak
 .cache/
+
+# ===== cl-digest =====
+cl-digest/.env
+__pycache__/

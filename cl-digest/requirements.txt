@@ -1,0 +1,5 @@
+requests>=2.31
+jinja2>=3.1
+feedgen>=1.0
+langdetect>=1.0.9
+python-dotenv>=1.0
