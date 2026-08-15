@@ -85,7 +85,7 @@ cl-digest/
 │   ├── seen.jsonl        # DOI 指纹（防重发）
 │   ├── papers-YYYY-MM.jsonl
 │   └── review-queue/2026-08-15.md
-├── site/                 # 渲染产物，部署到主站 /digest/ 子路径
+├── （渲染输出直接写入仓库根 digest/，即主站 /digest/ 子路径，git push 即部署）
 ├── eval/golden.jsonl + run_eval.py   # 人工标注集 + P/R 回归
 └── .github/workflows/daily.yml
 ```
