@@ -38,3 +38,56 @@ def test_rebuild_abstract_orders_by_position():
 def test_strip_jats_removes_tags_and_unescapes():
     assert strip_jats("<p>A &amp; B</p>") == "A & B"
     assert strip_jats("Plain") == "Plain"
+
+
+from app.normalize import build_record, detect_lang, filter_new
+
+CROSSREF_ITEM = {
+    "DOI": "10.1093/oxresgr/rgaa014",
+    "title": ["Criminal Liability for Robots"],
+    "author": [{"given": "A.", "family": "Author"}, {"name": "B. Author"}],
+    "container-title": ["Some Journal"],
+    "ISSN": ["0000-0000"],
+    "issued": {"date-parts": [[2026, 8, 15]]},
+    "published-print": {"date-parts": [[2026, 9]]},
+    "abstract": "<p>We argue that <i>mens rea</i> matters.</p>",
+}
+OPENALEX_WORK = {
+    "doi": "https://doi.org/10.1093/oxresgr/rgaa014",
+    "language": "en",
+    "abstract_inverted_index": {"We": [0], "argue": [1]},
+}
+
+
+def test_detect_lang_defaults_and_detects():
+    assert detect_lang("Kriminalität und Schuld", None) in ("de", "other")
+    assert detect_lang("", None) == "other"
+
+
+def test_build_record_prefers_openalex_abstract():
+    rec = build_record(CROSSREF_ITEM, OPENALEX_WORK, first_seen="2026-08-15")
+    assert rec["doi"] == "10.1093/oxresgr/rgaa014"
+    assert rec["abstract_original"] == "We argue"
+    assert rec["abstract_source"] == "openalex"
+    assert rec["lang"] == "en"
+    assert rec["pub_date_online"] == "2026-08-15"
+    assert rec["pub_date_issue"] == "2026-09"
+    assert rec["authors"] == ["A. Author", "B. Author"]
+    assert rec["relevance"] is None  # 待 classify 填充
+
+
+def test_build_record_falls_back_to_crossref_abstract():
+    rec = build_record(CROSSREF_ITEM, None, first_seen="2026-08-15")
+    assert rec["abstract_original"] == "We argue that mens rea matters."
+    assert rec["abstract_source"] == "crossref"
+    assert rec["lang"] in ("en", "other")
+
+
+def test_build_record_skips_no_title():
+    item = dict(CROSSREF_ITEM, title=[])
+    assert build_record(item, None, first_seen="x") is None
+
+
+def test_filter_new():
+    recs = [{"doi": "10.a/b"}, {"doi": "10.c/d"}]
+    assert filter_new(recs, {"10.a/b"}) == [{"doi": "10.c/d"}]
