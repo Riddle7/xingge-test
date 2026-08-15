@@ -17,3 +17,7 @@ def test_compute_metrics_core_precision():
     # core 预测 2，命中 1 → precision 0.5；gold core 1，命中 1 → recall 1.0
     assert m["core"]["precision"] == 0.5
     assert m["core"]["recall"] == 1.0
+    assert m["related"]["precision"] == 1.0
+    assert m["related"]["recall"] == 1.0
+    assert m["borderline"]["precision"] is None  # 无预测 → 未定义
+    assert m["borderline"]["recall"] == 0.0

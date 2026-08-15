@@ -39,18 +39,28 @@ def main():
     lexicon = (config.DATA_DIR / "lexicon.md").read_text(encoding="utf-8")
     client = LLMClient()
     preds = []
+    degraded_n = 0
     for g in golds:
         p = papers.get(g["doi"])
         if not p:
             print(f"WARN 论文库中无 {g['doi']}，跳过")
             continue
-        analysis, _ = classify_or_degrade(
+        analysis, degraded = classify_or_degrade(
             p["title_original"], p["abstract_original"], lexicon, client)
+        if degraded:
+            degraded_n += 1
         preds.append({"doi": g["doi"], **{k: analysis[k] for k in ("relevance", "subfield")}})
+    if degraded_n:
+        print(f"WARN {degraded_n}/{len(preds)} 条分诊失败已降级 borderline，指标受污染，"
+              f"请检查 LLM_API_KEY/网络后重跑")
     m = compute_metrics(preds, golds)
     print(json.dumps(m, ensure_ascii=False, indent=2))
-    if args.enforce and (m["core"]["precision"] or 0) < 0.90:
-        sys.exit("core precision < 0.90，不达标")
+    if args.enforce:
+        cp = m["core"]["precision"]
+        if cp is None:
+            sys.exit("core 预测数为 0，precision 未定义，不达标")
+        if cp < 0.90:
+            sys.exit("core precision < 0.90，不达标")
 
 
 if __name__ == "__main__":
