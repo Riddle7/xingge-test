@@ -1,0 +1,23 @@
+{% extends "base.html" %}
+{% block content %}
+<h1>每日雷达</h1>
+<p class="muted">SSCI 期刊 · 刑法语义筛选 · 每日更新。收录原则见<a href="archive.html">归档页</a>筛选器。</p>
+{% for d in days %}
+<section class="day-card">
+  <h2><a href="day/{{ d.date }}.html">{{ d.date }}</a></h2>
+  <p class="muted">重点 {{ d.core }} 篇 · 相关 {{ d.related }} 篇 · 待人工确认 {{ d.borderline }} 篇</p>
+  <ul class="paper-list">
+    {% for p in d.top %}
+    <li>
+      <span class="tag tag-{{ p.relevance }}">{{ '重点' if p.relevance == 'core' else '相关' }}</span>
+      <a class="p-title" href="https://doi.org/{{ p.doi }}">{{ p.title_zh or p.title_original }}</a>
+      <span class="muted">{{ p.journal_name }}</span>
+      {% if p.tldr_zh %}<p class="tldr">{{ p.tldr_zh }}</p>{% endif %}
+    </li>
+    {% endfor %}
+  </ul>
+</section>
+{% else %}
+<p>暂无数据。流水线首次运行后将在此显示日报。</p>
+{% endfor %}
+{% endblock %}

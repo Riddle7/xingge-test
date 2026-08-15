@@ -1,0 +1,47 @@
+{% extends "base.html" %}
+{% block title %}{{ date }} · 每日雷达{% endblock %}
+{% block content %}
+<h1>{{ date }}</h1>
+<p class="muted">首次监测到 {{ core | length + related | length + borderline | length }} 篇（非"今日正式发表"）。重点/core 全字段，相关/related 标题+导读，边界/borderline 折叠待人工确认。</p>
+
+<h2>重点 <span class="muted">({{ core | length }})</span></h2>
+{% for p in core %}
+<article class="paper">
+  <h3><a href="https://doi.org/{{ p.doi }}">{{ p.title_zh or p.title_original }}</a></h3>
+  {% if p.title_zh %}<p class="orig-title">{{ p.title_original }}</p>{% endif %}
+  {% if p.tldr_zh %}<p class="tldr">{{ p.tldr_zh }}</p>{% endif %}
+  <dl class="meta">
+    <div><dt>作者</dt><dd>{{ p.authors | join(', ') or '—' }}</dd></div>
+    <div><dt>期刊</dt><dd>{{ p.journal_name }}</dd></div>
+    <div><dt>在线发表</dt><dd>{{ p.pub_date_online or '—' }}</dd></div>
+    <div><dt>子领域</dt><dd>{{ p.subfield }}</dd></div>
+    <div><dt>收录理由</dt><dd>{{ p.inclusion_reason_zh }}</dd></div>
+  </dl>
+  {% if p.abstract_original %}
+  <details><summary>英文/原文摘要（来源：{{ p.abstract_source }}）</summary>
+    <p class="abstract">{{ p.abstract_original }}</p>
+  </details>
+  {% else %}<p class="muted">摘要暂缺</p>{% endif %}
+</article>
+{% else %}<p>今日无重点论文。</p>{% endfor %}
+
+<h2>相关 <span class="muted">({{ related | length }})</span></h2>
+<ul class="paper-list">
+  {% for p in related %}
+  <li><a class="p-title" href="https://doi.org/{{ p.doi }}">{{ p.title_zh or p.title_original }}</a>
+    <span class="muted">{{ p.journal_name }} · {{ p.subfield }}</span>
+    {% if p.tldr_zh %}<p class="tldr">{{ p.tldr_zh }}</p>{% endif %}
+  </li>
+  {% endfor %}
+</ul>
+
+<details class="borderline-block">
+<summary>待人工确认（{{ borderline | length }}）</summary>
+<ul class="paper-list">
+  {% for p in borderline %}
+  <li><a class="p-title" href="https://doi.org/{{ p.doi }}">{{ p.title_zh or p.title_original }}</a>
+    <span class="muted">{{ p.journal_name }} · {{ p.inclusion_reason_zh }}{% if not p.abstract_original %} · 摘要暂缺{% endif %}</span></li>
+  {% endfor %}
+</ul>
+</details>
+{% endblock %}
