@@ -46,7 +46,7 @@ def fetch_openalex(dois):
     """按 DOI 批量取 OpenAlex work（25 个/次），返回 {规范doi: work}。缺失 DOI 不在结果中。"""
     out = {}
     for i in range(0, len(dois), 25):
-        chunk = [d for d in dois[i : i + 25]]
+        chunk = dois[i : i + 25]
         js = _get_json(
             "https://api.openalex.org/works",
             {
