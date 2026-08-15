@@ -1,4 +1,5 @@
 """render 冒烟测试：产物存在、内容包含关键信息、RSS 可解析。"""
+import json
 import xml.etree.ElementTree as ET
 from pathlib import Path
 
@@ -31,10 +32,23 @@ def test_render_site_products(tmp_path):
     ET.parse(tmp_path / "feed.xml")  # RSS 为合法 XML
     assert (tmp_path / "assets" / "fuse.min.js").exists()
     assert (tmp_path / "archive.html").read_text(encoding="utf-8").count("f-month")
+    feed = (tmp_path / "feed.xml").read_text(encoding="utf-8")
+    assert "警务研究" not in feed  # borderline 不进 RSS
+    # 幂等：重跑输出一致
+    first = (tmp_path / "index.html").read_text(encoding="utf-8")
+    render_site(PAPERS, site_dir=tmp_path)
+    assert (tmp_path / "index.html").read_text(encoding="utf-8") == first
 
 
 def test_load_papers_reads_monthly_files(tmp_path):
     (tmp_path / "papers-2026-08.jsonl").write_text(
-        "\n".join(__import__("json").dumps(p) for p in PAPERS) + "\n", encoding="utf-8")
+        "\n".join(json.dumps(p) for p in PAPERS) + "\n", encoding="utf-8")
     papers = load_papers(data_dir=tmp_path)
     assert len(papers) == 2
+
+
+def test_monthly_js_data_is_json_escaped_not_html(tmp_path):
+    """月度 JS 为纯 JSON；HTML 注入在归档页由 esc() 前端转义（此处验证数据侧契约）。"""
+    render_site(PAPERS, site_dir=tmp_path)
+    js = (tmp_path / "assets" / "data" / "papers-2026-08.js").read_text(encoding="utf-8")
+    assert "<script>" not in js  # json.dumps 不产生标签，若出现说明转义链断裂

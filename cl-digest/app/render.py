@@ -9,9 +9,6 @@ from jinja2 import Environment, FileSystemLoader
 
 from . import config
 
-_LEAN_KEYS = ("doi", "relevance", "subfield", "journal_name", "first_seen_at",
-              "title_zh", "title_original", "tldr_zh")
-
 
 def load_papers(data_dir=config.DATA_DIR):
     """读取全部 papers-*.jsonl，按 first_seen_at 降序。"""
@@ -77,7 +74,7 @@ def render_site(papers, site_dir=config.SITE_DIR):
     day_tpl = env.get_template("day.html")
     for d in sorted({p["first_seen_at"] for p in visible}, reverse=True):
         ps = [p for p in visible if p["first_seen_at"] == d]
-        (site_dir / "day" / f"{d}.html").write_text(day_tpl.render(
+        (site_dir / "day" / f"{d[:10]}.html").write_text(day_tpl.render(
             base="../", date=d,
             core=[p for p in ps if p["relevance"] == "core"],
             related=[p for p in ps if p["relevance"] == "related"],

@@ -39,6 +39,9 @@ async function loadMonth(m) {
   return cache[m];
 }
 
+const esc = s => String(s ?? '').replace(/[&<>"']/g,
+  c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+
 function apply() {
   loadMonth(elM.value).then(list => {
     let out = list.filter(p => (!elR.value || p.relevance === elR.value)
@@ -47,10 +50,10 @@ function apply() {
     if (q) out = new Fuse(out, { keys: ['t', 'j', 'tl'], threshold: 0.35 }).search(q).map(r => r.item);
     elCnt.textContent = `${out.length} 篇`;
     elOut.innerHTML = out.map(p =>
-      `<li><span class="tag tag-${p.relevance}">${p.relevance}</span>` +
-      `<a class="p-title" href="https://doi.org/${p.doi}">${p.t}</a>` +
-      `<span class="muted">${p.j} · ${p.subfield} · ${p.d}</span>` +
-      (p.tl ? `<p class="tldr">${p.tl}</p>` : '') + `</li>`).join('');
+      `<li><span class="tag tag-${esc(p.relevance)}">${esc(p.relevance)}</span>` +
+      `<a class="p-title" href="https://doi.org/${esc(p.doi)}">${esc(p.t)}</a>` +
+      `<span class="muted">${esc(p.j)} · ${esc(p.subfield)} · ${esc(p.d)}</span>` +
+      (p.tl ? `<p class="tldr">${esc(p.tl)}</p>` : '') + `</li>`).join('');
   });
 }
 [elM, elR, elS].forEach(el => el.addEventListener('change', apply));
