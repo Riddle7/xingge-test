@@ -43,6 +43,24 @@ def test_run_dedups_seen(tmp_path, monkeypatch):
     assert len(lines) == 1  # 第二次运行无新增
 
 
+def test_run_writes_borderline_to_review_queue(tmp_path, monkeypatch):
+    _fake_fetch(monkeypatch)
+
+    def fake_borderline(title, abstract, lexicon, client):
+        return {"relevance": "borderline", "subfield": "criminology", "title_zh": "边界题",
+                "tldr_zh": None, "inclusion_reason_zh": "疑似纯犯罪学"}, False
+    monkeypatch.setattr(daily, "classify_or_degrade", fake_borderline)
+    daily.run(lookback_days=14, today="2026-08-15", do_commit=False,
+              data_dir=tmp_path, site_dir=tmp_path / "site")
+    queue = (tmp_path / "review-queue" / "2026-08-15.md").read_text(encoding="utf-8")
+    assert "doi.org/10.a/1" in queue
+    assert "边界题" in queue
+    assert "python -m app.resolve" in queue
+    # 日页折叠区也应有该 borderline 条目
+    day = (tmp_path / "site" / "day" / "2026-08-15.html").read_text(encoding="utf-8")
+    assert "边界题" in day
+
+
 def test_run_zero_results_alarm(tmp_path, monkeypatch):
     monkeypatch.setattr(daily, "fetch_crossref", lambda issns, since, until=None: [])
     monkeypatch.setattr(daily, "fetch_openalex", lambda dois: {})

@@ -9,7 +9,7 @@ from pathlib import Path
 from zoneinfo import ZoneInfo
 
 from . import config
-from .classify import classify_or_degrade
+from .classify import LLMClient, classify_or_degrade
 from .fetch import fetch_crossref, fetch_openalex
 from .normalize import build_record, filter_new
 from .render import load_papers, render_site
@@ -96,7 +96,6 @@ def run(lookback_days=14, today=None, do_classify=True, do_commit=True, push=Fal
 
     if do_classify and new:
         lexicon = (config.DATA_DIR / "lexicon.md").read_text(encoding="utf-8")
-        from .classify import LLMClient  # 延迟导入便于测试注入
         client = LLMClient()
         for rec in new:
             analysis, degraded = classify_or_degrade(
