@@ -50,15 +50,21 @@ class LLMClient:
             timeout=120,
         )
         r.raise_for_status()
-        return r.json()["choices"][0]["message"]["content"]
+        data = r.json()
+        try:
+            return data["choices"][0]["message"]["content"]
+        except (KeyError, IndexError, TypeError):
+            raise ClassifyError(f"LLM 响应结构异常: {str(data)[:200]}")
 
 
 def parse_analysis(raw):
     """解析并校验 LLM 输出；非法抛 ClassifyError。"""
     try:
         data = json.loads(FENCE_RE.sub("", (raw or "").strip()))
-    except (json.JSONDecodeError, TypeError):
-        raise ClassifyError(f"无法解析 LLM 输出: {raw!r:.200}")
+    except (json.JSONDecodeError, TypeError) as e:
+        raise ClassifyError(f"无法解析 LLM 输出: {raw!r:.200}") from e
+    if not isinstance(data, dict):
+        raise ClassifyError(f"LLM 输出非 JSON 对象: {raw!r:.200}")
     if data.get("relevance") not in config.RELEVANCE_TIERS:
         raise ClassifyError(f"relevance 非法: {data.get('relevance')}")
     if data.get("subfield") not in config.SUBFIELDS:
@@ -80,7 +86,7 @@ def classify_paper(title, abstract, lexicon, client):
     return parse_analysis(client.chat(SYSTEM_PROMPT, _user_message(title, abstract, lexicon)))
 
 
-def classify_or_degrade(title, abstract, lexicon, client, model_name):
+def classify_or_degrade(title, abstract, lexicon, client):
     """分诊（重试 1 次）；两次失败降级为 borderline 待人工。返回 (analysis, degraded)。"""
     for _ in range(2):
         try:

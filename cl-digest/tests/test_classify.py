@@ -1,5 +1,6 @@
 """classify 测试：FakeClient 替代真实 LLM。"""
 import pytest
+import requests
 
 from app.classify import ClassifyError, LLMClient, classify_or_degrade, parse_analysis
 
@@ -35,15 +36,28 @@ def test_parse_analysis_rejects_bad_payload():
 
 def test_classify_or_degrade_success_first_try():
     client = FakeClient([GOOD])
-    analysis, degraded = classify_or_degrade("T", "A", "lex", client, "test-model")
+    analysis, degraded = classify_or_degrade("T", "A", "lex", client)
     assert degraded is False and analysis["relevance"] == "core"
     assert client.calls == 1
 
 
 def test_classify_or_degrade_retries_once_then_degrades():
     client = FakeClient([ClassifyError("boom"), ClassifyError("boom")])
-    analysis, degraded = classify_or_degrade("T", "A", "lex", client, "test-model")
+    analysis, degraded = classify_or_degrade("T", "A", "lex", client)
     assert degraded is True
     assert analysis["relevance"] == "borderline"
     assert analysis["tldr_zh"] is None
+    assert client.calls == 2
+
+
+def test_classify_or_degrade_degrades_on_request_exception():
+    client = FakeClient([requests.ConnectionError("net"), requests.ConnectionError("net")])
+    analysis, degraded = classify_or_degrade("T", "A", "lex", client)
+    assert degraded is True and analysis["relevance"] == "borderline"
+
+
+def test_classify_or_degrade_succeeds_on_retry():
+    client = FakeClient([ClassifyError("bad"), GOOD])
+    analysis, degraded = classify_or_degrade("T", "A", "lex", client)
+    assert degraded is False and analysis["relevance"] == "core"
     assert client.calls == 2
