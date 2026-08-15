@@ -94,13 +94,13 @@ def build_record(item, enrich, first_seen):
     else:
         abstract_original, abstract_source = None, "none"
 
-    container = item.get("container-title") or [""]
+    container = html.unescape((item.get("container-title") or [""])[0])
     return {
         "doi": doi,
         "title_original": title,
         "title_zh": None,           # classify 填充
         "authors": _authors(item),
-        "journal_name": container[0],
+        "journal_name": container,
         "journal_issn_l": (item.get("ISSN") or [""])[0],
         "pub_date_online": parse_date(item.get("published-online") or item.get("issued")),
         "pub_date_issue": parse_date(item.get("published-print")),

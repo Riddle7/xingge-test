@@ -46,7 +46,7 @@ CROSSREF_ITEM = {
     "DOI": "10.1093/oxresgr/rgaa014",
     "title": ["Criminal Liability for Robots"],
     "author": [{"given": "A.", "family": "Author"}, {"name": "B. Author"}],
-    "container-title": ["Some Journal"],
+    "container-title": ["Crime &amp; Law"],
     "ISSN": ["0000-0000"],
     "issued": {"date-parts": [[2026, 8, 15]]},
     "published-print": {"date-parts": [[2026, 9]]},
@@ -73,6 +73,7 @@ def test_build_record_prefers_openalex_abstract():
     assert rec["pub_date_online"] == "2026-08-15"
     assert rec["pub_date_issue"] == "2026-09"
     assert rec["authors"] == ["A. Author", "B. Author"]
+    assert rec["journal_name"] == "Crime & Law"
     assert rec["relevance"] is None  # 待 classify 填充
 
 

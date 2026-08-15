@@ -1,13 +1,13 @@
 """fetch HTTP 层测试（responses mock）。"""
-from urllib.parse import unquote
-
 import responses
 
 from app import fetch
 
 
 @responses.activate
-def test_fetch_crossref_paginates_with_cursor():
+def test_fetch_crossref_per_issn_with_cursor_and_dedup(monkeypatch):
+    monkeypatch.setattr(fetch.time, "sleep", lambda _: None)
+    # 第一个 ISSN：两页游标
     responses.get(
         "https://api.crossref.org/works",
         json={"message": {"items": [{"DOI": "10.a/1"}], "next-cursor": "CUR2"}},
@@ -16,13 +16,17 @@ def test_fetch_crossref_paginates_with_cursor():
         "https://api.crossref.org/works",
         json={"message": {"items": [{"DOI": "10.a/2"}], "next-cursor": None}},
     )
-    items = fetch.fetch_crossref(["0000-0000"], since="2026-08-01")
-    assert [i["DOI"] for i in items] == ["10.a/1", "10.a/2"]
-    # 过滤条件组装正确（req.url 为 URL 编码形式，先解码再断言）
-    url = unquote(responses.calls[0].request.url)
-    assert "from-created-date:2026-08-01" in url
-    assert "type:journal-article" in url
-    assert "0000-0000" in url
+    # 第二个 ISSN：一页，含与第一个 ISSN 重复的 DOI（print/online 并集会撞）
+    responses.get(
+        "https://api.crossref.org/works",
+        json={"message": {"items": [{"DOI": "10.A/2"}, {"DOI": "10.b/1"}], "next-cursor": None}},
+    )
+    items = fetch.fetch_crossref(["0000-0000", "1111-1111"], since="2026-08-01")
+    assert [i["DOI"] for i in items] == ["10.a/1", "10.a/2", "10.b/1"]  # 大小写不敏感去重
+    req = responses.calls[0].request
+    assert "from-created-date%3A2026-08-01" in req.url or "from-created-date:2026-08-01" in req.url
+    assert "type%3Ajournal-article" in req.url or "type:journal-article" in req.url
+    assert "0000-0000" in req.url
 
 
 @responses.activate

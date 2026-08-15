@@ -21,25 +21,34 @@ def _get_json(url, params, tries=3, timeout=30):
 
 
 def fetch_crossref(issns, since, until=None):
-    """按 ISSN 集合 + from-created-date 拉取新 DOI，游标分页，返回 message.items 列表。
+    """逐 ISSN 拉取新论文（Crossref 多 ISSN OR 与日期过滤组合会丢结果，不可用），
+    游标分页，按 DOI 去重后返回 message.items 列表。
 
     注：Crossref 中综述与论文同为 type=journal-article，无需额外 type 区分。
     """
-    flt = f"issn:{'|'.join(issns)},from-created-date:{since},type:journal-article"
-    if until:
-        flt += f",until-created-date:{until}"
-    items, cursor = [], "*"
-    while True:
-        js = _get_json(
-            "https://api.crossref.org/works",
-            {"filter": flt, "rows": 200, "cursor": cursor, "mailto": config.MAILTO},
-        )
-        msg = js.get("message", {})
-        batch = msg.get("items", [])
-        items.extend(batch)
-        cursor = msg.get("next-cursor")
-        if not cursor or not batch:
-            return items
+    seen = set()
+    items = []
+    for issn in issns:
+        flt = f"issn:{issn},from-created-date:{since},type:journal-article"
+        if until:
+            flt += f",until-created-date:{until}"
+        cursor = "*"
+        while True:
+            js = _get_json(
+                "https://api.crossref.org/works",
+                {"filter": flt, "rows": 200, "cursor": cursor, "mailto": config.MAILTO},
+            )
+            msg = js.get("message", {})
+            batch = msg.get("items", [])
+            for it in batch:
+                doi = (it.get("DOI") or "").lower()
+                if doi and doi not in seen:
+                    seen.add(doi)
+                    items.append(it)
+            cursor = msg.get("next-cursor")
+            if not cursor or not batch:
+                break
+    return items
 
 
 def fetch_openalex(dois):
