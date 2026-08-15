@@ -80,7 +80,7 @@ def test_build_record_falls_back_to_crossref_abstract():
     rec = build_record(CROSSREF_ITEM, None, first_seen="2026-08-15")
     assert rec["abstract_original"] == "We argue that mens rea matters."
     assert rec["abstract_source"] == "crossref"
-    assert rec["lang"] in ("en", "other")
+    assert rec["lang"] == "en"
 
 
 def test_build_record_skips_no_title():

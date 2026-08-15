@@ -25,11 +25,11 @@ def parse_date(msg_part):
     """Crossref/OpenAlex 日期对象 {'date-parts': [[Y,M,D?]]} → 'YYYY-MM-DD'|'YYYY-MM'|'YYYY'|None。"""
     try:
         parts = (msg_part or {}).get("date-parts", [[]])[0]
-    except (AttributeError, IndexError, TypeError):
+        if not parts:
+            return None
+        return "-".join(f"{int(p):02d}" if i else str(int(p)) for i, p in enumerate(parts))
+    except (AttributeError, IndexError, TypeError, ValueError):
         return None
-    if not parts:
-        return None
-    return "-".join(f"{int(p):02d}" if i else str(int(p)) for i, p in enumerate(parts))
 
 
 def rebuild_abstract(inverted):
