@@ -1,0 +1,43 @@
+/* 轻学术风：浅底 + 靛/琥珀点缀，JetBrains Mono 元信息 */
+:root { --ink:#1f2937; --muted:#6b7280; --brand:#3730a3; --brand-soft:#eef2ff;
+        --amber:#b45309; --amber-soft:#fffbeb; --border:#e5e7eb; }
+* { box-sizing: border-box; }
+body { margin:0; color:var(--ink); background:#fafaf9;
+       font-family:"Source Han Serif SC","Noto Serif SC",Georgia,serif; line-height:1.7; }
+.topbar { display:flex; flex-wrap:wrap; gap:12px; align-items:center; justify-content:space-between;
+          padding:14px 24px; background:#fff; border-bottom:1px solid var(--border); }
+.brand { font-weight:700; color:var(--brand); text-decoration:none; font-size:18px; }
+.topbar nav a { margin-left:16px; color:var(--ink); text-decoration:none; font-size:14px; }
+.topbar nav a:hover { color:var(--brand); }
+main { max-width:860px; margin:0 auto; padding:28px 20px 64px; }
+h1 { font-size:26px; } h2 { font-size:19px; margin-top:36px; }
+.muted { color:var(--muted); font-size:13px; }
+.day-card { border:1px solid var(--border); border-radius:12px; padding:16px 20px; margin:16px 0;
+            background:#fff; }
+.paper-list { list-style:none; padding:0; margin:8px 0; }
+.paper-list li { padding:10px 0; border-bottom:1px dashed var(--border); }
+.p-title { color:var(--ink); font-weight:600; text-decoration:none; }
+.p-title:hover { color:var(--brand); }
+.tldr { margin:4px 0 0; font-size:14px; }
+.paper { border:1px solid var(--border); border-left:3px solid var(--brand); border-radius:10px;
+         padding:16px 20px; margin:14px 0; background:#fff; }
+.paper h3 { margin:0 0 4px; font-size:17px; }
+.paper h3 a { color:var(--ink); text-decoration:none; }
+.orig-title { margin:0 0 8px; font-size:13px; color:var(--muted); font-style:italic; }
+.meta { display:grid; grid-template-columns:repeat(auto-fit,minmax(240px,1fr)); gap:4px 16px;
+        margin:10px 0; font-size:13px; }
+.meta div { display:flex; gap:8px; }
+.meta dt { color:var(--muted); white-space:nowrap; } .meta dd { margin:0; }
+.abstract { font-size:14px; background:var(--brand-soft); border-radius:8px; padding:12px; }
+.tag { display:inline-block; font:600 11px/1.6 "JetBrains Mono",ui-monospace,monospace;
+       padding:0 8px; border-radius:999px; margin-right:8px; vertical-align:1px; }
+.tag-core { background:var(--amber-soft); color:var(--amber); border:1px solid #fcd34d; }
+.tag-related { background:var(--brand-soft); color:var(--brand); border:1px solid #c7d2fe; }
+.tag-borderline { background:#f3f4f6; color:var(--muted); border:1px solid var(--border); }
+.borderline-block { margin-top:28px; }
+.filters { display:flex; flex-wrap:wrap; gap:10px; margin-bottom:16px; }
+.filters select,.filters input { padding:6px 10px; border:1px solid var(--border); border-radius:8px;
+                                 background:#fff; font-size:14px; }
+.footer { border-top:1px solid var(--border); color:var(--muted); font-size:12px;
+          text-align:center; padding:18px; background:#fff; }
+details summary { cursor:pointer; color:var(--brand); font-size:14px; }
