@@ -8,8 +8,10 @@ from datetime import datetime, timedelta
 from pathlib import Path
 from zoneinfo import ZoneInfo
 
+import requests
+
 from . import config
-from .classify import LLMClient, classify_or_degrade
+from .classify import ClassifyError, LLMClient, classify_or_degrade, translate_abstract
 from .fetch import fetch_crossref, fetch_openalex
 from .normalize import build_record, filter_new
 from .render import load_papers, render_site
@@ -103,10 +105,20 @@ def run(lookback_days=14, today=None, do_classify=True, do_commit=True, push=Fal
             rec.update(analysis)
             rec["llm_model"] = "none" if degraded else client.model
             rec["generated_at"] = datetime.now(TZ).isoformat(timespec="seconds")
+        # 今日精选：按阅读价值取前 5 篇（有摘要者），全文中译
+        ranked = sorted(
+            (r for r in new if r["abstract_original"]),
+            key=lambda r: (-(r.get("worth_score") or 0), r["doi"]),
+        )
+        for rec in ranked[:5]:
+            try:
+                rec["abstract_zh"] = translate_abstract(rec["abstract_original"], client)
+            except (ClassifyError, requests.RequestException) as e:
+                print(f"WARN 精选翻译失败 {rec['doi']}: {e}")
     elif new:  # --no-classify 调试模式：全部置空待下轮补
         for rec in new:
             rec.update({"relevance": "borderline", "subfield": "interdisciplinary",
-                        "title_zh": None, "tldr_zh": None,
+                        "worth_score": 0, "title_zh": None, "tldr_zh": None,
                         "inclusion_reason_zh": "跳过分诊（调试模式）"})
 
     for rec in new:

@@ -110,8 +110,10 @@ def build_record(item, enrich, first_seen):
         "lang": enrich.get("language") or detect_lang(title, abstract_original),
         "relevance": None,          # classify 填充
         "subfield": None,           # classify 填充
+        "worth_score": None,        # classify 填充（0-10 阅读价值）
         "tldr_zh": None,            # classify 填充
         "inclusion_reason_zh": None,  # classify 填充
+        "abstract_zh": None,        # daily 精选篇目填充（全文中译）
         "llm_model": None,
         "generated_at": None,
     }

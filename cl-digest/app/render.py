@@ -81,19 +81,41 @@ def render_site(papers, site_dir=config.SITE_DIR):
             borderline=[p for p in ps if p["relevance"] == "borderline"],
         ), encoding="utf-8")
 
-    # 首页：最近 7 个日期，每天最多列 5 条 core+related
+    # 首页：最新一日总览 + 精选（有全译文的前 5 篇）+ 往期索引
+    SUBFIELD_ZH = {
+        "criminal_law_core": "实体刑法", "criminal_procedure": "刑事诉讼",
+        "international_criminal_law": "国际刑法", "criminology": "犯罪学",
+        "penology": "刑罚学", "interdisciplinary": "交叉研究",
+    }
+    all_dates = sorted({p["first_seen_at"] for p in visible}, reverse=True)
     days = []
-    for d in sorted({p["first_seen_at"] for p in visible}, reverse=True)[:7]:
+    for d in all_dates[:7]:
         ps = [p for p in visible if p["first_seen_at"] == d]
-        days.append({"date": d,
-                     "core": sum(1 for p in ps if p["relevance"] == "core"),
-                     "related": sum(1 for p in ps if p["relevance"] == "related"),
-                     "borderline": sum(1 for p in ps if p["relevance"] == "borderline"),
-                     # 重点优先，再补相关，共取 5 条
-                     "top": ([p for p in ps if p["relevance"] == "core"]
-                             + [p for p in ps if p["relevance"] == "related"])[:5]})
+        sub_counter = {}
+        for p in ps:
+            key = SUBFIELD_ZH.get(p["subfield"], p["subfield"] or "未分类")
+            sub_counter[key] = sub_counter.get(key, 0) + 1
+        days.append({
+            "date": d,
+            "total": len(ps),
+            "core": sum(1 for p in ps if p["relevance"] == "core"),
+            "related": sum(1 for p in ps if p["relevance"] == "related"),
+            "borderline": sum(1 for p in ps if p["relevance"] == "borderline"),
+            "journals": len({p["journal_name"] for p in ps}),
+            "with_abstract": sum(1 for p in ps if p.get("abstract_original")),
+            "subfields": sorted(sub_counter.items(), key=lambda kv: -kv[1]),
+            "picks": sorted(
+                (p for p in ps if p.get("abstract_zh")),
+                key=lambda p: -(p.get("worth_score") or 0))[:5],
+            # 高价值但出版社未提供摘要、无法全译的论文（如教义学新论）
+            "watchlist": [p for p in ps
+                          if not p.get("abstract_original")
+                          and (p.get("worth_score") or 0) >= 6
+                          and not p.get("abstract_zh")],
+        })
     (site_dir / "index.html").write_text(
-        env.get_template("index.html").render(days=days), encoding="utf-8")
+        env.get_template("index.html").render(days=days, subfield_zh=SUBFIELD_ZH),
+        encoding="utf-8")
 
     # 归档页
     (site_dir / "archive.html").write_text(env.get_template("archive.html").render(

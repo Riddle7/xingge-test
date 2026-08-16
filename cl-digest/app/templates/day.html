@@ -11,13 +11,14 @@
   {% if p.title_zh %}<p class="orig-title">{{ p.title_original }}</p>{% endif %}
   {% if p.tldr_zh %}<p class="tldr">{{ p.tldr_zh }}</p>{% endif %}
   <dl class="meta">
-    <div><dt>作者</dt><dd>{{ p.authors | join(', ') or '—' }}</dd></div>
+    <div><dt>作者</dt><dd>{{ p.authors | join(', ') or '-' }}</dd></div>
     <div><dt>期刊</dt><dd>{{ p.journal_name }}</dd></div>
-    <div><dt>在线发表</dt><dd>{{ p.pub_date_online or '—' }}</dd></div>
+    <div><dt>在线发表</dt><dd>{{ p.pub_date_online or '-' }}</dd></div>
     <div><dt>子领域</dt><dd>{{ p.subfield }}</dd></div>
     <div><dt>收录理由</dt><dd>{{ p.inclusion_reason_zh }}</dd></div>
   </dl>
   {% if p.abstract_original %}
+  {% if p.abstract_zh %}<div class="abstract-zh"><span class="muted">摘要全译</span><br>{{ p.abstract_zh }}</div>{% endif %}
   <details><summary>英文/原文摘要（来源：{{ p.abstract_source }}）</summary>
     <p class="abstract">{{ p.abstract_original }}</p>
   </details>

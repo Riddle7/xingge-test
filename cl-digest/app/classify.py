@@ -17,13 +17,22 @@ SYSTEM_PROMPT = """你是刑法学术文献分诊员。输入一篇论文的标�
 只输出严格 JSON（无其他文字、无代码围栏）：
 {"relevance":"core|related|borderline",
  "subfield":"criminal_law_core|criminal_procedure|international_criminal_law|criminology|penology|interdisciplinary",
+ "worth_score":0,
  "title_zh":"中文参考标题","tldr_zh":"一句话中文导读(不超过100字)","inclusion_reason_zh":"一句话收录理由"}
 判定规则：
 1. relevance：core=以刑事实体法/刑事责任/刑罚的教义或理论为主要研究对象；related=刑事诉讼、
    国际刑法、刑罚学、犯罪学交叉且对刑法研究有参考价值；borderline=按词表所列边界情形，需人工判断。
 2. tldr_zh 与 inclusion_reason_zh 只能复述标题与摘要中已有信息，禁止推断作者未陈述的结论、
    数据、样本、法域；无摘要时仅基于标题并保持极简。
-3. title_zh 为参考翻译，术语遵从刑法学通行译法。"""
+3. title_zh 为参考翻译，术语遵从刑法学通行译法。
+4. worth_score 为 0-10 整数，衡量该文对刑法学研究者的阅读价值（与 relevance 独立评分）：
+   教义学/理论创新、比较法与立法改革洞见、对刑法研究有直接启发的实证发现给高分；
+   纯技术性、重复性研究、书评短讯、目录页给低分。"""
+
+TRANSLATE_PROMPT = """你是法学学术翻译。把给定的论文摘要完整翻译为中文，只输出严格 JSON（无其他文字、无代码围栏）：
+{"translation_zh":"完整中文译文"}
+要求：忠实原意、不增删内容；术语遵从刑法学通行译法（如 mens rea 译为"罪过"、
+actus reus 译为"危害行为"）；保留人名、地名、法条编号原文；语句通顺的学术书面语。"""
 
 
 class LLMClient:
@@ -74,6 +83,9 @@ def parse_analysis(raw):
             raise ClassifyError(f"{key} 缺失或为空")
     if len(data["tldr_zh"]) > 120:
         raise ClassifyError("tldr_zh 超长")
+    score = data.get("worth_score")
+    if not isinstance(score, int) or isinstance(score, bool) or not 0 <= score <= 10:
+        raise ClassifyError(f"worth_score 非法: {score!r}")
     return data
 
 
@@ -96,7 +108,21 @@ def classify_or_degrade(title, abstract, lexicon, client):
     return {
         "relevance": "borderline",
         "subfield": "interdisciplinary",
+        "worth_score": 0,
         "title_zh": None,
         "tldr_zh": None,
         "inclusion_reason_zh": "LLM 分诊失败，待人工处理",
     }, True
+
+
+def translate_abstract(abstract, client):
+    """摘要全文中译；失败抛 ClassifyError，成功返回译文字符串。"""
+    raw = client.chat(TRANSLATE_PROMPT, f"摘要:\n{abstract}")
+    try:
+        data = json.loads(FENCE_RE.sub("", (raw or "").strip()))
+    except (json.JSONDecodeError, TypeError) as e:
+        raise ClassifyError(f"无法解析译文输出: {raw!r:.200}") from e
+    text = data.get("translation_zh") if isinstance(data, dict) else None
+    if not isinstance(text, str) or not text.strip():
+        raise ClassifyError("translation_zh 缺失或为空")
+    return text.strip()

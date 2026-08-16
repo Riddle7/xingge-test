@@ -10,14 +10,23 @@ PAPERS = [
      "authors": ["A. B"], "journal_name": "J1", "journal_issn_l": "0000-0000",
      "pub_date_online": "2026-08-10", "pub_date_issue": None, "first_seen_at": "2026-08-15",
      "abstract_original": "abs text", "abstract_source": "openalex", "lang": "en",
-     "relevance": "core", "subfield": "criminal_law_core", "tldr_zh": "导读一",
-     "inclusion_reason_zh": "理由一", "llm_model": "m", "generated_at": "t"},
+     "relevance": "core", "subfield": "criminal_law_core", "worth_score": 9,
+     "tldr_zh": "导读一", "inclusion_reason_zh": "理由一",
+     "abstract_zh": "全文中译一。", "llm_model": "m", "generated_at": "t"},
     {"doi": "10.a/2", "title_original": "Policing Study", "title_zh": "警务研究",
      "authors": [], "journal_name": "J2", "journal_issn_l": "0000-0001",
      "pub_date_online": None, "pub_date_issue": None, "first_seen_at": "2026-08-15",
      "abstract_original": None, "abstract_source": "none", "lang": "en",
-     "relevance": "borderline", "subfield": "criminology", "tldr_zh": None,
-     "inclusion_reason_zh": "LLM 分诊失败，待人工处理", "llm_model": "m", "generated_at": "t"},
+     "relevance": "borderline", "subfield": "criminology", "worth_score": 2,
+     "tldr_zh": None, "inclusion_reason_zh": "LLM 分诊失败，待人工处理",
+     "abstract_zh": None, "llm_model": "m", "generated_at": "t"},
+    {"doi": "10.a/3", "title_original": "Doctrinal Study", "title_zh": "教义学研究",
+     "authors": ["C. D"], "journal_name": "J3", "journal_issn_l": "0000-0002",
+     "pub_date_online": None, "pub_date_issue": None, "first_seen_at": "2026-08-15",
+     "abstract_original": None, "abstract_source": "none", "lang": "en",
+     "relevance": "core", "subfield": "criminal_law_core", "worth_score": 7,
+     "tldr_zh": "无摘要高价值导读", "inclusion_reason_zh": "理由三",
+     "abstract_zh": None, "llm_model": "m", "generated_at": "t"},
 ]
 
 
@@ -25,8 +34,12 @@ def test_render_site_products(tmp_path):
     render_site(PAPERS, site_dir=tmp_path)
     day = (tmp_path / "day" / "2026-08-15.html").read_text(encoding="utf-8")
     assert "刑事责任" in day and "待人工确认" in day and "摘要暂缺" in day
+    assert "全文中译一。" in day  # 日页同步显示译文
     idx = (tmp_path / "index.html").read_text(encoding="utf-8")
     assert "2026-08-15" in idx
+    assert "今日精选" in idx and "全文中译一。" in idx  # 首页精选含全文译文
+    assert "今日总览" in idx and "实体刑法" in idx  # 总览统计与中文子领域标签
+    assert "另关注" in idx and "教义学研究" in idx  # 高价值无摘要论文进另关注
     data_js = (tmp_path / "assets" / "data" / "papers-2026-08.js").read_text(encoding="utf-8")
     assert "window.PAPERS_2026_08" in data_js
     ET.parse(tmp_path / "feed.xml")  # RSS 为合法 XML
@@ -44,7 +57,7 @@ def test_load_papers_reads_monthly_files(tmp_path):
     (tmp_path / "papers-2026-08.jsonl").write_text(
         "\n".join(json.dumps(p) for p in PAPERS) + "\n", encoding="utf-8")
     papers = load_papers(data_dir=tmp_path)
-    assert len(papers) == 2
+    assert len(papers) == 3
 
 
 def test_monthly_js_data_is_json_escaped_not_html(tmp_path):
