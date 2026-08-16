@@ -89,7 +89,9 @@ def render_site(papers, site_dir=config.SITE_DIR):
                      "core": sum(1 for p in ps if p["relevance"] == "core"),
                      "related": sum(1 for p in ps if p["relevance"] == "related"),
                      "borderline": sum(1 for p in ps if p["relevance"] == "borderline"),
-                     "top": [p for p in ps if p["relevance"] in ("core", "related")][:5]})
+                     # 重点优先，再补相关，共取 5 条
+                     "top": ([p for p in ps if p["relevance"] == "core"]
+                             + [p for p in ps if p["relevance"] == "related"])[:5]})
     (site_dir / "index.html").write_text(
         env.get_template("index.html").render(days=days), encoding="utf-8")
 

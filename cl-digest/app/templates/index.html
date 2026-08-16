@@ -5,7 +5,7 @@
 {% for d in days %}
 <section class="day-card">
   <h2><a href="day/{{ d.date }}.html">{{ d.date }}</a></h2>
-  <p class="muted">重点 {{ d.core }} 篇 · 相关 {{ d.related }} 篇 · 待人工确认 {{ d.borderline }} 篇</p>
+  <p class="muted">重点 {{ d.core }} 篇 · 相关 {{ d.related }} 篇 · 待人工确认 {{ d.borderline }} 篇 · <a href="day/{{ d.date }}.html">查看全部 {{ d.core + d.related + d.borderline }} 篇 →</a></p>
   <ul class="paper-list">
     {% for p in d.top %}
     <li>
